@@ -34,7 +34,7 @@
 
 <p align="center">
   <a href="https://star-history.com/#zexuanw958-svg/travel-plan-viz&Date">
-    <img src="https://api.star-history.com/svg?repos=zexuanw958-svg/travel-plan-viz&type=Date" alt="travel-plan-viz Star History" width="68%">
+    <img src="https://raw.githubusercontent.com/zexuanw958-svg/zexuanw958-svg/main/star-history.svg" alt="travel-plan-viz Star History" width="68%">
   </a>
 </p>
 
