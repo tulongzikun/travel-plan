@@ -33,13 +33,13 @@
 ## ⭐ Star History
 
 <p align="center">
-  <a href="https://star-history.com/#zexuanw958-svg/travel-plan-viz&Date">
+  <a href="https://github.com/zexuanw958-svg/travel-plan-viz/stargazers">
     <img src="https://raw.githubusercontent.com/zexuanw958-svg/travel-plan-viz/star-history/star-history.svg" alt="travel-plan-viz Star History" width="68%">
   </a>
 </p>
 
 <p align="center">
-  <sub>趋势图由 <a href="https://star-history.com">star-history.com</a> 按日聚合生成并缓存,非实时;实时 Star 数请看页面顶部。<br>Chart is aggregated by day and cached (not real-time) — see the count at the top of the page for the live number.</sub>
+  <sub>趋势图由本仓库 GitHub Action 基于 GitHub 星标数据每日自动重绘,非实时;实时 Star 数请看页面顶部。<br>Chart is redrawn daily by this repo's GitHub Action from GitHub stargazer data (not real-time) — see the count at the top of the page for the live number.</sub>
 </p>
 
 ---
