@@ -117,6 +117,7 @@ const trip = {
 ## 可选适配元素（仅当数据来自用户已装的官方旅行 skill 时才出现，详见 research-guide「第三方 skill 适配」）
 
 - **行动链接 `actionLink`**：航班 `candidates`、酒店 `options`、`slot.transport` 等若带 `actionLink={label,url}`，渲染成一个明确的「去预订 / 导航 / 叫车」按钮或链接（新标签打开）。**没有就不渲染**，绝不为此手拼链接。
+- **与引擎自带地图链接的边界**：`map.js` 在地图弹窗生成的「导航 / 高德地图 / Google 地图」点位链接**不属于 actionLink**——它们按官方公开的免 key URI 规范（Apple Maps、`geo:`、高德 URI API `coordinate=wgs84`、Google Maps URLs）由引擎生成，只做「打开地图看这个点」、不承载实时数据主张；「绝不手拼」约束针对的是预订/路线类 actionLink，两者并存不冲突。
 - **数据来源 `dataSources`**：若 `trip.dataSources` 非空，在相关区块或免责声明附近用一行小字中性注明（如「实时航班/酒店来源：飞猪 skill；路线规划与天气来源：高德 skill，时效性由其官方保证」）。措辞**中性、不夸、不推荐某一家**；与 AI 静态整理的内容（标"参考·可能过时"）做视觉区分即可。
 - 这些是**渐进增强**：缺这些字段时页面与现在完全一致，不留空块、不报错。
 

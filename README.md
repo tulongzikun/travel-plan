@@ -59,7 +59,7 @@
 | | 功能 |
 |---|---|
 | 🧭 | **两种入口**：只给目的地+天数让它帮你规划；或丢一份现成计划让它直接出页面 |
-| 🗺️ | **交互地图**：Leaflet + 免费地图（无需 API key），编号景点 + 按序虚线路线 + 一键跳手机导航（iOS 走 Apple Maps、Android 走 geo: 深链）；来自高德/腾讯的 GCJ-02 坐标自动纠偏为 WGS-84，点位不漂移 |
+| 🗺️ | **交互地图**：Leaflet + 免费地图（无需 API key），编号景点 + 按序虚线路线 + 一键跳手机导航（iOS 走 Apple Maps、Android 走 geo: 深链，境内点位另附高德地图、境外另附 Google 地图链接，均为官方免 key URI）；来自高德/腾讯的 GCJ-02 坐标自动纠偏为 WGS-84，点位不漂移 |
 | 📅 | **每日时间轴**：早/中/晚分段，每个景点带真实照片、评分、一句话点评 |
 | ⏰ | **出发前提醒**：根据出发日期倒推"几号前订什么"，页顶待办清单 + 时间轴 ⚠️ 徽标 |
 | 🌦️ | **行前须知**：按出发季节定制的天气/穿搭/台风提醒、支付方式、必备 App、购票时机 |
@@ -193,7 +193,7 @@ Inspired by the community "vibe-coding travel guide" trick, turned into a proper
 | | Feature |
 |---|---|
 | 🧭 | **Two modes**: give only a destination + days and let it plan; or hand it an existing plan and it just renders the page |
-| 🗺️ | **Interactive map**: Leaflet + free tiles (no API key), numbered stops + ordered dashed route + tap-to-navigate links (Apple Maps on iOS, geo: on Android); GCJ-02 coords from Amap/Tencent are auto-converted to WGS-84 so pins don't drift |
+| 🗺️ | **Interactive map**: Leaflet + free tiles (no API key), numbered stops + ordered dashed route + tap-to-navigate links (Apple Maps on iOS, geo: on Android, plus key-free Amap links for mainland-China stops and Google Maps links elsewhere); GCJ-02 coords from Amap/Tencent are auto-converted to WGS-84 so pins don't drift |
 | 📅 | **Daily timeline**: morning/noon/evening, each stop with a real photo, rating, and one-line review |
 | ⏰ | **Pre-trip reminders**: deadlines back-calculated from the departure date — a top checklist + ⚠️ badges on the timeline |
 | 🌦️ | **Pre-trip essentials**: season-aware weather/packing/typhoon notes, payment, must-have apps, ticket timing |

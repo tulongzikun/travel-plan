@@ -1,4 +1,4 @@
-// Leaflet 地图引擎。纯函数（buildNavLink/routeCoordinates/gcj02ToWgs84）可单元测试；
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可单元测试；
 // initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
 
 // HTML 转义，防止 XSS
@@ -19,6 +19,25 @@ function buildNavLink(lat, lng, label, ua) {
     return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
   }
   return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地图 App 的点位链接（免 key 的官方 URI 规范：高德 URI API、Google Maps URLs）。
+// 这不是 page-contract 的 actionLink——不承载实时数据主张，只是"打开地图看这个点"。
+// 境内点只给高德（Google 地图境内不可用、底图坐标系还会偏移）；境外点给 Google + 高德。
+// 输入坐标一律 WGS-84：高德 URI 用 coordinate=wgs84 声明由其换算，Google 本身即 WGS-84。
+// isInChinaBBox 声明在下方 GCJ 区块（函数声明有提升，此处可用）。
+function buildMapAppLinks(lat, lng, label) {
+  var amap = {
+    label: '高德地图',
+    url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+      + '&name=' + encodeURIComponent(label)
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-viz',
+  };
+  var google = {
+    label: 'Google 地图',
+    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+  };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
 }
 
 // —— GCJ-02 → WGS-84 坐标转换 ——
@@ -85,10 +104,14 @@ function initTravelMap(elementId, points, opts) {
       iconSize: [28, 28],
       iconAnchor: [14, 14],
     });
+    var navLinks = [{ label: '导航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
     L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
       '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
       + (p.time ? escapeHTML(p.time) + '<br>' : '')
-      + '<a href="' + buildNavLink(p.lat, p.lng, p.name, ua) + '">导航</a>'
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
     );
   });
 
@@ -103,6 +126,7 @@ function initTravelMap(elementId, points, opts) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
     routeCoordinates: routeCoordinates,
     gcj02ToWgs84: gcj02ToWgs84,
     initTravelMap: initTravelMap,
