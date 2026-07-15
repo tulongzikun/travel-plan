@@ -22,7 +22,9 @@
 [![no API key](https://img.shields.io/badge/map-no%20API%20key-0ea5e9?style=flat-square)](#-特点)
 [![tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)](#-测试)
 
-<sub><a href="#-特点">✨ 特点</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-star-history">⭐ Star</a></sub>
+<sub>🎬 更多 AI 工具实战玩法：作者抖音 <strong>@泽轩604</strong>（app 内搜索即达 · <a href="https://v.douyin.com/e9skpkkmo24/">本项目的抖音原帖</a>）</sub>
+
+<sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-star-history">⭐ Star</a></sub>
 
 <sub><a href="#-中文">中文</a> · <a href="#-english">English</a></sub>
 
@@ -88,6 +90,8 @@
 
 ### 🚀 安装（跨 Agent）
 
+> **🧑‍💻 我完全不懂代码怎么装？** 有一份从「什么是 GitHub、怎么下载」讲到「装完对 AI 说哪句话」的保姆级教程，**Windows / Mac 每一步都有**：👉 [零基础安装指南 INSTALL.md](INSTALL.md)。下面的一行命令是给熟悉终端的用户的快捷方式。
+
 把 skill 链接到对应 Agent 的 skills 目录：
 
 ```bash
@@ -120,6 +124,26 @@ ln -sfn "$(pwd)/travel-plan-viz" ~/.codex/skills/travel-plan-viz
 - `hongkong-4d3n-real.html` —— 香港 4 天 3 晚（真实联网数据）
 - `shenzhen-3d2n-real.html` —— 深圳 3 天 2 晚（只给天数，从零生成）
 - `tokyo-5d4n-real.html` —— 东京 5 天 4 晚（模式 B：粗略计划 + Agent 建议后生成）
+
+### ❓ 常见问题（FAQ）
+
+**Q：这和直接问豆包 / 千问 / ChatGPT「帮我写个攻略」有什么区别？**
+
+直接问大模型，得到的是一段文字或一次性的页面。这个 skill 把容易出错的环节固化成了可复用的工程流程：
+
+- **行程体检**：丢现成计划进来，它会对照「完善行程」清单提几条可选优化建议（克制、不硬来），不只是转个格式；
+- **单文件离线可读**：一个 `.html` 存进手机，没网也能看文字行程；
+- **点导航**：地图上每个景点一键跳手机导航（iOS 走 Apple Maps，Android 走 geo: 深链）；
+- **订票倒推提醒**：按出发日期倒推「几号前该订什么」，页顶自动生成待办清单；
+- **机械校验 + 可持续迭代**：生成后自动校验坐标 / 字段 / 必需区块，行程数据以 JSON 内嵌页面——之后说一句「把第三天的 X 挪到第四天」就能改，不丢字段。
+
+**Q：AI 攻略是不是伪需求？信息还得自己核实。**
+
+一半同意。价格、营业时间、班次这类时效信息，确实必须以官方渠道为准——所以页面自带全覆盖免责声明，并引导到官方 App 核实，这一点不装。这个 skill 的价值不在「替你核实、替你预订」，而在**整理与提醒**：把散落的信息排成能直接照着走的行程页，把「几号前订什么」替你倒推出来。核实那一步，诚实地留给你。
+
+**Q：能做外国城市吗？**
+
+能。`samples/` 里的东京 5 天 4 晚就是现成例子。地图用 OpenStreetMap 全球瓦片，海外坐标本身就是 WGS-84 标准、无需纠偏；只有来自高德 / 腾讯的国内坐标才需要 GCJ-02 纠偏（skill 会自动处理）。
 
 ### 📁 项目结构
 
@@ -200,6 +224,8 @@ A hybrid architecture — **error-prone mechanics are baked into reusable engine
 
 ### 🚀 Install (cross-agent)
 
+> **New to all this?** There's a zero-basics, step-by-step install guide (Windows & Mac, written in Chinese): [INSTALL.md](INSTALL.md).
+
 Link the skill into your agent's skills directory:
 
 ```bash
@@ -232,6 +258,20 @@ Ready-made outputs in `samples/`, open them in a browser:
 - `hongkong-4d3n-real.html` — Hong Kong, 4D3N (real researched data)
 - `shenzhen-3d2n-real.html` — Shenzhen, 3D2N (generated from days only)
 - `tokyo-5d4n-real.html` — Tokyo, 5D4N (Mode B: rough plan + agent suggestions)
+
+### ❓ FAQ
+
+**Q: How is this different from just asking a chatbot to "write me an itinerary"?**
+
+A plain chat gives you a wall of text or a one-off page. This skill bakes the error-prone parts into a reusable pipeline: an itinerary health-check with restrained optional suggestions (Mode B), a single offline-readable HTML file, tap-to-navigate map pins, booking reminders back-calculated from your departure date, mechanical post-generation validation, and embedded JSON data so the page stays editable without losing fields.
+
+**Q: "AI travel guides are pointless — you have to verify everything yourself anyway."**
+
+Half agreed. Time-sensitive info (prices, opening hours, schedules) must be verified through official channels — which is exactly why every page ships with a full-coverage disclaimer pointing to official apps. The value here is **organizing and reminding** — laying scattered info out as a usable itinerary page and back-calculating what to book by when — not verifying or booking for you. That last step is honestly left to you.
+
+**Q: Does it work for cities outside China?**
+
+Yes — the Tokyo 5D4N sample is one. The map uses global OpenStreetMap tiles; overseas coordinates are already WGS-84 and need no conversion (GCJ-02 correction only applies to coordinates coming from Amap/Tencent).
 
 ### 📁 Structure
 
