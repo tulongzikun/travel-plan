@@ -140,3 +140,15 @@ travel-plan-viz/
 - **契约机械校验引擎**：新增第三个引擎 `assets/validate.js`（Node 侧，含 CLI `node assets/validate.js <成品.html>`）：trip 必填字段、坐标越界（抓经纬度写反）、离群坐标（与行程中位点差 >3° 报 warning，抓查错城市）、必需区块标记、trip-data 可解析。SKILL 工作流新增"生成后必跑校验，ERROR 修复重跑"一步。ERROR/WARNING 分级：前者机械可判定必须修，后者供人工判断。
 
 > 落地文件：`assets/map.js`、`assets/validate.js`（新增）、`test/`（19 用例）、`page-contract.md` 硬性约束三条新增、`SKILL.md` 第 6 步、`research-guide.md` 坐标系陷阱节、`porting-to-other-agents.md`、`CLAUDE.md` 红线、`README.md` 中英门面。
+
+## 实现后演进（2026-07-15：抖音复盘 P0 + 免 key 地图 App 点位链接 + 高德适配调研落地）
+
+**背景**：抖音图文复盘（51.23 万播放、96 条一级评论逐条聚类）暴露三类门面缺口（回流动线、零基础安装、差异化质疑）；同期调研高德开放平台 SKILL 市场，评估「接高德 API」的正确边界。
+
+- **门面 P0**：README 加抖音回流入口与 FAQ 三问（对比直接问通用大模型 / 「信息还得自己核实」诚实认一半 / 海外城市能力指向东京样例）；新增零基础 `INSTALL.md`（Windows/Mac 保姆级，从「什么是 GitHub」讲到「装完说哪句话」）。
+- **免 key 地图 App 点位链接**：`map.js` 新增 `buildMapAppLinks` 纯函数，地图弹窗在系统「导航」链接外按境内外自动附链——境内点给高德（`uri.amap.com/marker`，`coordinate=wgs84` 声明由高德侧换算、`callnative=1` 移动端唤端；Google 境内不可用且底图 GCJ-02 有偏移，不给）、境外点给 Google 地图（Maps URLs 规范，本身 WGS-84）+ 高德。复用引擎内 `isInChinaBBox`，测试增至 21 用例（含 `position` 经度在前的顺序断言）。
+- **边界澄清（防未来误删）**：这类链接是官方公开的免 key URI 规范、不承载实时数据主张，**不属于** actionLink 的「绝不手拼」禁令——`page-contract.md`「可选适配元素」与 `research-guide.md` 铁律 3 均已写明边界。
+- **适配入口具名**：research-guide 高德行补记官方入口——高德官方 MCP Server（lbs.amap.com「大模型开发工具」）与 OpenClaw skill `amap-lbs-skill`（GitHub org `AMap-Web`），均需用户自备 Web 服务 Key。
+- **明确不做（2026-07-15 拍板）**：不把高德 JS API 嵌进成品页（key 泄进单文件、破坏「map: no API key」承诺、瓦片 GCJ-02 翻转坐标系红线、无 key 白屏）；引擎不自建 REST 直连（即使用户自备 key）——实时数据仍只经用户已装的官方 skill/MCP，责任归其。
+
+> 落地文件：`assets/map.js`、`test/map.test.js`（21 用例）、`page-contract.md`、`research-guide.md`、`README.md`、`INSTALL.md`（新增）、`CLAUDE.md`。
