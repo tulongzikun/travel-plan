@@ -63,7 +63,7 @@ Inspired by the community "vibe-coding travel guide" trick, turned into a proper
 | 🌦️ | **Pre-trip essentials**: season-aware weather/packing/typhoon notes, payment, must-have apps, ticket timing |
 | ✈️ | **Candidate flights**: 3–5 real options when nothing is booked, so there's a fallback |
 | 🚗 | **Point-to-point transport chain**: every leg (hotel → first stop → between stops → last stop → hotel) with mode + duration (distance estimates for driving, fares for transit), scheduled against local sunset so no mountain road is driven after dark |
-| 🏨 | **Hotels by area & price**: staying areas based on the itinerary, budget/mid/premium options — chain brands first at each tier (H World / Home Inn / Jin Jiang etc.), honestly labeled local picks where no chain operates |
+| 🏨 | **Hotels by area & price**: staying areas based on the itinerary, budget/mid/premium options — chain brands first at each tier (H World / Home Inn / Jin Jiang etc.), honestly labeled local picks where no chain operates; realtime prices via official channels once dates are locked (timestamped, book-page prevails) |
 | 🍜 | **Daily food**: per-meal picks with signature dishes and reference prices |
 | 📄 | **Single file, responsive, offline-readable**: one `.html`, adapts to phone & desktop (single column on mobile, multi-column on desktop); the text itinerary reads offline, while map tiles & photos need a connection and degrade gracefully (no broken-image icons) |
 | ✅ | **Post-generation validation**: `validate.js` mechanically checks missing fields, out-of-range/outlier coordinates (catches swapped lat/lng or wrong-city lookups), and required blocks — no relying on "the model probably did it right" |
