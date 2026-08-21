@@ -87,7 +87,7 @@ const trip = {
           openingHours: "全天开放",        // 可选
           closedDays: "周一休",            // 可选，无则省略
           ticketPrice: "免费 / 缆车套票约 ¥88",  // 可选，参考价（非实时）
-          transport: { mode: "天星小轮", fare: "约 ¥3", duration: "约 10 分钟", actionLink }, // 可选：如何到达本点（自上一站/住宿点）；自驾行程 mode 写「自驾」、duration 写「自<上一站> 约 Xkm·Y 分钟」形成逐段车程链（见 research-guide「点到点交通」节）；actionLink 可选={label,url}，仅当来自官方地图 skill 的路线规划/导航链接（高德/腾讯/滴滴）
+          transport: { mode: "天星小轮", fare: "约 ¥3", duration: "约 10 分钟", actionLink }, // 可选：如何到达本点（自上一站/住宿点）。任何交通方式都应给，形成「住宿点→首站→景点间→末站→住宿点」的逐段交通链——自驾/包车 duration 写「自<上一站> 约 Xkm·Y 分钟」、公共交通写方式+票价+耗时（见 research-guide「点到点交通」节）；actionLink 可选={label,url}，仅当来自官方地图 skill 的路线规划/导航链接（高德/腾讯/滴滴）
           seasonal: "暑期限定灯光秀（6/12–8/31）",  // 可选：时令活动
           needsBooking: false,
           leadDays: 0
