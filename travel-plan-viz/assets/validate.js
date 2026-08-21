@@ -15,6 +15,12 @@ function validateTrip(trip) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(trip.startDate || '')) {
     errors.push('trip.startDate 须为 YYYY-MM-DD，当前: ' + trip.startDate);
   }
+  // dateTBD：出发日期未定标记（startDate 为估算日），见 page-contract.md
+  if (trip.dateTBD !== undefined && typeof trip.dateTBD !== 'boolean') {
+    errors.push('trip.dateTBD 须为布尔（出发日期未定标记）');
+  } else if (trip.dateTBD === true) {
+    warnings.push('trip.dateTBD=true：startDate 为估算日，提醒日期仅供量级参考，定档后建议重算');
+  }
   if (!trip.disclaimer || String(trip.disclaimer).length < 20) {
     errors.push('缺 trip.disclaimer（全覆盖免责声明）');
   }

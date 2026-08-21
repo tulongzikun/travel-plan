@@ -8,6 +8,8 @@
 const trip = {
   title: "香港 4 天 3 晚",
   startDate: "2026-07-15",           // ISO，用于提醒日期计算
+  dateTBD: true,                     // 可选：出发日期未定时置 true——startDate 填估算日（约定按"今天+30天"），
+                                     // 提醒照常计算。页顶待办清单上方须渲染一行估算提示（见区块 1）
   colorScheme: "<每趟行程不同，由设计步骤决定>",
 
   // 行前须知（按出发日期/季节定制）
@@ -104,7 +106,7 @@ const trip = {
 
 ## 必须包含的区块（顺序可由美学微调，内容不可缺）
 
-1. **页顶**：行程标题 + 出发前待办清单。清单用 `reminders.js` 的 `computeReminders(trip.startDate, trip.reminders)` 再 `renderChecklistHTML(...)` 生成。
+1. **页顶**：行程标题 + 出发前待办清单。清单用 `reminders.js` 的 `computeReminders(trip.startDate, trip.reminders)` 再 `renderChecklistHTML(...)` 生成。若 `trip.dateTBD` 为 true，清单上方须加一行醒目提示（如「出发日期未定，以下提醒按 {startDate} 估算，定档后把本页丢回给 AI 重算」）。
 2. **行前须知区块**：展示 `preTrip` 全部——天气与台风提醒、穿搭、支付、必备 App、购票时机。突出"日期/季节定制"。
 3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个待选班次，每项标"待选 · 请自行核实预订"并显示 `note`。
 4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。

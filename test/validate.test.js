@@ -53,6 +53,18 @@ test('validateTrip 抓住 needsBooking 缺 leadDays', () => {
   assert.ok(out.errors.some((e) => e.includes('needsBooking')));
 });
 
+test('validateTrip 支持 dateTBD：true 给估算 warning，非布尔给 error', () => {
+  const tbd = JSON.parse(JSON.stringify(goodTrip));
+  tbd.dateTBD = true;
+  const out1 = validateTrip(tbd);
+  assert.deepStrictEqual(out1.errors, []);
+  assert.ok(out1.warnings.some((w) => w.includes('估算')));
+  const bad = JSON.parse(JSON.stringify(goodTrip));
+  bad.dateTBD = 'yes';
+  const out2 = validateTrip(bad);
+  assert.ok(out2.errors.some((e) => e.includes('dateTBD')));
+});
+
 function goodHTML() {
   return [
     '<!DOCTYPE html><html><head><link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">',
