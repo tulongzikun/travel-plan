@@ -16,3 +16,7 @@ yarn-error.log*
 # Logs / tmp
 *.log
 .tmp/
+
+# Python
+__pycache__/
+*.pyc
