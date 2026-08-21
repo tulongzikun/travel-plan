@@ -161,7 +161,7 @@ travel-plan-viz/
     porting-to-other-agents.md # 跨 Agent 适配指南 + 通用提示词
 samples/                # 生成的示例页面
 test/                   # 引擎单元测试（node --test）
-docs/superpowers/       # 设计文档与实现计划
+docs/                   # 静态素材（banner.png）
 ```
 
 ### 🧪 测试
@@ -289,7 +289,7 @@ travel-plan-viz/
     porting-to-other-agents.md # cross-agent porting guide + adaptation prompt
 samples/                # generated example pages
 test/                   # engine unit tests (node --test)
-docs/superpowers/       # design specs & implementation plans
+docs/                   # static assets (banner.png)
 ```
 
 ### 🧪 Tests
