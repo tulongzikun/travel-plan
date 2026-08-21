@@ -24,11 +24,13 @@ const trip = {
     ticketTip: "热门景点门票建议提前 3–7 天网上购买，避免现场排队"
   },
 
-  // 航班：已预订高亮；未预订时给 3-5 个待选班次供自行核实
-  // actionLink 可选：仅当链接来自用户已装的官方 skill（如飞猪）时给，{label,url}；否则省略，别手拼。
+  // 航班：已预订高亮；未预订时给 3-5 个建议班次（航司+航班号+起降时刻）供自行核实
+  // actionLink 可选：仅当链接来自官方渠道（已装官方 skill 或 tools/flight_research.py 直连返回）时给，{label,url}；否则省略，别手拼。
   flights: {
     booked: [ { label, code, time } ],
-    candidates: [ { label, code, time, note, actionLink } ]   // note 写机型/直飞或经停/大致价位区间
+    candidates: [ { label, code, time, note, price, priceQueriedAt, actionLink } ]
+    // note 写机型/直飞或经停；price 可选——仅当来自官方渠道实时查询（如 "¥780"），
+    // 且必须同时给 priceQueriedAt（查询时间戳）；没查实时就省略 price，note 里给参考区间
   },
 
   // 酒店：综合各景点位置，按"片区 + 价位"推荐
@@ -47,11 +49,11 @@ const trip = {
 
   disclaimer: "本页全部信息（天气、航班、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。",
 
-  // 可选：本次若用了用户已装的官方旅行 skill（飞猪/高德/腾讯地图/滴滴等）补数据，在此登记来源，页面据此注明；没用到就整个省略。
-  // 责任边界：这些来源的数据实时性/真实性由对方官方 skill 负责，本页只适配呈现、不背书，措辞中性、不替任一家打广告。
+  // 可选：本次若经官方渠道（用户已装的官方旅行 skill，或 tools/ 直连工具如 flight_research.py）补数据，在此登记来源，页面据此注明；没用到就整个省略。
+  // 责任边界：这些来源的数据实时性/真实性由对方官方 skill / 官方 API 负责，本页只适配呈现、不背书，措辞中性、不替任一家打广告。
   dataSources: [
     { name: "高德地图 skill", scope: "点到点路线规划、坐标", realtime: true },
-    { name: "飞猪 flyai",     scope: "航班候选",            realtime: true }
+    { name: "飞猪 flyai",     scope: "航班候选与实时价",    realtime: true }
   ],
 
   // 全程通用避坑贴士
@@ -108,7 +110,7 @@ const trip = {
 
 1. **页顶**：行程标题 + 出发前待办清单。清单用 `reminders.js` 的 `computeReminders(trip.startDate, trip.reminders)` 再 `renderChecklistHTML(...)` 生成。若 `trip.dateTBD` 为 true，清单上方须加一行醒目提示（如「出发日期未定，以下提醒按 {startDate} 估算，定档后把本页丢回给 AI 重算」）。
 2. **行前须知区块**：展示 `preTrip` 全部——天气与台风提醒、穿搭、支付、必备 App、购票时机。突出"日期/季节定制"。
-3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个待选班次，每项标"待选 · 请自行核实预订"并显示 `note`。
+3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个建议班次，每项标"待选 · 请自行核实预订"并显示 `note`；带 `price` 的须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订票页为准」。
 4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。
 5. **免责声明**：在航班/酒店区域附近显著展示 `trip.disclaimer` 全文。
 6. **交互地图**：`<div id="map">`，调用 `initTravelMap('map', points)`，`points` 为所有 slot 按行程顺序汇总的 `{lat,lng,name,time}`。引入 Leaflet CSS/JS（CDN）。
@@ -116,7 +118,7 @@ const trip = {
 8. **每日餐饮**：展示当日 `dining`，每餐含 `place`、`hours` 与必点菜（`dishes` 的名称 + `price`）。
 9. **全程实用贴士**：展示 `trip.tips` 列表。
 
-## 可选适配元素（仅当数据来自用户已装的官方旅行 skill 时才出现，详见 research-guide「第三方 skill 适配」）
+## 可选适配元素（仅当数据来自官方渠道——用户已装的官方旅行 skill，或 tools/ 下直连工具返回的官方数据——时才出现，详见 research-guide「第三方 skill 适配」）
 
 - **行动链接 `actionLink`**：航班 `candidates`、酒店 `options`、`slot.transport` 等若带 `actionLink={label,url}`，渲染成一个明确的「去预订 / 导航 / 叫车」按钮或链接（新标签打开）。**没有就不渲染**，绝不为此手拼链接。
 - **与引擎自带地图链接的边界**：`map.js` 在地图弹窗生成的「导航 / 高德地图 / Google 地图」点位链接**不属于 actionLink**——它们按官方公开的免 key URI 规范（Apple Maps、`geo:`、高德 URI API `coordinate=wgs84`、Google Maps URLs）由引擎生成，只做「打开地图看这个点」、不承载实时数据主张；「绝不手拼」约束针对的是预订/路线类 actionLink，两者并存不冲突。

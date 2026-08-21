@@ -81,7 +81,7 @@
 - `assets/reminders.js`：提醒引擎（截止日期计算、清单/徽标渲染）
 - `assets/validate.js`：契约校验引擎（生成后机械检查字段/坐标/必需区块，ERROR 必须修复）
 - `assets/page-contract.md`：内容契约，告诉设计步骤每个区块要哪些数据
-- `references/research-guide.md`：联网调研指南（坐标/图片/营业时间/天气/交通…，含图片必须校验可加载、票价不查实时）
+- `references/research-guide.md`：联网调研指南（坐标/图片/营业时间/天气/交通…，含图片必须校验可加载、机票建议班次与实时价渠道规则）
 - `references/design-guidelines.md`：内置美学准则（无外部设计 skill 时的兜底）
 
 > **设计步骤可插拔、无硬依赖**：如果你装了 `frontend-design` 或 `huashu-design`（花叔Design）这类设计 skill，会自动调用、效果更佳；都没装也能用内置美学准则出一份像样的页面。所以本 skill 可独立安装，不强制先装别的。
