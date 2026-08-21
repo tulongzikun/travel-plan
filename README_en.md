@@ -62,7 +62,8 @@ Inspired by the community "vibe-coding travel guide" trick, turned into a proper
 | ⏰ | **Pre-trip reminders**: deadlines back-calculated from the departure date — a top checklist + ⚠️ badges on the timeline |
 | 🌦️ | **Pre-trip essentials**: season-aware weather/packing/typhoon notes, payment, must-have apps, ticket timing |
 | ✈️ | **Candidate flights**: 3–5 real options when nothing is booked, so there's a fallback |
-| 🏨 | **Hotels by area & price**: recommends staying areas based on the itinerary, with budget/mid/premium options |
+| 🚗 | **Point-to-point transport chain**: every leg (hotel → first stop → between stops → last stop → hotel) with mode + duration (distance estimates for driving, fares for transit), scheduled against local sunset so no mountain road is driven after dark |
+| 🏨 | **Hotels by area & price**: staying areas based on the itinerary, budget/mid/premium options — chain brands first at each tier (H World / Home Inn / Jin Jiang etc.), honestly labeled local picks where no chain operates |
 | 🍜 | **Daily food**: per-meal picks with signature dishes and reference prices |
 | 📄 | **Single file, responsive, offline-readable**: one `.html`, adapts to phone & desktop (single column on mobile, multi-column on desktop); the text itinerary reads offline, while map tiles & photos need a connection and degrade gracefully (no broken-image icons) |
 | ✅ | **Post-generation validation**: `validate.js` mechanically checks missing fields, out-of-range/outlier coordinates (catches swapped lat/lng or wrong-city lookups), and required blocks — no relying on "the model probably did it right" |
@@ -122,7 +123,7 @@ Ready-made outputs in `samples/`, open them in a browser:
 - `hongkong-4d3n-real.html` — Hong Kong, 4D3N (real researched data)
 - `shenzhen-3d2n-real.html` — Shenzhen, 3D2N (generated from days only)
 - `tokyo-5d4n-real.html` — Tokyo, 5D4N (Mode B: rough plan + agent suggestions)
-- `changzhi-jincheng-7d6n-real.html` — Changzhi & Jincheng, 7D6N (Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons, rail-via-Zhengzhou fallback, double-canyon day, dateTBD estimated-date banner)
+- `changzhi-jincheng-7d6n-real.html` — Changzhi & Jincheng, 7D6N (Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons; leg-by-leg drive chain, no-mountain-roads-after-dark scheduling, chain-hotel-first picks, on-mountain lodging for sunrise, rail-via-Zhengzhou fallback, dateTBD estimated-date banner)
 
 ### ❓ FAQ
 
