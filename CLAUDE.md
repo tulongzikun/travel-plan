@@ -38,7 +38,7 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 
 - **跨 Agent 安装**（软链接）：Claude Code → `~/.claude/skills/`；OpenAI Codex → `~/.codex/skills/`。
 - 平台无关：核心是指令 + 纯 JS 引擎，无厂商专有依赖。其他 Agent 的适配方法与通用提示词见 `references/porting-to-other-agents.md`；改动 skill 时别引入某个 Agent 的专有工具名（如直接写 `WebSearch`），用「联网搜索工具」这类通用说法。
-- 远程：GitHub 公开仓库 `zexuanw958-svg/travel-plan-viz`（MIT，见 `LICENSE`）
+- 远程：**origin = fork `tulongzikun/travel-plan`**（本仓库，日常开发推送走这里）；**上游 = `zexuanw958-svg/travel-plan-viz`**（已配置 `upstream` remote，同步上游改动用 `git fetch upstream && git merge upstream/main`）。README/star-history 等门面链接仍指上游仓库，属预期，别在本 fork 里"修正"它们
 - `git push` 若报 `HTTP2 framing layer` / SSL 瞬时错，用 `git -c http.version=HTTP/1.1 push` 并重试几次。
 - **Star History 图自绘自托管**：GitHub 2026-06-30 起 starred_at 数据仅仓库管理员/协作者可读，star-history.com 的 README 热链失效且不会恢复。`.github/workflows/star-history.yml` 每日用本仓库 Actions 令牌读自己的 stargazer 数据、以 `.github/scripts/star-history-chart.js` 自绘手绘风图表，强推到单提交分支 `star-history`；本仓库与主页仓库（`zexuanw958-svg/zexuanw958-svg`）的 README 均引用该分支 raw 地址。**别把图改回热链 star-history.com**；改分支名/文件名要同步两处 README。
 - **提交信息要诚实、有含金量**：这是公开仓库，提交历史是门面。用 `feat/fix/docs/chore` 如实归类，**别把真功能埋进 `chore: 加 logo` 这类装修标题**（一条 commit 只干一类事，样例/功能单独成条）。公开文件（README、CLAUDE.md）只写中性的工程说明，内部策略（如命名分层的 SEO 考量）留在 Agent 记忆里，别写进仓库。
