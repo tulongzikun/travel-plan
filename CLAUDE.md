@@ -45,7 +45,7 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 
 ## 文档分层
 
-- `README.md` —— 给终端用户/外部读者（中英双语，中文首页）
+- `README.md`（中文）/ `README_en.md`（英文）—— 给终端用户/外部读者；两个独立文件、顶部超链接互切（2026-08-21 拆分，不再是单文件双语）。改任一语言的内容须同步另一语言
 - `INSTALL.md` —— 给零基础终端用户的保姆级安装指南（纯中文，含 Windows；来自抖音评论区反馈）
 - `CLAUDE.md`（本文件）—— 给开发本仓库的 AI
 - `docs/` —— 仅存 README 用的静态素材（如 banner.png）；原设计文档与实现计划（docs/superpowers/）已于 2026-08-21 删除，内容过时且与现行 SKILL.md 演进脱节，历史在 git 中

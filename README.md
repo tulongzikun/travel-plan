@@ -17,7 +17,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![output: single-file HTML](https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square)](#-样例)
-[![offline readable](https://img.shields.io/badge/offline-readable-22c55e?style=flat-square)](#-中文)
+[![offline readable](https://img.shields.io/badge/offline-readable-22c55e?style=flat-square)](#-特点)
 [![Claude Code · Codex](https://img.shields.io/badge/Claude%20Code-%C2%B7%20Codex-8b5cf6?style=flat-square)](#-安装跨-agent)
 [![no API key](https://img.shields.io/badge/map-no%20API%20key-0ea5e9?style=flat-square)](#-特点)
 [![tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)](#-测试)
@@ -26,7 +26,7 @@
 
 <sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-star-history">⭐ Star</a></sub>
 
-<sub><a href="#-中文">中文</a> · <a href="#-english">English</a></sub>
+<sub><strong>简体中文</strong> · <a href="README_en.md">English</a></sub>
 
 </div>
 
@@ -41,12 +41,10 @@
 </p>
 
 <p align="center">
-  <sub>趋势图由本仓库 GitHub Action 基于 GitHub 星标数据每日自动重绘,非实时;实时 Star 数请看页面顶部。<br>Chart is redrawn daily by this repo's GitHub Action from GitHub stargazer data (not real-time) — see the count at the top of the page for the live number.</sub>
+  <sub>趋势图由本仓库 GitHub Action 基于 GitHub 星标数据每日自动重绘,非实时;实时 Star 数请看页面顶部。</sub>
 </p>
 
 ---
-
-## 🌏 中文
 
 ### 这是什么
 
@@ -133,7 +131,7 @@ ln -sfn "$(pwd)/travel-plan-viz" ~/.codex/skills/travel-plan-viz
 
 - **行程体检**：丢现成计划进来，它会对照「完善行程」清单提几条可选优化建议（克制、不硬来），不只是转个格式；
 - **单文件离线可读**：一个 `.html` 存进手机，没网也能看文字行程；
-- **点导航**：地图上每个景点一键跳手机导航（iOS 走 Apple Maps，Android 走 geo: 深链，境内点位另附高德地图、境外另附 Google 地图免 key 链接）；
+- **点导航**：地图上每个景点一键跳手机导航（iOS 走 Apple Maps，Android 走 geo: 深链，境内点位另附高德、境外另附 Google 地图免 key 链接）；
 - **订票倒推提醒**：按出发日期倒推「几号前该订什么」，页顶自动生成待办清单；
 - **机械校验 + 可持续迭代**：生成后自动校验坐标 / 字段 / 必需区块，行程数据以 JSON 内嵌页面——之后说一句「把第三天的 X 挪到第四天」就能改，不丢字段。
 
@@ -177,131 +175,3 @@ node --test test/*.test.js
 ### 📄 许可证
 
 [MIT](LICENSE) —— 随意使用、修改、商用，保留版权声明即可。欢迎 issue / PR。
-
----
-
-## 🌐 English
-
-### What is this
-
-`travel-plan-viz` is a [Claude Code](https://claude.com/claude-code) / Codex Skill (and portable to other agents). Just say *"plan me a 4-day Hong Kong trip"* and it will **research online, build the itinerary, and generate a polished single-file HTML page** — mobile-first, text readable offline, screenshot-friendly.
-
-Inspired by the community "vibe-coding travel guide" trick, turned into a proper, reusable Skill that hard-codes the error-prone bits.
-
-### ✨ Features
-
-| | Feature |
-|---|---|
-| 🧭 | **Two modes**: give only a destination + days and let it plan; or hand it an existing plan and it just renders the page |
-| 🗺️ | **Interactive map**: Leaflet + free tiles (no API key), numbered stops + ordered dashed route + tap-to-navigate links (Apple Maps on iOS, geo: on Android, plus key-free Amap links for mainland-China stops and Google Maps links elsewhere); GCJ-02 coords from Amap/Tencent are auto-converted to WGS-84 so pins don't drift |
-| 📅 | **Daily timeline**: morning/noon/evening, each stop with a real photo, rating, and one-line review |
-| ⏰ | **Pre-trip reminders**: deadlines back-calculated from the departure date — a top checklist + ⚠️ badges on the timeline |
-| 🌦️ | **Pre-trip essentials**: season-aware weather/packing/typhoon notes, payment, must-have apps, ticket timing |
-| ✈️ | **Candidate flights**: 3–5 real options when nothing is booked, so there's a fallback |
-| 🏨 | **Hotels by area & price**: recommends staying areas based on the itinerary, with budget/mid/premium options |
-| 🍜 | **Daily food**: per-meal picks with signature dishes and reference prices |
-| 📄 | **Single file, responsive, offline-readable**: one `.html`, adapts to phone & desktop (single column on mobile, multi-column on desktop); the text itinerary reads offline, while map tiles & photos need a connection and degrade gracefully (no broken-image icons) |
-| ✅ | **Post-generation validation**: `validate.js` mechanically checks missing fields, out-of-range/outlier coordinates (catches swapped lat/lng or wrong-city lookups), and required blocks — no relying on "the model probably did it right" |
-| 🔁 | **Iterable output**: the full trip data is embedded as JSON inside the page; hand the HTML back and say "move X from Day 3 to Day 4" — it edits the data and re-renders, no fields lost |
-| 💡 | **Not just conversion — advice too**: hand it an existing plan and it offers a few optional improvements against a "complete-itinerary" checklist (restrained, never pushy) — the agent's edge over a plain prompt-to-HTML trick |
-| 🔌 | **Optional adapter for official travel skills**: if you also install official skills like Fliggy / Amap / Tencent Maps / DiDi, it calls them for realtime flights, hotels, route planning, and weather, plus "book / navigate / hail a ride" links; **without them it falls back to web research — nothing missing**. Realtime accuracy of that data is owned by those official skills |
-| ⚠️ | **Full disclaimer**: states all info is AI-compiled and may be outdated; points users to official apps |
-
-### 🏗️ How it works
-
-A hybrid architecture — **error-prone mechanics are baked into reusable engines, while the visual design is regenerated each time by a "design step"**:
-
-- `assets/map.js` — Leaflet engine (numbered markers, route, iOS/Android navigation links, GCJ-02→WGS-84 conversion)
-- `assets/reminders.js` — reminder engine (deadline math, checklist/badge rendering)
-- `assets/validate.js` — contract validation engine (mechanical post-generation checks on fields/coordinates/required blocks; errors must be fixed)
-- `assets/page-contract.md` — content contract telling the design step what each block needs
-- `references/research-guide.md` — web-research guide (coords/photos/hours/weather/transport…, images must be verified loadable, no realtime pricing)
-- `references/design-guidelines.md` — built-in aesthetic guidelines (fallback when no external design skill is present)
-
-> **The design step is pluggable, with no hard dependency**: if you have a design skill like `frontend-design` or `huashu-design`, it's used automatically for better results; without any, the built-in guidelines still produce a presentable page. So this skill installs standalone — no need to install anything else first.
-
-> **Optional adaptation to official travel skills (also a soft dependency)**: if you separately install official travel skills like Fliggy, Amap, Tencent Maps, or DiDi, this skill calls them to enrich realtime data (flights / hotels / route planning / weather / precise coordinates) and adds "book / navigate / hail a ride" links on the page; without them it falls back to web research and no block is missing. The realtime accuracy of that data is owned by those official skills — this skill only adapts and presents it, without endorsement.
-
-### 🚀 Install (cross-agent)
-
-> **New to all this?** There's a zero-basics, step-by-step install guide (Windows & Mac, written in Chinese): [INSTALL.md](INSTALL.md).
-
-Link the skill into your agent's skills directory:
-
-```bash
-# Claude Code
-ln -sfn "$(pwd)/travel-plan-viz" ~/.claude/skills/travel-plan-viz
-# OpenAI Codex
-ln -sfn "$(pwd)/travel-plan-viz" ~/.codex/skills/travel-plan-viz
-```
-
-**Using another agent?** This skill is platform-agnostic — it's just an instruction file plus three vanilla-JS engines. For agents without a skills mechanism, feed `travel-plan-viz/SKILL.md` as instructions. Full porting steps and a ready-to-paste adaptation prompt: [`travel-plan-viz/references/porting-to-other-agents.md`](travel-plan-viz/references/porting-to-other-agents.md).
-
-### 💬 Usage
-
-In Claude Code or Codex, just say:
-
-```
-Plan me a 4-day, 3-night trip to Hong Kong       # Mode A: plan from scratch
-```
-```
-Here is my itinerary <paste text/HTML>, make a page   # Mode B: existing plan
-```
-
-After it's generated, hand the HTML back to Claude to keep editing, e.g. *"Day 3 is too packed, move X to Day 4."* The full trip data is embedded as JSON in the page, so edits change the data and re-render — nothing gets lost.
-
-### 🖼️ Samples
-
-Ready-made outputs in `samples/`, open them in a browser:
-
-- `chengdu-4d3n-real.html` — Chengdu, 4D3N (Mode A: planned from just destination + days; Dujiangyan/Mt. Qingcheng day trip + either-or options)
-- `hongkong-4d3n-real.html` — Hong Kong, 4D3N (real researched data)
-- `shenzhen-3d2n-real.html` — Shenzhen, 3D2N (generated from days only)
-- `tokyo-5d4n-real.html` — Tokyo, 5D4N (Mode B: rough plan + agent suggestions)
-
-### ❓ FAQ
-
-**Q: How is this different from just asking a chatbot to "write me an itinerary"?**
-
-A plain chat gives you a wall of text or a one-off page. This skill bakes the error-prone parts into a reusable pipeline: an itinerary health-check with restrained optional suggestions (Mode B), a single offline-readable HTML file, tap-to-navigate map pins, booking reminders back-calculated from your departure date, mechanical post-generation validation, and embedded JSON data so the page stays editable without losing fields.
-
-**Q: "AI travel guides are pointless — you have to verify everything yourself anyway."**
-
-Half agreed. Time-sensitive info (prices, opening hours, schedules) must be verified through official channels — which is exactly why every page ships with a full-coverage disclaimer pointing to official apps. The value here is **organizing and reminding** — laying scattered info out as a usable itinerary page and back-calculating what to book by when — not verifying or booking for you. That last step is honestly left to you.
-
-**Q: Does it work for cities outside China?**
-
-Yes — the Tokyo 5D4N sample is one. The map uses global OpenStreetMap tiles; overseas coordinates are already WGS-84 and need no conversion (GCJ-02 correction only applies to coordinates coming from Amap/Tencent).
-
-### 📁 Structure
-
-```
-travel-plan-viz/
-  SKILL.md              # workflow: detect mode → research → generate
-  assets/
-    map.js              # Leaflet engine: markers/route/nav links/coord conversion (unit-tested)
-    reminders.js        # reminder engine (unit-tested)
-    validate.js         # contract validation engine: post-generation checks (unit-tested, has CLI)
-    page-contract.md    # content contract for the design step
-  references/
-    research-guide.md   # web-research guide
-    design-guidelines.md # built-in aesthetics (fallback w/o external design skill)
-    porting-to-other-agents.md # cross-agent porting guide + adaptation prompt
-samples/                # generated example pages
-test/                   # engine unit tests (node --test)
-docs/                   # static assets (banner.png)
-```
-
-### 🧪 Tests
-
-```bash
-node --test test/*.test.js
-```
-
-### ⚠️ Disclaimer
-
-All information on the page (weather, flights, hotels, restaurants, tickets, prices, opening hours, ratings, events, etc.) is AI-compiled from public sources, **for reference only** — it may be inaccurate or outdated. **Always verify on official channels before booking or going.**
-
-### 📄 License
-
-[MIT](LICENSE) — use, modify, and ship it freely; just keep the copyright notice. Issues and PRs welcome.
