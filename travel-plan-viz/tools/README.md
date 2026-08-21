@@ -8,6 +8,7 @@ travel-plan-viz 的**可选**调研侧工具，供 Agent 在「调研补全」�
 |------|------|------|
 | `xhs_research.py` | 抓小红书攻略笔记（定性参考素材） | Python 3 + Playwright（`requirements.txt`） |
 | `flight_research.py` | 机票实时价查询（飞猪 FlyAI 官方 API 直连） | 仅 Python 3 标准库，零第三方依赖；需自备 API Key |
+| `hotel_research.py` | 酒店实时价查询（飞猪 FlyAI 官方 API 直连，**仅定档后调用**） | 仅 Python 3 标准库，零第三方依赖；与 flight_research 同一 API Key |
 
 ## xhs_research.py — 小红书攻略抓取
 
@@ -76,3 +77,34 @@ FlyAI 官方文档在登录墙后（flyai.open.fliggy.com/docs）。脚本顶部
 
 - 只走飞猪官方 API，不爬 OTA、不代订、不背书；结果仅供调研参考。
 - 单次调用即单次查询，保持低频（填一次 `flights.candidates` 通常 1 条航线 1 次足够）。
+
+## hotel_research.py — 酒店实时价（飞猪 FlyAI 直连，仅定档后）
+
+### Key 申领（用户自备）
+
+与 `flight_research.py` **同一把** `FLYAI_API_KEY`（flyai.open.fliggy.com 控制台，淘宝账号 + 支付宝实名，5000 次免费）。
+Key 绝不写进仓库、成品页或提交记录——只用环境变量或 `--key-file` 传入。
+
+### 用法
+
+```bash
+export FLYAI_API_KEY=...        # 或 --key-file 指向 Key 文件
+python3 hotel_research.py search 晋城 2026-09-20 2026-09-21 [--keyword 汉庭] [--top 5]
+
+python3 hotel_research.py selftest      # 解析器自检(不需要 Key 与网络)
+```
+
+输出 `hotel-notes/hotels-<城市>-<入住日>.{json,md}`：酒店候选表（名称/星级/评分/地址距离/价格/订房链接），**必带查询时间戳与来源**，供 Agent 填 `hotelAreas[].options` 的 `price` + `priceQueriedAt` + `actionLink`，页面注明「价格随订位实时变动，以订房页为准」。
+
+### ⏰ 调用时机（与机票工具的关键差异，2026-08-21 拍板）
+
+**仅在出发日期确定后调用。** 行程仍为 dateTBD（估算日）时一律不查——酒店价随日期变动极大，估算日查了也是白查；页面只给 `priceRange` 参考区间。用户定档并把 HTML 丢回来重算时，才逐片区查实时价回填。
+
+### 端点核对（首跑必读）
+
+同 `flight_research.py`：`API_BASE` / `SEARCH_PATH` / `AUTH_HEADER` 为占位常量，登录官方文档（flyai.open.fliggy.com/docs）核对，或用 `--base` / `--path` 覆盖；返回结构对不上时 `--dump` 存原始 JSON，修 `parse_hotels`（纯函数）并跑 `selftest`。
+
+### 边界
+
+- 只走飞猪官方 API，不爬 OTA、不代订、不背书；结果仅供调研参考。
+- 每片区每晚 1 次查询即可，保持低频。
