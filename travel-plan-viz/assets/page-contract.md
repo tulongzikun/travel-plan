@@ -38,9 +38,11 @@ const trip = {
     {
       area: "尖沙咀",
       reason: "靠近星光大道、天星小轮，地铁交通便利",
-      // option 可选 actionLink={label,url}：仅当来自官方 skill（如飞猪酒店/高德周边搜索）返回的预订/详情链接
+      // option 可选 price + priceQueriedAt：仅当经官方渠道（已装官方 skill 或 tools/hotel_research.py）查到实时价时给，
+      // 两者必须成对出现；出发日期未定（dateTBD）期间不给 price、只给 priceRange（时机拍板见 research-guide「酒店」节）
       options: [
-        { tier: "经济", name: "...", priceRange: "约 ¥500/晚", note: "..." },
+        { tier: "经济", name: "...", priceRange: "约 ¥500/晚", note: "...",
+          price: "¥420", priceQueriedAt: "2026-08-21T10:00:00" },
         { tier: "中档", name: "...", priceRange: "约 ¥1000/晚", note: "..." },
         { tier: "高端", name: "...", priceRange: "约 ¥2000/晚", note: "..." }
       ]
@@ -111,7 +113,7 @@ const trip = {
 1. **页顶**：行程标题 + 出发前待办清单。清单用 `reminders.js` 的 `computeReminders(trip.startDate, trip.reminders)` 再 `renderChecklistHTML(...)` 生成。若 `trip.dateTBD` 为 true，清单上方须加一行醒目提示（如「出发日期未定，以下提醒按 {startDate} 估算，定档后把本页丢回给 AI 重算」）。
 2. **行前须知区块**：展示 `preTrip` 全部——天气与台风提醒、穿搭、支付、必备 App、购票时机。突出"日期/季节定制"。
 3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个建议班次，每项标"待选 · 请自行核实预订"并显示 `note`；带 `price` 的须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订票页为准」。
-4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。
+4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。带 `price` 的选项须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订房页为准」（dateTBD 期间不出现 `price`）。
 5. **免责声明**：在航班/酒店区域附近显著展示 `trip.disclaimer` 全文。
 6. **交互地图**：`<div id="map">`，调用 `initTravelMap('map', points)`，`points` 为所有 slot 按行程顺序汇总的 `{lat,lng,name,time}`。引入 Leaflet CSS/JS（CDN）。
 7. **每日时间轴**：按天分组，显示当日 `weekday`/`theme`；早/中/晚分段，每个 slot 卡片含 `photo`、`rating`、`review`，并展示存在的可选字段（`openingHours`、`closedDays`、`ticketPrice`、`transport` 的方式/票价/耗时、`seasonal`）；`needsBooking` 为 true 时插入 `reminderBadgeHTML(leadDays)`。当日若有 `tips`、`alternatives`（二选一卡片）也要展示。
