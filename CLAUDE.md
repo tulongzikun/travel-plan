@@ -12,14 +12,14 @@
 
 - **混合架构**：易错的机械逻辑固化为可复用 JS 引擎，视觉表现每次交给**设计步骤**重新生成。改动时别把布局/配色写死进引擎，也别把日期/导航逻辑塞给设计步骤临场生成。
 - **设计步骤可插拔（无硬依赖）**：优先用 `frontend-design` 或 `huashu-design` skill（任一已安装），都没有则走 `references/design-guidelines.md` 内置准则。这样 skill 可独立分享，不强制别人先装别的 skill。别把它改回硬依赖某个外部 skill。
-- **第三方旅行 skill 可选适配（软依赖，非代言）**：用户若**同时装了**飞猪、高德、腾讯地图、滴滴等官方旅行类 skill / MCP，本 skill 可调用它们拿实时/权威数据（航班、酒店、坐标、**路线规划**、用车等）来补全调研，并在成品里附「去预订 / 导航 / 叫车」行动链接；**没装则走现有静态调研，功能不缺失、不降级**。这跟「设计步骤可插拔」同构——永远是软依赖、优雅降级，**别改成硬依赖或强制安装**。两条底线不能破：①**责任边界**——这类数据的实时性与真实性由对方官方 skill 负责，本 skill 只做适配与编排，页面须标注数据来源、用中性措辞、不背书不替某一家打广告；②本 skill 引擎/调研**永远不自行抓实时票价**，实时数据只可能来自用户已装的官方 skill（不违背「不查实时票价」红线）。细则见 `references/research-guide.md` 的「第三方 skill 适配」节（含具名官方入口），字段见 `assets/page-contract.md`。另：`map.js` 自带按境内外分流的高德/Google **免 key URI 点位链接**（官方公开 URI 规范、不承载实时数据），不属于 actionLink 的「绝不手拼」禁令，边界见 page-contract「可选适配元素」。2026-07-15 拍板不做：高德 JS API 嵌进成品页、引擎自建 REST 直连（即使用户自备 key）。
+- **第三方旅行 skill 可选适配（软依赖，非代言）**：用户若**同时装了**飞猪、高德、腾讯地图、滴滴等官方旅行类 skill / MCP，本 skill 可调用它们拿实时/权威数据（航班、酒店、坐标、**路线规划**、用车等）来补全调研，并在成品里附「去预订 / 导航 / 叫车」行动链接；**没装则走现有静态调研，功能不缺失、不降级**。这跟「设计步骤可插拔」同构——永远是软依赖、优雅降级，**别改成硬依赖或强制安装**。两条底线不能破：①**责任边界**——官方渠道数据的实时性与真实性由对方官方 skill / 官方 API 负责，本 skill 只做适配与编排，页面须标注数据来源、用中性措辞、不背书不替某一家打广告；②机票实时价**只经官方渠道**——用户已装的官方 skill，或 `tools/flight_research.py` 官方 API 直连（飞猪 FlyAI，key 用户自备；2026-08-21 拍板废除旧「不查实时票价」红线），结果须标来源+查询时间戳、页面注明以订票页为准，**不爬 OTA、不代订、不背书**。细则见 `references/research-guide.md` 的「第三方 skill 适配」节（含具名官方入口），字段见 `assets/page-contract.md`。另：`map.js` 自带按境内外分流的高德/Google **免 key URI 点位链接**（官方公开 URI 规范、不承载实时数据），不属于 actionLink 的「绝不手拼」禁令，边界见 page-contract「可选适配元素」。2026-07-15 拍板不变：高德 JS API 不嵌进成品页；引擎/成品页**不自建 REST 直连**——直连只发生在调研侧 CLI 工具（如 `tools/flight_research.py`），成品页仍零运行时请求。
 - **引擎双端可用**：`assets/map.js`、`assets/reminders.js` 同时跑在浏览器和 Node，靠文件底部的 `if (typeof module !== 'undefined' && module.exports)` 守卫导出。改这两个文件别破坏这个守卫。`assets/validate.js` 是第三个引擎（契约机械校验，Node 侧用，含 CLI），不内联进页面。
 - **坐标一律 WGS-84**：OSM 瓦片是 WGS-84，高德/腾讯返回 GCJ-02——来自它们的坐标必须经 `map.js` 的 `gcj02ToWgs84` 转换再入 `trip`，否则境内点位偏移几百米。别删这个转换，也别默认所有坐标都要转（静态调研的坐标通常已是 WGS-84）。
 - **数据与呈现分离**：完整 `trip` 以 `<script id="trip-data" type="application/json">` 内嵌进成品页面，迭代修改读这块 JSON、不反解析 DOM。别把这个约定改掉。
 - **离线能力如实表述**：对外说「离线可读」（文字行程离线可读；地图/图片需联网、有 onerror 降级），别写成"完全离线可用"。
 - **`escapeHTML` 在 map.js 与 reminders.js 各有一份，是故意重复**——两文件须各自独立，别合并去重。
 - **内容契约是权威**：`assets/page-contract.md` 定义 `trip` 数据结构和必须包含的区块。改了引擎导出的函数名/数据字段，必须同步这份契约和 `SKILL.md`。
-- **tools/ 是调研侧可选工具（软依赖，不进页面）**：`tools/xhs_research.py` 抓小红书攻略素材，仅在本机装了 Python+Playwright 且已 `login` 时可用（细则见 `references/research-guide.md`「本地可选工具」节）。它不被内联进 HTML、不引入运行时硬依赖，纯 JS 引擎的可移植性不因它破例。素材只作定性参考——坐标/票价/营业时间/图片一律不直接采信。个人自用 + 默认限速，改动别放大抓取量；解析器保持纯函数，改完 `python3 tools/xhs_research.py selftest` 必须绿。
+- **tools/ 是调研侧可选工具（软依赖，不进页面）**：`tools/xhs_research.py` 抓小红书攻略素材，仅在本机装了 Python+Playwright 且已 `login` 时可用（细则见 `references/research-guide.md`「本地可选工具」节）。它不被内联进 HTML、不引入运行时硬依赖，纯 JS 引擎的可移植性不因它破例。素材只作定性参考——坐标/票价/营业时间/图片一律不直接采信。个人自用 + 默认限速，改动别放大抓取量；解析器保持纯函数，改完 `python3 tools/xhs_research.py selftest` 必须绿。`tools/flight_research.py` 机票实时价直连（飞猪 FlyAI 官方 API，仅标准库零依赖）：`FLYAI_API_KEY` 用户自备且**绝不入库/入页面**；端点/鉴权常量按官方文档核对（CLI 可 `--base`/`--path` 覆盖）；解析器纯函数，改完 `python3 tools/flight_research.py selftest` 必须绿。
 
 ## 测试
 
@@ -30,7 +30,7 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 
 ## 数据采集约束（写在 references/research-guide.md，改动要同步）
 
-- **不查实时票价/机票价**（易过期）。机票/门票只给参考区间。
+- **机票给建议班次**（航司+航班号+起降时刻，联网核实当季真实存在，别凭记忆写）；价格优先经官方渠道查实时（飞猪 skill 或 `tools/flight_research.py`，key 用户自备），无渠道时给参考区间；实时价须标查询时间戳与来源，页面注明以订票页为准。**查航班时机刻意靠后：清单对齐之后、逐日方案之前**（首尾日以班次为约束），日期未定则推迟到调研补全。**门票只给参考区间**（不查实时）。
 - **图片必须能加载**：用 `https://commons.wikimedia.org/wiki/Special:FilePath/<URL编码文件名>?width=N`（不要手拼 `upload.wikimedia.org/.../thumb/...` 哈希直链），且每个 URL 要 `curl` 校验返回 200 才用；图片 CSS 用 `object-fit: cover` 防变形。
 - **全覆盖免责声明**：所有联网信息（含天气、餐厅、评分）都标注为 AI 整理、可能过时、需自行核实。
 
