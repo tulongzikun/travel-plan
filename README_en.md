@@ -122,6 +122,7 @@ Ready-made outputs in `samples/`, open them in a browser:
 - `hongkong-4d3n-real.html` — Hong Kong, 4D3N (real researched data)
 - `shenzhen-3d2n-real.html` — Shenzhen, 3D2N (generated from days only)
 - `tokyo-5d4n-real.html` — Tokyo, 5D4N (Mode B: rough plan + agent suggestions)
+- `changzhi-jincheng-7d6n-real.html` — Changzhi & Jincheng, 7D6N (Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons, rail-via-Zhengzhou fallback, double-canyon day, dateTBD estimated-date banner)
 
 ### ❓ FAQ
 
