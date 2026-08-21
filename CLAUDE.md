@@ -48,4 +48,4 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 - `README.md` —— 给终端用户/外部读者（中英双语，中文首页）
 - `INSTALL.md` —— 给零基础终端用户的保姆级安装指南（纯中文，含 Windows；来自抖音评论区反馈）
 - `CLAUDE.md`（本文件）—— 给开发本仓库的 AI
-- `docs/superpowers/specs|plans/` —— 设计文档与实现计划（含"实现后演进"记录）
+- `docs/` —— 仅存 README 用的静态素材（如 banner.png）；原设计文档与实现计划（docs/superpowers/）已于 2026-08-21 删除，内容过时且与现行 SKILL.md 演进脱节，历史在 git 中
