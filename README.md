@@ -123,7 +123,7 @@ ln -sfn "$(pwd)/travel-plan-viz" ~/.codex/skills/travel-plan-viz
 - `hongkong-4d3n-real.html` —— 香港 4 天 3 晚（真实联网数据）
 - `shenzhen-3d2n-real.html` —— 深圳 3 天 2 晚（只给天数，从零生成）
 - `tokyo-5d4n-real.html` —— 东京 5 天 4 晚（模式 B：粗略计划 + Agent 建议后生成）
-- `changzhi-jincheng-7d6n-real.html` —— 长治·晋城 7 天 6 晚（模式 A：上海往返自驾，国保古建 + 太行峡谷；含逐段车程链、天黑不走山路排程、连锁优先酒店、高平国保深线（开化寺·姬氏民居·铁佛寺）、郑州高铁备选与 dateTBD 估算横幅）
+- `changzhi-jincheng-7d6n-real.html` —— 长治·晋城 7 天 6 晚（模式 A：上海往返自驾，国保古建 + 太行峡谷；含逐段车程链、天黑不走山路排程、连锁优先酒店、高平国保深线（开化寺·姬氏民居·铁佛寺）、郑州高铁备选与国庆档（10-01–10-07）错峰排期）
 
 ### ❓ 常见问题（FAQ）
 
