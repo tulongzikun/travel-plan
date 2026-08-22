@@ -123,7 +123,7 @@ Ready-made outputs in `samples/`, open them in a browser:
 - `hongkong-4d3n-real.html` — Hong Kong, 4D3N (real researched data)
 - `shenzhen-3d2n-real.html` — Shenzhen, 3D2N (generated from days only)
 - `tokyo-5d4n-real.html` — Tokyo, 5D4N (Mode B: rough plan + agent suggestions)
-- `changzhi-jincheng-7d6n-real.html` — Changzhi & Jincheng, 7D6N (Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons; leg-by-leg drive chain, no-mountain-roads-after-dark scheduling, chain-hotel-first picks, Gaoping heritage deep-dive (Kaihua Temple murals, Ji residence, Tiefo Temple), rail-via-Zhengzhou fallback, National-Day-week (Oct 1–7) crowd-aware scheduling)
+- `changzhi-jincheng-7d6n-real.html` — Changzhi & Jincheng, 7D6N (Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons; leg-by-leg drive chain, no-mountain-roads-after-dark scheduling, chain-hotel-first picks, Gaoping heritage deep-dive (Kaihua Temple murals, Ji residence, Tiefo Temple, Lianghu village), rail-via-Zhengzhou fallback, National-Day-week (Oct 1–7) crowd-aware scheduling)
 
 ### ❓ FAQ
 
