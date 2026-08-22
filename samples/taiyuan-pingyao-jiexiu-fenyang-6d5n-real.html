@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>太原·平遥·介休·汾阳 6天5晚 · 票号与琉璃古建</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --bg:#f2efe9;          /* 砖灰米 */
+    --panel:#fffdf8;
+    --ink:#2d2a26;
+    --ink-soft:#6f6a63;
+    --accent:#8a3324;      /* 晋商绛红 */
+    --accent-soft:#f2ddd6;
+    --secondary:#9c7a2e;   /* 鎏金 */
+    --secondary-soft:#f4ecd9;
+    --gold:#b08d3e;
+    --line:#e5dfd2;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.7 "PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  img{object-fit:cover;display:block}
+  .container{max-width:920px;margin:0 auto;padding:0 16px 56px}
+
+  /* ===== 页顶 ===== */
+  header.hero{background:linear-gradient(160deg,#4a2418 0%,#2a150e 55%,#8a6d2e 100%);color:#f2efe9;padding:40px 16px 30px;text-align:center}
+  .hero__kicker{font-size:13px;letter-spacing:.35em;opacity:.82}
+  .hero__title{font-size:clamp(26px,6vw,40px);font-weight:800;margin:10px 0 6px}
+  .hero__meta{font-size:14px;opacity:.9}
+  .hero__meta b{color:#e8d5a0}
+  .banner-tbd{max-width:920px;margin:14px auto 0;background:rgba(242,239,233,.14);border:1px dashed rgba(242,239,233,.6);border-radius:10px;padding:8px 14px;font-size:13.5px}
+
+  section{margin-top:30px}
+  h2.sec{font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  h2.sec::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--accent),var(--gold))}
+  .sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:12px}
+
+  /* ===== 待办清单 ===== */
+  .pretrip-todo{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.pretrip-todo{grid-template-columns:1fr 1fr}}
+  .todo-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .todo-item input{accent-color:var(--accent);transform:translateY(1px)}
+  .todo-deadline{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
+
+  /* ===== 行前须知 ===== */
+  .pretrip-grid{display:grid;gap:12px}
+  @media(min-width:768px){.pretrip-grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card h3{font-size:15.5px;color:var(--secondary);margin-bottom:6px}
+  .card p,.card li{font-size:14.5px;color:var(--ink)}
+  .card ul{padding-left:18px}
+
+  /* ===== 航班与租车 ===== */
+  .flight{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+  .flight__code{grid-row:span 2;background:var(--accent);color:#fff;font-weight:800;font-size:13px;border-radius:8px;padding:6px 10px;align-self:start;white-space:nowrap}
+  .flight--alt .flight__code{background:var(--secondary)}
+  .flight__label{font-weight:700;font-size:15px}
+  .flight__time{font-size:15px;color:var(--secondary);font-weight:700}
+  .flight__note{grid-column:2;font-size:13.5px;color:var(--ink-soft)}
+
+  /* ===== 酒店 ===== */
+  .hotel-grid{display:grid;gap:12px}
+  @media(min-width:768px){.hotel-grid{grid-template-columns:1fr 1fr}}
+  .hotel-area h3{font-size:16px}
+  .hotel-area .nights{font-size:12.5px;color:#fff;background:var(--secondary);border-radius:99px;padding:2px 10px;margin-left:8px;vertical-align:2px}
+  .hotel-area .reason{font-size:13.5px;color:var(--ink-soft);margin:4px 0 10px}
+  .tier{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:baseline;padding:7px 0;border-top:1px dashed var(--line);font-size:14px}
+  .tier b:first-child{grid-column:1}
+  .tier .t-name{font-weight:600}
+  .tier .t-price{color:var(--accent);font-size:13px;white-space:nowrap}
+  .tier .t-note{grid-column:2/4;font-size:12.5px;color:var(--ink-soft)}
+  .tier-label{font-size:12px;color:#fff;border-radius:6px;padding:1px 6px;justify-self:start}
+  .tier-label--e{background:#8b7d6f}.tier-label--m{background:var(--gold)}.tier-label--h{background:var(--accent)}
+
+  /* ===== 免责声明 ===== */
+  .disclaimer{background:var(--secondary-soft);border:1px solid #ddcfa8;border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:#6e5518}
+
+  /* ===== 地图 ===== */
+  #map{height:430px;border-radius:var(--radius);border:1px solid var(--line);z-index:1}
+  @media(min-width:768px){#map{height:520px}}
+  .route-pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font:700 13px/1 system-ui,sans-serif;box-shadow:0 1px 5px rgba(0,0,0,.45);border:2px solid #fff}
+  .route-pin--stay{background:var(--secondary);border-radius:9px;font-size:14px}
+  .map-legend{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
+
+  /* ===== 每日时间轴 ===== */
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:18px}
+  .day__head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+  .day__no{background:var(--ink);color:#f2efe9;font-weight:800;border-radius:8px;padding:2px 10px;font-size:14px}
+  .day__date{font-size:13.5px;color:var(--ink-soft)}
+  .day__theme{font-size:16.5px;font-weight:800;color:var(--secondary)}
+  .day__stay{font-size:13px;font-weight:700;color:var(--secondary);background:var(--secondary-soft);border-radius:99px;padding:2px 10px;white-space:nowrap}
+  .day__amap{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:2px 10px;white-space:nowrap;text-decoration:none}
+  .day__tips{background:var(--secondary-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+  .day__tips li{font-size:13px;color:var(--secondary);margin-left:16px}
+  .period{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.2em;margin:12px 0 8px}
+  .slots{display:grid;gap:12px}
+  @media(min-width:768px){.slots{grid-template-columns:1fr 1fr}}
+  .slot{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+  .slot__visual{position:relative;aspect-ratio:16/9;background:linear-gradient(140deg,var(--secondary) 0%,var(--accent) 130%)}
+  .slot__visual img{position:absolute;inset:0;width:100%;height:100%}
+  .slot__visual .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.9);font-size:20px;font-weight:800;letter-spacing:.12em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .slot__time{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:6px;padding:1px 8px}
+  .slot__body{padding:12px 14px 14px}
+  .slot__name{font-size:16.5px;font-weight:800}
+  .slot__name .rating{font-size:12px;color:var(--gold);font-weight:700;margin-left:8px}
+  .slot__review{font-size:13.5px;color:var(--ink-soft);margin:4px 0 8px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{font-size:12px;border-radius:99px;padding:2px 10px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+  .slot__note{font-size:12.5px;color:#6e5518;background:#f6efdc;border-radius:8px;padding:6px 10px;margin-top:8px}
+  .reminder-badge{display:inline-block;font-size:12px;background:#fff3e0;border:1px solid #ecc78a;color:#a05e00;border-radius:99px;padding:2px 10px;margin-top:8px}
+  .alt-card{border:1px dashed var(--gold);background:#fdf9ef;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px}
+  .alt-card b{color:var(--gold)}
+  .dining{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  .meal{margin-bottom:8px}
+  .meal__tag{font-size:12px;color:#fff;background:var(--gold);border-radius:6px;padding:1px 8px;margin-right:6px}
+  .meal__place{font-weight:700;font-size:14.5px}
+  .meal__hours{font-size:12.5px;color:var(--ink-soft)}
+  .dish{display:inline-block;font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:1px 10px;margin:4px 4px 0 0}
+  .dish .p{color:var(--accent);font-weight:700}
+
+  /* ===== 全程贴士 ===== */
+  .tips-list{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.tips-list{grid-template-columns:1fr 1fr}}
+  .tips-list li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+
+  footer{margin-top:36px;text-align:center;font-size:12.5px;color:var(--ink-soft)}
+  footer .line{width:64px;height:3px;border-radius:2px;background:var(--gold);margin:0 auto 10px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero__kicker">票号 · 琉璃 · 古建</div>
+  <div class="hero__title" id="pageTitle">太原·平遥·介休·汾阳 6天5晚</div>
+  <div class="hero__meta" id="pageMeta"></div>
+  <div class="banner-tbd" id="tbdBanner" style="display:none"></div>
+</header>
+
+<div class="container">
+
+  <section>
+    <h2 class="sec">⏰ 出发前待办清单</h2>
+    <div class="sub" id="checklistHint"></div>
+    <div id="checklist"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🌦️ 行前须知 <span style="font-size:13px;color:var(--ink-soft);font-weight:400">（按 10 月上旬 · 十一档 · 晋中走廊定制）</span></h2>
+    <div class="pretrip-grid" id="preTrip"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">✈️ 航班与租车（未预订 · 请自行核实）</h2>
+    <div class="sub">上海 ⇄ 太原武宿飞机 + 太原市区门店租车（D3 晨取 D6 午还）。班次/租金为 2026 年当季调研参考，未走实时渠道，一律以订票页与租车平台为准；平遥—介休—汾阳段为公路走廊（介休⇄汾阳无直达火车），本行程即自驾行程。</div>
+    <div id="flights"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🏨 住宿片区（按行程节点 · 三档价位）</h2>
+    <div class="hotel-grid" id="hotels"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">⚠️ 免责声明</h2>
+    <p class="disclaimer">本页全部信息（天气、航班、租车、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。</p>
+  </section>
+
+  <section>
+    <h2 class="sec">🗺️ 行程地图</h2>
+    <div id="map"></div>
+    <div class="map-legend">编号即游览顺序（D1→D6）；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。每日头部「📍 高德打开当日点位」经官方免 key 多点标注 URI 带走当日全部点位（高德路书无公开创建接口，链接打开的是带名称的点集合，收藏/存路书须在高德内手动操作）。地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
+  </section>
+
+  <section>
+    <h2 class="sec">📅 每日行程</h2>
+    <div id="days"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">💡 全程实用贴士</h2>
+    <ul class="tips-list" id="globalTips"></ul>
+  </section>
+
+  <footer>
+    <div class="line"></div>
+    由 travel-plan-viz 生成 · 数据为公开资料整理的参考 · 行程数据内嵌本页（可丢回给 AI 迭代修改）
+  </footer>
+</div>
+
+<script id="trip-data" type="application/json">
+{
+  "title": "太原·平遥·介休·汾阳 6天5晚 · 票号与琉璃古建",
+  "startDate": "2026-10-01",
+  "dateTBD": true,
+  "colorScheme": "晋商绛红鎏金",
+  "disclaimer": "本页全部信息（天气、航班、租车、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。",
+  "preTrip": {
+    "weather": {
+      "summary": "10 月上旬晋中走廊：晴到多云为主，昼约 14–21℃、夜可落到 4–9℃，昼夜温差 10℃+；干燥少雨但偶遇冷空气过境风大。户外点（城墙/石窟/古堡）排白天，博物馆排早晚都行。",
+      "typhoon": "十一档人流矩阵：D1–D2 先扫太原（人流大头都在平遥方向，逆峰）；D3 晋祠周六为全程最挤点——7:50 到门口、8:30 开园即入；D4 平遥「开门首批」制（双林 8:00 首批、城内票点正午最挤、17:30 登城墙错峰）；D5 周一为无休日矩阵日（省博/壁画馆/演出全停，当天全程只排无休日点位，完全不撞墙）；D6 上午即走避开返程峰值。山西十月已入防火期，部分山林段可能有管控——天龙山出行前看景区公告。"
+    },
+    "packing": "洋葱式三层：白天单衣+薄外套，早晚加抓绒/薄羽绒；防晒（高原紫外线强）+润唇膏（干）；古建日走 2 万步起——软底鞋必带；城墙看落日备防风外套。",
+    "payment": "微信/支付宝全覆盖；寺院香火与乡野国保「文保员开门费」备少量现金（¥10–20 零钱）；停车费多为扫码。",
+    "apps": [
+      "12306 / 航司或飞猪 App——机票出票与值机（十一热门航线越早锁越好）",
+      "租车平台 App——市区门店 D3 晨取 D6 午还，十一现车紧张提前锁",
+      "「山西博物院」「太原北齐壁画博物馆」「晋商博物院」公众号——三家预约主战场",
+      "「晋祠博物馆」「平遥古城景区」公众号/小程序——联票与通票预购",
+      "高德/百度地图——导航 + 每日「高德打开当日点位」链接跳转",
+      "乡野国保电话清单（祆神楼/太符观/介休城隍庙/双林镇国修缮）——行前 3 天打一轮"
+    ],
+    "ticketTip": "预约三连环按倒计时打：省博提前 3 天当天 7:00 准点抢（十一最难）；北齐壁画馆提前 5 天；晋祠天龙山联票、平遥通票提前 7 天线上预购（现场排队费时）。双林寺/镇国寺单独售票、分段半封闭修缮中——行前 7 天电话确认开放范围。"
+  },
+  "flights": {
+    "booked": [],
+    "candidates": [
+      {
+        "label": "去程 · 早班机（建议）",
+        "code": "上海 → 太原",
+        "time": "虹桥/浦东 → 武宿 约 2h10m–2h30m · 08:00–09:30 档起飞、约 11:00 前后落地",
+        "note": "东航/上航/吉祥每日多班（具体班次出票时核实，本页不虚构航班号）；参考区间 ¥600–1100（十一档上浮，非实时、以订票页为准）；落地地铁 1 号线进城约 40 分钟——D1 下午文庙线按 13:30 起排即稳"
+      },
+      {
+        "label": "去程 · 午班备选",
+        "code": "上海 → 太原",
+        "time": "12:00–13:30 档起飞 · 约 15:30 前后落地",
+        "note": "D1 压缩为文庙+崇善寺两庙，纯阳宫挪 D2 晨与省博组合；早班无票时用"
+      },
+      {
+        "label": "返程 · 晚班（建议）",
+        "code": "太原 → 上海",
+        "time": "19:00–20:30 档起飞 · 约 22:00 前后到虹桥",
+        "note": "D6 14:15 市区还车后从容进机场；十一 D6 上午是返程高速最堵段，晚班对堵车/事故容错高"
+      },
+      {
+        "label": "返程 · 下午班备选",
+        "code": "太原 → 上海",
+        "time": "16:30–18:00 档起飞",
+        "note": "需 D6 贾街 12:00 前收、13:45 前还车——遇上高速事故易崩，赶时间选它、求稳选晚班"
+      },
+      {
+        "label": "🚗 租车 · 太原市区门店取还（D3 晨取 · D6 午还）",
+        "code": "自驾 3.5 天",
+        "time": "D3 7:30 柳巷/火车站商圈门店取车 → D6 约 14:15 市区门店还车（地铁/打车赴机场）",
+        "note": "用户拍板市区取还（机场店排队+加价）；紧凑型 SUV 十一参考 ¥300–450/天（非实时，以租车平台为准）；晋祠、平遥北门外、张壁、贾家庄均有停车场；平遥古城内禁车；天龙山私家车不上山（停晋祠停车场换景交）"
+      }
+    ]
+  },
+  "hotelAreas": [
+    {
+      "area": "太原柳巷-食品街",
+      "nights": "D1–D2 两晚",
+      "lat": 37.86866,
+      "lng": 112.561466,
+      "reason": "唱经楼/大关帝庙/食品街步行圈；D1 三庙动线与 D2 博物馆日都从这里出发；桥头街/大南门地铁站环抱，无车两日最顺",
+      "options": [
+        {
+          "tier": "经济",
+          "name": "汉庭（柳巷钟楼街店）",
+          "priceRange": "约 ¥280–420（十一档）",
+          "note": "华住系，钟楼街步行圈"
+        },
+        {
+          "tier": "中档",
+          "name": "全季（太原市政府店）",
+          "priceRange": "约 ¥450–700（十一档）",
+          "note": "华住系，柳巷南口步行 5 分钟"
+        },
+        {
+          "tier": "高端",
+          "name": "湖滨国际/迎泽街区高端款",
+          "priceRange": "约 ¥800–1200",
+          "note": "迎泽大街一线，打车 10 分钟进柳巷；预算够再上"
+        }
+      ]
+    },
+    {
+      "area": "平遥古城北门",
+      "nights": "D3–D4 两晚",
+      "lat": 37.209802,
+      "lng": 112.175332,
+      "reason": "用户拍板不住古城内——北门外连锁带步行 3–5 分钟经拱极门进城，自带停车场（古城内禁车）；D4 首批入城与 D5 早出发都占先手",
+      "options": [
+        {
+          "tier": "经济",
+          "name": "尚客优/骏怡系（北门外）",
+          "priceRange": "约 ¥350–600（十一平遥溢价凶）",
+          "note": "十一平遥价格为平日 2–3 倍，先锁可免费取消档"
+        },
+        {
+          "tier": "中档",
+          "name": "全季（平遥古城北门店）/ 汉庭（平遥古城店）",
+          "priceRange": "约 ¥600–1000（十一档）",
+          "note": "连锁品质稳定，步行进城 5 分钟；以订房页实时价为准"
+        }
+      ]
+    },
+    {
+      "area": "汾阳市区",
+      "nights": "D5 一晚",
+      "lat": 37.244704,
+      "lng": 112.809098,
+      "reason": "D6 太符观（城北 13km）与贾家庄（城西 16km）的双向出发点；青银高速口近，返程太原顺路；汾阳是「厨师之乡」，晚饭质量有保障",
+      "options": [
+        {
+          "tier": "经济",
+          "name": "如家/尚客优系（以门店核实为准）",
+          "priceRange": "约 ¥180–300",
+          "note": "汾阳连锁进驻有限，下单前电话确认门店现状"
+        },
+        {
+          "tier": "中档",
+          "name": "美豪酒店（汾阳市政府店）",
+          "priceRange": "约 ¥300–480",
+          "note": "老城核心区，文峰塔/餐饮圈都在短车程内"
+        }
+      ]
+    }
+  ],
+  "reminders": [
+    {
+      "item": "机票出票（上海 ⇄ 太原，十一热门航线建议出票即锁）",
+      "leadDays": 25
+    },
+    {
+      "item": "租车预订（太原市区门店 D3 晨取 D6 午还，十一现车紧张）",
+      "leadDays": 25
+    },
+    {
+      "item": "酒店预订（柳巷 2 晚 + 平遥北门外 2 晚 + 汾阳市区 1 晚——平遥十一涨幅最大先锁）",
+      "leadDays": 25
+    },
+    {
+      "item": "山西博物院预约（免费 · 提前 3 天当天 7:00 放票准点抢）",
+      "leadDays": 3
+    },
+    {
+      "item": "北齐壁画博物馆预约（免费 · 提前 5 天 · 每日限流）",
+      "leadDays": 5
+    },
+    {
+      "item": "晋祠+天龙山联票预购（¥110 · 公众号）",
+      "leadDays": 7
+    },
+    {
+      "item": "平遥古城通票预购（¥125/3 日 · 含城内 22 票点）",
+      "leadDays": 7
+    },
+    {
+      "item": "双林寺·镇国寺修缮开放范围行前电话确认（分段半封闭修缮中）",
+      "leadDays": 7
+    },
+    {
+      "item": "祆神楼（9:00–12:00 窗口）·太符观·介休城隍庙开放电话核实",
+      "leadDays": 3
+    }
+  ],
+  "tips": [
+    "十一逆向节奏总纲：D1–D2 先扫太原（人流大头在平遥方向），D3 晋祠 7:50 到门口 8:30 开园即入，D4 平遥「开门首批」制（双林 8:00 首批、城内正午最挤、17:30 登城墙错峰），D5 周一全程无休日点位，D6 上午即走避开返程峰值。",
+    "平遥通票 ¥125/3 日只含城内 22 票点——双林寺（¥35）/镇国寺（¥25）单独售票且分段半封闭修缮中，行前 7 天确认开放范围；镇国寺西侧 152m 利应侯庙（国六）免费零成本顺访。",
+    "乡野国保文保员制：祆神楼开放窗口仅 9:00–12:00（错过不候）、太符观要赶午休前（8:00–12:00 段）、介休城隍庙/后土庙免费但看门节奏随缘——行前 3 天电话核实，门上电话比攻略可靠。",
+    "天花板看点速记：晋祠圣母殿（984）宋塑侍女与鱼沼飞梁 / 双林寺 2052 尊彩塑（韦驮·渡海观音）/ 镇国寺万佛殿五代 963 原构 + 11 尊五代塑 / 后土庙「三晋琉璃之冠」/ 祆神楼全国唯一祆教楼阁 / 太符观金代正殿 + 明代悬塑 / 文峰塔 84.9m 中国现存第一高古砖塔。",
+    "自驾要点：太原⇄平遥走 G5 京昆（约 100km·1h20）；天龙山私家车不能上山——停晋祠停车场换景交/Y1（15:30 前下山铁律）；平遥古城内禁车（宿北门外自带停车场）；山西高速区间测速密，介休⇄汾阳段省道穿村减速。",
+    "演出按拍板不入主线：《又见平遥》《如梦晋阳》为商业驻场演艺（且 10-05 周一场次通常停演）——想看自行加场，别为它挪住宿或排程。",
+    "十一订房退改政策看仔细：平遥十一价格为平日 2–3 倍，先锁「可免费取消」档，定档后再换不可退低价；租车同理看取消条款。",
+    "定档丢回重算：本页 dateTBD（估算锚 10-01 周四），定档后把 HTML 丢回来——提醒按真实日期重算、航班补查建议班次、酒店逐片区补实时价。"
+  ],
+  "days": [
+    {
+      "date": "2026-10-01",
+      "weekday": "周四",
+      "theme": "太原老城 · 三庙一街",
+      "stayArea": "太原柳巷-食品街",
+      "tips": [
+        "🚶 车程链：武宿机场 →地铁1号线→ 柳巷酒店（约 40 分钟·¥2–5，行李寄存）→步行→ 纯阳宫 800m·10min →崇善寺 700m·10min →文庙 250m·4min →唱经楼 1.1km·15min →大关帝庙 800m·11min →食品街晚餐 →宿柳巷-食品街圈（D1 全程步行+地铁，不取车）",
+        "早班机 11:00 前落地才能保 D1 完整动线；落地晚则砍唱经楼/大关帝庙（本就是路过顺看级），三庙保文庙+崇善寺",
+        "纯阳宫/文庙/晋商博物院均为预约制场馆，公众号提前约；唱经楼、大关帝庙常态以外观为主——开门是彩蛋，不开不算亏"
+      ],
+      "slots": [
+        {
+          "period": "noon",
+          "name": "纯阳宫（山西古建筑博物馆）",
+          "time": "13:30–14:30",
+          "lat": 37.861963,
+          "lng": 112.56589,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自柳巷酒店约 800m·10 分钟"
+          },
+          "review": "国七·八卦院落——太原老城里的明代道观迷宫，挂牌山西古建筑博物馆",
+          "openingHours": "9:00–17:00（周一闭馆，以馆方公告为准）",
+          "ticketPrice": "免费/低价以现场为准",
+          "note": "全国重点文保第七批；八卦布局+歇山卷棚错落，古建迷的热身场",
+          "needsBooking": false
+        },
+        {
+          "period": "afternoon",
+          "name": "崇善寺",
+          "time": "14:45–15:30",
+          "lat": 37.86663,
+          "lng": 112.573693,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自纯阳宫约 700m·10 分钟"
+          },
+          "review": "国七·明初官式孤例大悲殿——晋王祠堂残存的皇家规格",
+          "openingHours": "8:30–17:00（寺院，以现场为准）",
+          "ticketPrice": "免费（香火随喜）",
+          "note": "大悲殿千手千眼观音等明塑三尊是明代宫廷塑像遗存；现为大同上华严寺风格的蓝本之一",
+          "needsBooking": false
+        },
+        {
+          "period": "afternoon",
+          "name": "太原文庙（山西考古博物馆）",
+          "time": "15:40–16:40",
+          "lat": 37.86457,
+          "lng": 112.57384,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自崇善寺约 250m·4 分钟"
+          },
+          "review": "文庙格局 + 考古出土叙事——现挂牌山西考古博物馆，游客少馆精",
+          "openingHours": "9:00–17:00（16:30 停入·周一闭馆）",
+          "ticketPrice": "免费（预约）",
+          "note": "别按「太原市博物馆」找——文庙本体即馆；崇善寺隔壁，两点半小时连看",
+          "needsBooking": true,
+          "leadDays": 3
+        },
+        {
+          "period": "evening",
+          "name": "唱经楼",
+          "time": "17:00–17:20",
+          "lat": 37.870748,
+          "lng": 112.558968,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自文庙约 1.1km·15 分钟（回柳巷顺路零绕路）"
+          },
+          "review": "国七·鼓楼街明代楼阁——明清山西乡试放榜「唱五经魁首」之地",
+          "openingHours": "常态外观为主（开放以现场为准）",
+          "ticketPrice": "外观免费",
+          "note": "翻案①点位：回酒店步行道上的零成本顺看；傍晚灯初上时最好看",
+          "needsBooking": false
+        },
+        {
+          "period": "evening",
+          "name": "大关帝庙",
+          "time": "17:35–17:55",
+          "lat": 37.867371,
+          "lng": 112.551535,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自唱经楼约 800m·11 分钟"
+          },
+          "review": "老城关帝信仰地标（春秋楼）——庙前街的黄昏收尾",
+          "openingHours": "以现场为准（傍晚外观）",
+          "ticketPrice": "外观免费",
+          "note": "翻案①点位：与唱经楼同属「路过顺看级」，开放是彩蛋；看完步行 9 分钟回食品街开饭",
+          "needsBooking": false
+        }
+      ],
+      "alternatives": [],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "认一力（桥头街 · 1930 老字号）",
+          "hours": "约 11:00–21:00",
+          "dishes": [
+            {
+              "name": "羊肉蒸饺",
+              "price": "¥28–38/笼"
+            },
+            {
+              "name": "过油肉",
+              "price": "¥48–58"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "老太原菜馆（柳巷商圈）",
+          "hours": "约 11:00–21:30",
+          "dishes": [
+            {
+              "name": "太原铜火锅",
+              "price": "人均 ¥75–95"
+            },
+            {
+              "name": "糖醋丸子"
+            },
+            {
+              "name": "莜面栲栳栳"
+            }
+          ]
+        },
+        {
+          "meal": "夜市",
+          "place": "食品街/柳巷夜市",
+          "hours": "至 23:00 前后",
+          "dishes": [
+            {
+              "name": "杨记灌肠",
+              "price": "约 ¥10"
+            },
+            {
+              "name": "六味斋酱肉",
+              "price": "约 ¥30"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "weekday": "周五",
+      "theme": "博物馆日 · 省博与北齐壁画",
+      "stayArea": "太原柳巷-食品街",
+      "tips": [
+        "🚕 车程链：柳巷宿 →打车→ 山西博物院（5km·20min·¥15–25）→太原面食店午餐（解放路 3km·12min）→晋商博物院（2km·10min）→北齐壁画博物馆（6.5km·20min）→永祚寺双塔（2.3km·7min）→打车回宿柳巷（6km·20min·¥18–25）→宿柳巷-食品街圈（今日无自驾，打车机动）",
+        "省博放票 7:00 手速战：提前 3 天当天 7:00 准点抢（十一最难约的一张免费票）",
+        "永祚寺 17:30 停止入场——16:15 前从壁画馆出来即打车前往；省博约不上时的组合：晨场先永祚寺、纯阳宫挪后补位",
+        "北齐壁画馆在东郊（徐显秀墓原址），与永祚寺双塔同翼——排同一段下午零绕路"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "山西博物院",
+          "time": "9:00–12:00",
+          "lat": 37.864819,
+          "lng": 112.524701,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自柳巷约 5km·20 分钟（¥15–25）"
+          },
+          "review": "晋侯鸟尊/虞弘石椁/侯马盟书——山西文物的总账本，十一最难约",
+          "openingHours": "9:00–17:00（16:00 停入·周一闭馆）",
+          "ticketPrice": "免费（预约）",
+          "note": "「晋魂」基本陈列按文明摇篮–晋国霸业–民族熔炉走；3 小时只算快闪，闭馆前留 20 分钟买文创",
+          "needsBooking": true,
+          "leadDays": 3
+        },
+        {
+          "period": "afternoon",
+          "name": "晋商博物院（督军府旧址）",
+          "time": "13:30–14:15",
+          "lat": 37.874642,
+          "lng": 112.556453,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自解放路午餐处约 2km·10 分钟"
+          },
+          "review": "国八·督军府旧址——千年山西府衙 + 晋商票号史",
+          "openingHours": "9:00–17:00（16:30 停入·周一闭馆）",
+          "ticketPrice": "免费（预约）",
+          "note": "自宋至民国的府衙建筑叠压 + 晋商展厅；45 分钟顺看版走中轴线+两大殿即可",
+          "needsBooking": true,
+          "leadDays": 3
+        },
+        {
+          "period": "afternoon",
+          "name": "北齐壁画博物馆（徐显秀墓）",
+          "time": "14:40–16:00",
+          "lat": 37.83553,
+          "lng": 112.61202,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自晋商博物院约 6.5km·20 分钟"
+          },
+          "review": "徐显秀墓原址建馆——北朝壁画的沉浸天花板，360° 墓室复原",
+          "openingHours": "9:00–17:00（16:00 停入·周一闭馆·每日限流）",
+          "ticketPrice": "免费（预约·提前 5 天）",
+          "note": "娄睿墓/九原岗壁画数字化同场；预约按人头限流，同行人一并约齐",
+          "needsBooking": true,
+          "leadDays": 5
+        },
+        {
+          "period": "afternoon",
+          "name": "永祚寺双塔",
+          "time": "16:15–17:15",
+          "lat": 37.84577,
+          "lng": 112.590884,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自壁画馆约 2.3km·7 分钟（17:30 停止入场前赶场）"
+          },
+          "review": "国六·「双塔凌霄」太原城徽——明代宣文塔对峙四百年",
+          "openingHours": "约 9:00–17:30（17:30 停止入场，以景区公告为准）",
+          "ticketPrice": "约 ¥30（以现场为准）",
+          "note": "翻案②点位：与壁画馆同翼 2.3km，16:15–17:15 恰好卡在停入前；登塔以现场为准，不登也值",
+          "needsBooking": false
+        }
+      ],
+      "alternatives": [],
+      "dining": [
+        {
+          "meal": "早餐",
+          "place": "清和元（头脑 · 傅山八珍汤）",
+          "hours": "早市 6:00–9:30 前后",
+          "dishes": [
+            {
+              "name": "头脑（八珍汤）",
+              "price": "¥25–35/碗"
+            },
+            {
+              "name": "羊肉烧麦"
+            }
+          ]
+        },
+        {
+          "meal": "午餐",
+          "place": "太原面食店（解放路）",
+          "hours": "约 11:00–14:30",
+          "dishes": [
+            {
+              "name": "飞刀削面",
+              "price": "¥18–28"
+            },
+            {
+              "name": "六小面套餐",
+              "price": "¥40–60"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "食品街补漏（夜市二刷）",
+          "hours": "至 22:30 前后",
+          "dishes": [
+            {
+              "name": "灌肠"
+            },
+            {
+              "name": "沙棘汁"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "weekday": "周六",
+      "theme": "西山线 · 晋祠与天龙山 → 南下平遥",
+      "stayArea": "平遥古城北门",
+      "tips": [
+        "🚗 车程链：柳巷宿 →步行 5min→ 市区租车门店取车 →晋祠 25km·35min（西中环+歧银线）→ 晋祠停车场 换景交/Y1 上天龙山（单程约 25–30min）→15:30 前下山回停车场 →G5 京昆→ 平遥古城北门 100km·1h20 →宿北门外连锁（停车在场院）",
+        "晋祠十一开门即入：7:50 到门口排队、8:30 开园直奔圣母殿（导游团 10 点后涌到）；联票 ¥110 线上预购含天龙山",
+        "天龙山山路铁律：15:30 前下山（10 月日落约 18:25，留足缓冲）；雨天/封控看备选龙山石窟版本",
+        "备选乔家大院：祁县出口顺路 +40–60 分钟——仅当晋祠天龙山提前 1 小时收工且接受十一人海时转正"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "晋祠博物馆",
+          "time": "8:30–11:30",
+          "lat": 37.708165,
+          "lng": 112.434998,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自柳巷取车后约 25km·35 分钟"
+          },
+          "review": "国一·圣母殿（984）+ 鱼沼飞梁 + 宋塑侍女——中国宋构宋塑双顶流",
+          "openingHours": "旺季 8:30–18:00（8:30 开园即入）",
+          "ticketPrice": "联票 ¥110（含天龙山，线上预购）",
+          "note": "动线：水镜台→会仙桥→金人台→对越坊→献殿→鱼沼飞梁→圣母殿（宋塑 43 尊侍女）→周柏；出博物馆后过晋祠公园大门（免费段）取车",
+          "needsBooking": true,
+          "leadDays": 7
+        },
+        {
+          "period": "afternoon",
+          "name": "天龙山石窟",
+          "time": "13:00–15:00",
+          "lat": 37.735385,
+          "lng": 112.37779,
+          "photo": "",
+          "transport": {
+            "mode": "景交",
+            "duration": "停晋祠停车场换景交/Y1 上山，单程约 25–30 分钟"
+          },
+          "review": "国五·东魏至唐窟群——回归佛首 + 数字复原展，山路尽头的石窟明珠",
+          "openingHours": "8:30–17:00（景交末班以当日公告为准）",
+          "ticketPrice": "联票已含（景交费另计）",
+          "note": "私家车不能上高架——必须停晋祠停车场换乘；第 21 窟虫咬状风化与漫山阁大佛是看点；15:30 前下山铁律",
+          "needsBooking": false
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 乔家大院",
+          "summary": "晋商大院商业顶流（门票参考 ¥115 档以景区为准）；祁县出口下高速顺路 +40–60 分钟。转正条件：D3 晋祠天龙山提前 1 小时收工 + 接受十一人海——否则留给下次专线（大院群值得单独一天）"
+        },
+        {
+          "label": "备选 · 龙山石窟（国四）",
+          "summary": "道教石窟孤例（元代道窟），晋祠西南 2.7km。转正条件：雨天/天龙山封控时的西山替代版（晋祠+龙山组合）；或 D3 提前下山且意犹未尽时顺路 +40 分钟"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "晋祠镇周边餐馆",
+          "hours": "约 11:00–14:00",
+          "dishes": [
+            {
+              "name": "刀削面",
+              "price": "¥15–25"
+            },
+            {
+              "name": "农家过油肉",
+              "price": "人均 ¥40–60"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "平遥北门外或南大街",
+          "hours": "约 17:30–21:30",
+          "dishes": [
+            {
+              "name": "平遥牛肉",
+              "price": "¥45–68"
+            },
+            {
+              "name": "碗托",
+              "price": "¥10–15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "weekday": "周日",
+      "theme": "平遥世遗全日 · 开门首批制",
+      "stayArea": "平遥古城北门",
+      "tips": [
+        "🚗 车程链：北门宿 →双林寺 6.5km·13min →镇国寺 16km·25min（利应侯庙步行 152m 顺访）→平遥古城北门停车 11km·18min →城内步行链：清虚观→县衙 850m·12min→日昇昌 400m·6min→市楼 150m·3min→城隍庙 350m·5min→文庙 300m·4min→迎薰门登城 550m·8min →晚步行回北门取车 1.8km·25min（或南门打车绕城 10min·约 ¥10）→宿北门外",
+        "双林寺 8:00 开门首批入（旅行团 9:30 后到）；镇国寺同为开门首批——两寺在正午前清完，下午全给古城票点圈",
+        "通票 ¥125/3 日含城内 22 票点（城墙/县衙/日昇昌/文庙/城隍庙/清虚观…）；票点圈 9:00 前/16:00 后最空，正午坐在饭桌上错峰",
+        "城墙 17:30 登城看落日（10 月日落约 18:25–18:30）；若当日停止登城，改次日晨 7:30 南门补看晨光"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "双林寺",
+          "time": "8:00–9:40",
+          "lat": 37.170799,
+          "lng": 112.125078,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自北门宿约 6.5km·13 分钟"
+          },
+          "review": "世遗+国三·2052 尊彩塑——韦驮/渡海观音，「东方彩塑一绝」",
+          "openingHours": "8:00–17:30（分段半封闭修缮中，行前确认）",
+          "ticketPrice": "¥35（单独售票，不含于通票）",
+          "note": "千手观音殿/韦驮像/渡海观音三绝；修缮分段围挡可能遮部分殿——电话确认开放范围再定时长",
+          "needsBooking": false
+        },
+        {
+          "period": "morning",
+          "name": "镇国寺",
+          "time": "10:10–11:00",
+          "lat": 37.285436,
+          "lng": 112.270875,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自双林寺约 16km·25 分钟"
+          },
+          "review": "世遗+国三·万佛殿（963 五代原构）+ 11 尊五代彩塑",
+          "openingHours": "8:00–17:30（以现场为准）",
+          "ticketPrice": "¥25（单独售票）",
+          "note": "万佛殿是中国现存最早木构前列，斗拱雄大、殿身低矮——看完步行 152m 顺访利应侯庙（国六·免费，文保员开门即可进）",
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "清虚观",
+          "time": "11:40–12:10",
+          "lat": 37.206554,
+          "lng": 112.184178,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "北门停车后入城约 600m·9 分钟"
+          },
+          "review": "平遥最大道观——北门进城第一站，通票票点",
+          "openingHours": "旺季约 8:00–18:00（通票票点）",
+          "ticketPrice": "通票已含（¥125/3 日）",
+          "note": "龙虎殿元代天王塑像；30 分钟快看完去天元奎午餐正好",
+          "needsBooking": false
+        },
+        {
+          "period": "afternoon",
+          "name": "平遥县衙",
+          "time": "13:30–14:30",
+          "lat": 37.201303,
+          "lng": 112.176389,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自清虚观方向约 850m·12 分钟"
+          },
+          "review": "国内保存最完整的县级衙署之一——牢狱/申明亭/大堂一线穿",
+          "openingHours": "旺季约 8:00–18:00（通票票点）",
+          "ticketPrice": "通票已含",
+          "note": "升堂表演时刻以当日公告为准（通常整点场次）；通票预购后刷身份证入园",
+          "needsBooking": true,
+          "leadDays": 7
+        },
+        {
+          "period": "afternoon",
+          "name": "日昇昌票号旧址",
+          "time": "14:45–15:25",
+          "lat": 37.204433,
+          "lng": 112.177047,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自县衙约 400m·6 分钟"
+          },
+          "review": "中国第一家票号——「汇通天下」的账房原貌",
+          "openingHours": "旺季约 8:00–18:00（通票票点）",
+          "ticketPrice": "通票已含",
+          "note": "柜台/账房/地下金库三段动线；旺季限流可能排队 10–15 分钟",
+          "needsBooking": false
+        },
+        {
+          "period": "afternoon",
+          "name": "平遥市楼",
+          "time": "15:35–15:55",
+          "lat": 37.203787,
+          "lng": 112.178971,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自日昇昌约 150m·3 分钟"
+          },
+          "review": "南大街「市楼金井」——古城天际线的心脏",
+          "openingHours": "全天（外观+街景）",
+          "ticketPrice": "外观免费",
+          "note": "三重檐十字歇山，南北大街交汇点；拍照位在楼东南侧金井口",
+          "needsBooking": false
+        },
+        {
+          "period": "afternoon",
+          "name": "平遥城隍庙",
+          "time": "16:05–16:45",
+          "lat": 37.202222,
+          "lng": 112.182384,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自市楼约 350m·5 分钟"
+          },
+          "review": "庙中套庙——城隍+灶君+财神三合一，琉璃屋脊",
+          "openingHours": "旺季约 8:00–18:00（通票票点）",
+          "ticketPrice": "通票已含",
+          "note": "与文庙相邻（300m），16 点后人流回落，正好连看",
+          "needsBooking": false
+        },
+        {
+          "period": "evening",
+          "name": "平遥文庙",
+          "time": "16:55–17:30",
+          "lat": 37.200553,
+          "lng": 112.183678,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自城隍庙约 300m·4 分钟"
+          },
+          "review": "金大成殿——文庙类早构，「鲤鱼跃龙门」龙门坊",
+          "openingHours": "旺季约 8:00–18:00（通票票点，17:30 前入）",
+          "ticketPrice": "通票已含",
+          "note": "大成殿为金代原构；登魁星楼可俯瞰文庙屋顶群（以开放为准）",
+          "needsBooking": false
+        },
+        {
+          "period": "evening",
+          "name": "平遥城墙（迎薰门登城）",
+          "time": "17:40–18:20",
+          "lat": 37.198406,
+          "lng": 112.180694,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自文庙约 550m·8 分钟"
+          },
+          "review": "世遗轮廓本体——迎薰门登城西望落日，10 月日落约 18:25",
+          "openingHours": "旺季约 8:00–18:30（停止登城时间以现场为准）",
+          "ticketPrice": "通票已含",
+          "note": "落日档是全天最贵的 40 分钟；若停止登城改次日晨 7:30 南门补——晚上南门广场有灯光秀（免费，以当日公告为准）",
+          "needsBooking": false
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 慈相寺（国五）",
+          "summary": "宋金古刹，镇国寺正南约 5km 顺向。转正条件：双林+镇国段提前 30 分钟收工 + 行前电话确认文保员开门（乡野国保常态锁门）——顺路 +25 分钟"
+        },
+        {
+          "label": "备选 · 金庄文庙（国六）",
+          "summary": "村级文庙孤例（金代大成殿），城南约 6km。转正条件：平遥文庙意犹未尽且能联系上文保员；常态锁门，别空跑"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "天元奎/洪武记（南大街）",
+          "hours": "约 11:00–21:00",
+          "dishes": [
+            {
+              "name": "平遥牛肉",
+              "price": "¥58–88"
+            },
+            {
+              "name": "碗托"
+            },
+            {
+              "name": "长山药"
+            },
+            {
+              "name": "莜面栲栳栳"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "南大街餐馆（城墙下来即达）",
+          "hours": "约 17:30–21:30",
+          "dishes": [
+            {
+              "name": "莜面搓鱼"
+            },
+            {
+              "name": "平遥油茶",
+              "price": "人均 ¥40–70"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "weekday": "周一",
+      "theme": "介休琉璃与古堡 · 无休日矩阵日",
+      "stayArea": "汾阳市区",
+      "tips": [
+        "🚗 车程链：北门宿 →后土庙 55km·1h（S222/G5）→祆神楼 3.5km·10min→介休城隍庙 800m·步行 11min→张壁古堡 12km·20min→汾阳文峰塔 70km·1h20（G5+省道）→宿汾阳市区 4km·10min",
+        "周一无休日矩阵：省博/壁画馆/演出全停——本日点位全无休日；祆神楼开放窗口仅 9:00–12:00，必须排上午段，错过不候",
+        "介休⇄汾阳无直达火车（0 班），公路 60–70km 是唯一通道——本日就是自驾日，别信任何火车方案",
+        "文峰塔在平原村庄（建昌村），傍晚光线侧打塔身最适合拍照；到得早就近看，登塔以现场为准"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "后土庙",
+          "time": "9:00–9:50",
+          "lat": 37.029722,
+          "lng": 111.911584,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自平遥北门约 55km·1 小时"
+          },
+          "review": "国五·「三晋琉璃之冠」——屋脊琉璃群像的视觉轰炸",
+          "openingHours": "8:30–17:00（免费）",
+          "ticketPrice": "免费",
+          "note": "8:30 开门即到为上午段抢出时间；影壁+三清楼琉璃是密度最高的两处，抬头看到颈椎酸",
+          "needsBooking": false
+        },
+        {
+          "period": "morning",
+          "name": "祆神楼",
+          "time": "10:05–10:45",
+          "lat": 37.033945,
+          "lng": 111.924576,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自后土庙约 3.5km·10 分钟"
+          },
+          "review": "国四·全国唯一祆教（拜火教）遗构楼阁——「祆」字本身就值得跑一趟",
+          "openingHours": "9:00–12:00（开放窗口，错过不候）",
+          "ticketPrice": "免费",
+          "note": "三层十字歇山顶过街楼；祆教元素（牛首/犬首挑角）看细节；行前电话核实窗口是否照常",
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "介休城隍庙",
+          "time": "10:55–11:25",
+          "lat": 37.030019,
+          "lng": 111.919256,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自祆神楼约 800m·11 分钟"
+          },
+          "review": "明构城隍——免费的顺访点，跟祆神楼拼成介休老城小环",
+          "openingHours": "以现场/电话为准（免费）",
+          "ticketPrice": "免费",
+          "note": "开放随缘——行前 3 天电话核实；锁门就外围看琉璃屋脊，不亏",
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "张壁古堡",
+          "time": "11:50–14:10",
+          "lat": 36.960266,
+          "lng": 111.966771,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自介休城区约 12km·20 分钟"
+          },
+          "review": "国六·「地上明堡地下暗道」——万米地道 + 可汗祠 + 魁星楼",
+          "openingHours": "旺季 8:00–18:00",
+          "ticketPrice": "¥60",
+          "note": "地道全程约 40–60 分钟（矮处弯腰，穿方便活动的衣服）；堡内福满园午餐正好卡在中间；可汗祠为全国罕见祠祀",
+          "needsBooking": false
+        },
+        {
+          "period": "afternoon",
+          "name": "文峰塔",
+          "time": "15:30–16:20",
+          "lat": 37.244704,
+          "lng": 111.809098,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自张壁古堡约 70km·1h20（G5+省道）"
+          },
+          "review": "国六·84.9m——中国现存第一高古砖塔，平原上的定海神针",
+          "openingHours": "全天可看（登塔以现场为准）",
+          "ticketPrice": "外观免费（登塔以现场为准）",
+          "note": "建昌村东缘，傍晚侧光拍塔身最佳；看完 10 分钟车程进汾阳市区住宿",
+          "needsBooking": false
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 绵山景区",
+          "summary": "寒食节发源地（¥110 + 观光车约 ¥50），张壁古堡南侧山口。转正条件：愿砍介休城区两庙+文峰塔换整下午山区场，且天气晴——15:00 前必须下山走平原段（天黑不走山路铁律），日落约 18:20"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "张壁古堡·福满园（堡内）",
+          "hours": "约 11:00–14:30",
+          "dishes": [
+            {
+              "name": "家常刀削面",
+              "price": "人均 ¥30–50"
+            },
+            {
+              "name": "陈醋熘菜"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "汾州宴（汾阳八八宴席 · 明代王府饮食）",
+          "hours": "约 11:00–21:00",
+          "dishes": [
+            {
+              "name": "八八宴席",
+              "price": "人均 ¥80–120"
+            },
+            {
+              "name": "汾阳石头饼"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "weekday": "周二",
+      "theme": "汾阳收尾 · 返程",
+      "tips": [
+        "🚗 车程链：汾阳市区宿 →太符观 13km·20min →贾家庄贾街 16km·25min →太原市区还车门店 95km·1h25（青银高速→环城）→地铁/打车→ 武宿机场 25–40min（返程日，不再排宿）",
+        "太符观赶早（8:00–12:00 开放段、有午休）——9:00 开门即到最稳；乡野国保文保员制，行前电话核一遍",
+        "十一 D6 上午是返程高速最堵段——按 1h25 再留 30% 缓冲，14:15 前还车；还车后地铁 1 号线/打车进机场 25–40 分钟，晚班机从容",
+        "汾酒文化景区回插位（用户已删，留档）：若改主意恢复——太符观后 10:20 直奔杏花村（相邻 5km），11:00–13:00 酒文化景区（参考 ¥42 含品酒），贾街取消、午餐改景区内，还车推迟至 15:00、返程航班改 18:00 后档"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "太符观",
+          "time": "9:00–10:00",
+          "lat": 37.344594,
+          "lng": 111.917644,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自汾阳市区宿约 13km·20 分钟"
+          },
+          "review": "国五·金代正殿 + 明代悬塑——汾阳乡间的彩塑悬塑宝库",
+          "openingHours": "约 8:00–12:00·14:00–18:00（有午休，赶早）",
+          "ticketPrice": "低价票以现场为准",
+          "note": "昊天玉皇上帝殿金构 + 后土圣母殿悬塑群；文保员制——开门是缘分，行前电话",
+          "needsBooking": false
+        },
+        {
+          "period": "noon",
+          "name": "贾家庄贾街",
+          "time": "10:35–12:20",
+          "lat": 37.294714,
+          "lng": 111.823698,
+          "photo": "",
+          "transport": {
+            "mode": "自驾",
+            "duration": "自太符观约 16km·25 分钟"
+          },
+          "review": "4A 乡村旅游·贾樟柯老家——返程前的松弛收尾 + 午餐",
+          "openingHours": "约 9:00–21:00",
+          "ticketPrice": "街区免费（个别场馆单独收费）",
+          "note": "贾街小吃 + 村史馆（以开放为准）；12:20 前收摊出发，还车与航班时间都在后面等着",
+          "needsBooking": false
+        }
+      ],
+      "alternatives": [],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "贾家庄贾街小吃",
+          "hours": "约 9:30–19:00",
+          "dishes": [
+            {
+              "name": "虾酱豆腐"
+            },
+            {
+              "name": "剔尖",
+              "price": "人均 ¥20–40"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/buildAmapDayMarkersLinks/routeCoordinates/
+// gcj02ToWgs84/wgs84ToGcj02/normalizeStays）可单元测试；
+// initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
+
+// HTML 转义，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳转手机地图导航的链接。
+// iOS 不识别 geo: scheme，用 Apple Maps 的 https 通用链接；其余平台用 geo:。
+// ua 可选（浏览器里传 navigator.userAgent），不传则回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地图 App 的点位链接（免 key 的官方 URI 规范：高德 URI API、Google Maps URLs）。
+// 这不是 page-contract 的 actionLink——不承载实时数据主张，只是"打开地图看这个点"。
+// 境内点只给高德（Google 地图境内不可用、底图坐标系还会偏移）；境外点给 Google + 高德。
+// 输入坐标一律 WGS-84：高德 URI 用 coordinate=wgs84 声明由其换算，Google 本身即 WGS-84。
+// isInChinaBBox 声明在下方 GCJ 区块（函数声明有提升，此处可用）。
+function buildMapAppLinks(lat, lng, label) {
+  var amap = {
+    label: '高德地图',
+    url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+      + '&name=' + encodeURIComponent(label)
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-viz',
+  };
+  var google = {
+    label: 'Google 地图',
+    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+  };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
+}
+
+// 「高德打开当日点位」链接（免 key 官方多点标注 URI：uri.amap.com/marker?markers=…）。
+// 高德路书无公开创建接口，这是官方通道里最接近"带着整天点位去高德"的能力：
+//   - markers 最多 10 点/链接（官方文档上限），超出自动按序切块，返回多条；
+//   - 每点可带名称（/,/ 和 /|/ 是分隔符，名称里出现会被替换成空格，防串位）；
+//   - 该 URI 无 coordinate 参数（默认 GCJ-02），坐标先经 wgs84ToGcj02 转换；
+//   - 进高德后只是带名称的点位集合（无连线），想存路书须在高德内收藏或手动创建。
+// points: [{lat, lng, name}]（按行程顺序，WGS-84）；残缺/非数值坐标的条目跳过。
+// 返回 [{url, count, first, last}]（first/last 为该块覆盖的原数组下标，从 0 计），无有效点返回 []。
+var AMAP_MARKERS_MAX = 10;
+
+function buildAmapDayMarkersLinks(points) {
+  var valid = (Array.isArray(points) ? points : []).filter(function (p) {
+    return p && typeof p.lat === 'number' && isFinite(p.lat)
+      && typeof p.lng === 'number' && isFinite(p.lng);
+  });
+  var links = [];
+  for (var start = 0; start < valid.length; start += AMAP_MARKERS_MAX) {
+    var chunk = valid.slice(start, start + AMAP_MARKERS_MAX);
+    var markers = chunk.map(function (p) {
+      var gcj = wgs84ToGcj02(p.lat, p.lng);
+      var name = String(p.name || '').replace(/[,|]/g, ' ').trim();
+      return gcj.lng.toFixed(6) + ',' + gcj.lat.toFixed(6)
+        + (name ? ',' + encodeURIComponent(name) : '');
+    }).join('|');
+    links.push({
+      url: 'https://uri.amap.com/marker?markers=' + markers
+        + '&src=travel-plan-viz&callnative=1',
+      count: chunk.length,
+      first: start,
+      last: start + chunk.length - 1,
+    });
+  }
+  return links;
+}
+
+// —— GCJ-02 → WGS-84 坐标转换 ——
+// 高德/腾讯地图返回的坐标是 GCJ-02（国测局加密），直接画在 OSM（WGS-84）瓦片上
+// 会偏移一百到几百米。凡坐标来自高德/腾讯类 skill，必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// —— WGS-84 → GCJ-02 坐标转换 ——
+// gcj02ToWgs84 的逆变换：在 WGS 点处求偏移量再加回（与正向同为单次近似，往返误差米级，
+// 对锚点/导航吸附足够）。高德导航 URI 与多点标注 URI 的参数表均无 coordinate 参数
+// （默认即 GCJ-02），所以这两个通道的坐标必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+function wgs84ToGcj02(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
+// 从有序点位提取 [lat,lng] 数组，用于连线
+function routeCoordinates(points) {
+  return points.map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 住宿锚点过滤：只留 name 与数值 lat/lng 齐全的条目（城区级近似坐标，缺坐标的片区直接跳过，不猜）。
+// stays: [{lat, lng, name, note?}]
+function normalizeStays(stays) {
+  if (!Array.isArray(stays)) return [];
+  return stays.filter(function (s) {
+    return s && typeof s.name === 'string' && s.name
+      && typeof s.lat === 'number' && isFinite(s.lat)
+      && typeof s.lng === 'number' && isFinite(s.lng);
+  });
+}
+
+// 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）；
+//   { stays } 住宿片区锚点 [{lat, lng, name, note?}]，画 🏨 标记（不编号、不进路线），
+//   缺数值坐标的条目会被 normalizeStays 跳过——锚点是城区级近似，宁缺勿猜。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  normalizeStays(opts.stays).forEach(function (s) {
+    var icon = L.divIcon({
+      className: 'route-pin route-pin--stay',
+      html: '<span class="route-pin__num">🏨</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(s.lat, s.lng, s.name, ua) }]
+      .concat(buildMapAppLinks(s.lat, s.lng, s.name));
+    L.marker([s.lat, s.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>🏨 ' + escapeHTML(s.name) + '</b><br>'
+      + (s.note ? escapeHTML(s.note) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  // 住宿锚点只参与视野适配，不进路线连线（片区近似坐标，连线会误导）
+  var allCoords = coords.concat(normalizeStays(opts.stays).map(function (s) { return [s.lat, s.lng]; }));
+  map.fitBounds(allCoords.length ? allCoords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    buildAmapDayMarkersLinks: buildAmapDayMarkersLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    wgs84ToGcj02: wgs84ToGcj02,
+    normalizeStays: normalizeStays,
+    initTravelMap: initTravelMap,
+  };
+}
+
+</script>
+
+<script>
+// 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 为 'YYYY-MM-DD'
+// 用 UTC 做日期运算，避免本地时区导致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建议提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+function reminderBadgeHTML(leadDays) {
+  return '<span class="reminder-badge">⚠️ 建议提前' + leadDays + '天订</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+</script>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ===== 设计步骤渲染层：读取 trip-data JSON 渲染全部区块 =====
+(function () {
+  var trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  // —— 页顶 ——
+  var WD = ['周日','周一','周二','周三','周四','周五','周六'];
+  var slotCount = trip.days.reduce(function (n, d) { return n + (d.slots || []).length; }, 0);
+  document.getElementById('pageMeta').innerHTML =
+    '<b>6 天 5 晚</b> · 估算 ' + trip.startDate + ' → 10-06（' + WD[new Date(trip.startDate + 'T00:00:00Z').getUTCDay()] + '出发 · dateTBD · 十一档）'
+    + ' · 上海 ⇄ 太原·平遥·介休·汾阳 · 飞机 + 市区取还车 · ' + slotCount + ' 处点位';
+  if (trip.dateTBD) {
+    var b = document.getElementById('tbdBanner');
+    b.style.display = 'block';
+    b.innerHTML = '📌 出发日期未定：以下提醒与行程按估算日 <b>' + trip.startDate + '</b>（' + WD[new Date(trip.startDate + 'T00:00:00Z').getUTCDay()] + '）排布，定档后把本页丢回给 AI 重算';
+    document.getElementById('checklistHint').textContent =
+      '提醒按估算出发日 ' + trip.startDate + ' 倒推；实际定档后日期会整体平移。';
+  }
+
+  // —— 待办清单（reminders.js 引擎） ——
+  document.getElementById('checklist').innerHTML =
+    renderChecklistHTML(computeReminders(trip.startDate, trip.reminders));
+
+  // —— 行前须知 ——
+  var pt = trip.preTrip;
+  document.getElementById('preTrip').innerHTML = [
+    '<div class="card"><h3>🌡️ 天气</h3><p>' + escapeHTML(pt.weather.summary) + '</p></div>',
+    '<div class="card"><h3>🍂 季节与档期</h3><p>' + escapeHTML(pt.weather.typhoon) + '</p></div>',
+    '<div class="card"><h3>🧥 穿搭</h3><p>' + escapeHTML(pt.packing) + '</p></div>',
+    '<div class="card"><h3>💳 支付</h3><p>' + escapeHTML(pt.payment) + '</p></div>',
+    '<div class="card"><h3>📱 必备 App / 电话</h3><ul>' + pt.apps.map(function (a) { return '<li>' + escapeHTML(a) + '</li>'; }).join('') + '</ul></div>',
+    '<div class="card"><h3>🎫 购票时机</h3><p>' + escapeHTML(pt.ticketTip) + '</p></div>'
+  ].join('');
+
+  // —— 航班与租车 ——
+  var fl = trip.flights;
+  var flHtml = (fl.booked || []).map(function (f) {
+    return '<div class="flight"><span class="flight__code">已预订</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span></div>';
+  }).concat(fl.candidates.map(function (f, i) {
+    var alt = (f.label.indexOf('备选') > -1 || f.code.indexOf('备选') > -1 || (i > 1 && f.code.indexOf('租车') === -1)) ? ' flight--alt' : '';
+    return '<div class="flight' + alt + '"><span class="flight__code">' + escapeHTML(f.code) + '</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span>'
+      + '<span class="flight__note">' + escapeHTML(f.note) + '</span></div>';
+  })).join('');
+  document.getElementById('flights').innerHTML = flHtml;
+
+  // —— 酒店 ——
+  var tierCls = { '经济': 'tier-label--e', '中档': 'tier-label--m', '高端': 'tier-label--h' };
+  document.getElementById('hotels').innerHTML = trip.hotelAreas.map(function (h) {
+    return '<div class="card hotel-area"><h3>' + escapeHTML(h.area)
+      + (h.nights ? '<span class="nights">' + escapeHTML(h.nights) + '</span>' : '')
+      + '</h3><div class="reason">' + escapeHTML(h.reason) + '</div>'
+      + h.options.map(function (o) {
+          return '<div class="tier"><span class="tier-label ' + tierCls[o.tier] + '">' + escapeHTML(o.tier) + '</span>'
+            + '<span class="t-name">' + escapeHTML(o.name) + '</span>'
+            + '<span class="t-price">' + escapeHTML(o.priceRange) + '</span>'
+            + '<span class="t-note">' + escapeHTML(o.note) + '</span></div>';
+        }).join('') + '</div>';
+  }).join('');
+
+  // —— 每日时间轴 ——
+  var PERIODS = [['morning', '上 午'], ['noon', '午 间'], ['afternoon', '午 后'], ['evening', '傍 晚']];
+  // 交通方式 → 图标（步行/地铁/景交/打车/自驾）
+  var transportIcon = function (mode) {
+    var m = mode || '';
+    if (m.indexOf('步行') > -1) return '🚶';
+    if (m.indexOf('地铁') > -1) return '🚇';
+    if (m.indexOf('景交') > -1 || m.indexOf('公交') > -1) return '🚌';
+    if (m.indexOf('打车') > -1) return '🚕';
+    return '🚗';
+  };
+  document.getElementById('days').innerHTML = trip.days.map(function (day, di) {
+    // 「高德打开当日点位」：当日 slots + 当晚住宿锚点 → 官方免 key 多点标注 URI（引擎生成，>10 点自动分块）
+    // 高德路书无公开创建接口——链接带走的是带名称的点集合（无连线），收藏/存路书须在高德内手动操作
+    var amapNote = '高德路书无公开创建接口：此链接经官方多点标注 URI 打开当日全部点位（带名称、无连线），收藏/存路书须在高德内手动操作';
+    // stayArea 与 hotelAreas[].area 的括号补语可能不一致，按「（」前的核心区名比对
+    var areaCore = function (x) { return String(x || '').split('（')[0]; };
+    var stayAnchor = (trip.hotelAreas || []).filter(function (h) {
+      if (!day.stayArea || typeof h.lat !== 'number' || typeof h.lng !== 'number') return false;
+      return areaCore(day.stayArea).indexOf(areaCore(h.area)) > -1 || areaCore(h.area).indexOf(areaCore(day.stayArea)) > -1;
+    })[0];
+    var dayPoints = (day.slots || []).filter(function (s) {
+      return typeof s.lat === 'number' && typeof s.lng === 'number';
+    }).map(function (s) { return { lat: s.lat, lng: s.lng, name: s.name }; });
+    if (stayAnchor) dayPoints.push({ lat: stayAnchor.lat, lng: stayAnchor.lng, name: '当晚住宿·' + stayAnchor.area });
+    var amapHtml = buildAmapDayMarkersLinks(dayPoints).map(function (l, i, arr) {
+      var label = arr.length > 1
+        ? '📍 高德·第' + (l.first + 1) + '–' + (l.last + 1) + '站'
+        : '📍 高德打开当日点位';
+      return '<a class="day__amap" href="' + l.url + '" target="_blank" rel="noopener" title="' + amapNote + '">' + label + '</a>';
+    }).join('');
+    var html = '<div class="day"><div class="day__head">'
+      + '<span class="day__no">D' + (di + 1) + '</span>'
+      + '<span class="day__theme">' + escapeHTML(day.theme || '') + '</span>'
+      + '<span class="day__date">' + day.date.slice(5).replace('-', '/') + ' · ' + escapeHTML(day.weekday) + '</span>'
+      + (day.stayArea ? '<span class="day__stay">🏨 当晚住宿 · ' + escapeHTML(day.stayArea) + '</span>' : '')
+      + amapHtml
+      + '</div>';
+    if (day.tips && day.tips.length) {
+      html += '<ul class="day__tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>';
+    }
+    PERIODS.forEach(function (pd) {
+      var slots = (day.slots || []).filter(function (s) { return s.period === pd[0]; });
+      if (!slots.length) return;
+      html += '<div class="period">' + pd[1] + '</div><div class="slots">';
+      slots.forEach(function (s) {
+        var visual = '<div class="fallback">' + escapeHTML(s.name) + '</div>'
+          + (s.photo
+            ? '<img src="' + escapeHTML(s.photo) + '" alt="' + escapeHTML(s.name) + '" referrerpolicy="no-referrer" onerror="this.remove()">'
+            : '');
+        html += '<div class="slot"><div class="slot__visual">' + visual
+          + '<span class="slot__time">' + escapeHTML(s.time || '') + '</span></div>'
+          + '<div class="slot__body"><div class="slot__name">' + escapeHTML(s.name)
+          + (s.rating ? '<span class="rating">★ ' + s.rating + '</span>' : '') + '</div>'
+          + (s.review ? '<div class="slot__review">' + escapeHTML(s.review) + '</div>' : '')
+          + '<div class="meta">'
+          + (s.transport ? '<span class="pill">' + transportIcon(s.transport.mode) + ' ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
+          + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
+          + '</div>'
+          + (s.note ? '<div class="slot__note">' + escapeHTML(s.note) + '</div>' : '')
+          + (s.needsBooking ? reminderBadgeHTML(s.leadDays) : '')
+          + '</div></div>';
+      });
+      html += '</div>';
+    });
+    if (day.alternatives && day.alternatives.length) {
+      html += day.alternatives.map(function (a) {
+        return '<div class="alt-card"><b>⚖️ ' + escapeHTML(a.label) + '</b> — ' + escapeHTML(a.summary) + '</div>';
+      }).join('');
+    }
+    if (day.dining && day.dining.length) {
+      html += '<div class="dining">' + day.dining.map(function (m) {
+        return '<div class="meal"><span class="meal__tag">' + escapeHTML(m.meal) + '</span>'
+          + '<span class="meal__place">' + escapeHTML(m.place) + '</span> '
+          + (m.hours ? '<span class="meal__hours">· ' + escapeHTML(m.hours) + '</span>' : '')
+          + '<div>' + (m.dishes || []).map(function (d) {
+              return '<span class="dish">' + escapeHTML(d.name) + (d.price ? ' <span class="p">' + escapeHTML(d.price) + '</span>' : '') + '</span>';
+            }).join('') + '</div></div>';
+      }).join('') + '</div>';
+    }
+    return html + '</div>';
+  }).join('');
+
+  // —— 全程贴士 ——
+  document.getElementById('globalTips').innerHTML =
+    trip.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('');
+
+  // —— 地图（map.js 引擎） ——
+  var points = [];
+  trip.days.forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') {
+        points.push({ lat: s.lat, lng: s.lng, name: s.name, time: (day.date.slice(5) + ' ' + (s.time || '')) });
+      }
+    });
+  });
+  // 住宿片区锚点（城区级近似），画 🏨 标记、不进路线
+  var stays = (trip.hotelAreas || []).filter(function (h) {
+    return typeof h.lat === 'number' && typeof h.lng === 'number';
+  }).map(function (h) {
+    return { lat: h.lat, lng: h.lng, name: '住宿 · ' + h.area, note: h.nights + ' · ' + (h.reason || '') };
+  });
+  initTravelMap('map', points, { stays: stays });
+})();
+</script>
+</body>
