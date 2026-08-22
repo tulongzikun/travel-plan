@@ -57,7 +57,7 @@ Inspired by the community "vibe-coding travel guide" trick, turned into a proper
 | | Feature |
 |---|---|
 | 🧭 | **Two modes**: give only a destination + days and let it plan; or hand it an existing plan and it just renders the page |
-| 🗺️ | **Interactive map**: Leaflet + free tiles (no API key), numbered stops + ordered dashed route + tap-to-navigate links (Apple Maps on iOS, geo: on Android, plus key-free Amap links for mainland-China stops and Google Maps links elsewhere); GCJ-02 coords from Amap/Tencent are auto-converted to WGS-84 so pins don't drift |
+| 🗺️ | **Interactive map**: Leaflet + free tiles (no API key), numbered stops + ordered dashed route + tap-to-navigate links (Apple Maps on iOS, geo: on Android, plus key-free Amap links for mainland-China stops and Google Maps links elsewhere); GCJ-02 coords from Amap/Tencent are auto-converted to WGS-84 so pins don't drift; for mainland-China trips each day's header also gets an "📍 open this day in Amap" link (official multi-marker URI carrying all of that day's stops at once, auto-split past the 10-point limit — honestly noted: Amap roadbooks have no public creation API, saving one requires manual steps inside Amap) |
 | 📅 | **Daily timeline**: morning/noon/evening, each stop with a real photo, rating, and one-line review |
 | ⏰ | **Pre-trip reminders**: deadlines back-calculated from the departure date — a top checklist + ⚠️ badges on the timeline |
 | 🌦️ | **Pre-trip essentials**: season-aware weather/packing/typhoon notes, payment, must-have apps, ticket timing |
