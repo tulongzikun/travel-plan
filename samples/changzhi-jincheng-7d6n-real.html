@@ -81,6 +81,7 @@
   #map{height:430px;border-radius:var(--radius);border:1px solid var(--line);z-index:1}
   @media(min-width:768px){#map{height:520px}}
   .route-pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font:700 13px/1 system-ui,sans-serif;box-shadow:0 1px 5px rgba(0,0,0,.45);border:2px solid #fff}
+  .route-pin--stay{background:var(--secondary);border-radius:9px;font-size:14px}
   .map-legend{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
 
   /* ===== 每日时间轴 ===== */
@@ -89,6 +90,7 @@
   .day__no{background:var(--ink);color:#f6f1e7;font-weight:800;border-radius:8px;padding:2px 10px;font-size:14px}
   .day__date{font-size:13.5px;color:var(--ink-soft)}
   .day__theme{font-size:16.5px;font-weight:800;color:var(--secondary)}
+  .day__stay{font-size:13px;font-weight:700;color:var(--secondary);background:var(--secondary-soft);border-radius:99px;padding:2px 10px;white-space:nowrap}
   .day__tips{background:var(--secondary-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px}
   .day__tips li{font-size:13px;color:var(--secondary);margin-left:16px}
   .period{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.2em;margin:12px 0 8px}
@@ -168,7 +170,7 @@
   <section>
     <h2 class="sec">🗺️ 行程地图</h2>
     <div id="map"></div>
-    <div class="map-legend">编号即游览顺序（D1→D7）；点位为 WGS-84 坐标。点击标记可跳 手机导航 / 高德地图。地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
+    <div class="map-legend">编号即游览顺序（D1→D7）；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
   </section>
 
   <section>
@@ -213,27 +215,27 @@
     ]
   },
   "hotelAreas": [
-    { "area": "晋城城区（凤台街/泽州路一带）", "nights": "D1 一晚", "reason": "落地首晚中转——玉皇庙在城区东郊，次晨出发顺路；凤台东街美食带解决晚餐", "options": [
+    { "area": "晋城城区（凤台街/泽州路一带）", "nights": "D1 一晚", "lat": 35.502, "lng": 112.931, "reason": "落地首晚中转——玉皇庙在城区东郊，次晨出发顺路；凤台东街美食带解决晚餐", "options": [
       { "tier": "经济", "name": "汉庭酒店（泽州路国贸店）", "priceRange": "约 ¥150–250", "note": "华住系，2022 年开业，携程 4.8·1100+ 条" },
       { "tier": "中档", "name": "全季酒店（晋城城区，凤台街一带）", "priceRange": "约 ¥250–350", "note": "华住系中端；具体门店以华住会小程序实时为准" },
       { "tier": "高端", "name": "晋城浩翔金辇大酒店", "priceRange": "约 ¥350–470", "note": "本地老牌高端（晋城暂无高端连锁进驻），多含早，出入景区方便" }
     ]},
-    { "area": "阳城北留镇（皇城相府旁）", "nights": "D2–D3 两晚", "reason": "古堡核心区零挪窝——D2 大阳看完夜景直推（约40km），D3 步行看 8:00 开城、全天古堡，D4 清晨 6:35 出发赶深线也方便（今晚早归早睡）", "options": [
+    { "area": "阳城北留镇（皇城相府旁）", "nights": "D2–D3 两晚", "lat": 35.505, "lng": 112.585, "reason": "古堡核心区零挪窝——D2 大阳看完夜景直推（约40km），D3 步行看 8:00 开城、全天古堡，D4 清晨 6:35 出发赶深线也方便（今晚早归早睡）", "options": [
       { "tier": "经济", "name": "星 7 天（阳城皇城相府店）", "priceRange": "约 ¥100–180", "note": "锦江旗下，镇上唯一全国连锁（本地无汉庭/如家系）" },
       { "tier": "中档", "name": "皇城相府贵宾楼", "priceRange": "约 ¥250–400", "note": "景区正对面" },
       { "tier": "高端", "name": "相府庄园酒店", "priceRange": "约 ¥150–370", "note": "皇城村山上生态度假型，套餐多含早（携程 287+ 条好评档）" }
     ]},
-    { "area": "壶关县城（D4·峡谷日前哨）", "nights": "D4 一晚", "reason": "峡谷日杠杆保留版：县城离八泉峡门口约 35km·40–50 分钟大峡谷旅游公路，D5 日出（06:40）后 7:05 出发、8:00 前到售票口，首批入园基本保住——用 45 分钟清晨山路（全程天亮）换良户/崇明寺翻案回主线；国庆县城连锁约 ¥120–300（搜索口径），评分与房价以订房页为准", "options": [
+    { "area": "壶关县城（D4·峡谷日前哨）", "nights": "D4 一晚", "lat": 36.112, "lng": 113.199, "reason": "峡谷日杠杆保留版：县城离八泉峡门口约 35km·40–50 分钟大峡谷旅游公路，D5 日出（06:40）后 7:05 出发、8:00 前到售票口，首批入园基本保住——用 45 分钟清晨山路（全程天亮）换良户/崇明寺翻案回主线；国庆县城连锁约 ¥120–300（搜索口径），评分与房价以订房页为准", "options": [
       { "tier": "经济", "name": "尚客优酒店（壶关汽车站店）", "priceRange": "约 ¥120–200", "note": "尚美系连锁，携程 4.2·102 条，近汽车站/幸福公园" },
       { "tier": "中档", "name": "如家 neo（古城路商业街店）", "priceRange": "约 ¥180–300", "note": "首旅如家系，评分约 4.7–4.8，装修较新、有家庭房/免费停车" },
       { "tier": "高端", "name": "优程酒店（长治壶关店）", "priceRange": "约 ¥200–350", "note": "本地口碑较好（非头部连锁，如实标注），近瑞祥牌楼——县城无高端连锁线，要高端回长治市区（多约 45km）" }
     ]},
-    { "area": "平顺县城（青羊镇）", "nights": "D5 一晚", "reason": "峡谷日与浊漳河谷之间的歇脚点，虹霓拍完 35 分钟即到（河谷省道，天黑前），早饭摊多", "options": [
+    { "area": "平顺县城（青羊镇）", "nights": "D5 一晚", "lat": 36.199, "lng": 113.431, "reason": "峡谷日与浊漳河谷之间的歇脚点，虹霓拍完 35 分钟即到（河谷省道，天黑前），早饭摊多", "options": [
       { "tier": "经济", "name": "精途酒店（长治平顺店）", "priceRange": "约 ¥100–200", "note": "东呈系连锁，房间大、卫生好；停车位偏少" },
       { "tier": "中档", "name": "尚客优酒店（青羊山庄店）", "priceRange": "约 ¥150–250", "note": "尚美系连锁，县城无汉庭/如家，这是标准化程度最高的一档" },
       { "tier": "高端", "name": "天宸度假酒店", "priceRange": "约 ¥140–380", "note": "2025 年新开，携程 4.7·350+ 条（非连锁），房型差价大" }
     ]},
-    { "area": "长治市区（近机场）", "nights": "D6 一晚", "reason": "赶 D7 早班机，万达美华距机场约 3km", "options": [
+    { "area": "长治市区（近机场）", "nights": "D6 一晚", "lat": 36.20, "lng": 113.11, "reason": "赶 D7 早班机，万达美华距机场约 3km", "options": [
       { "tier": "经济", "name": "如家商旅（漳泽湖湿地公园店）", "priceRange": "约 ¥150–220", "note": "首旅如家系，距机场驾车约 10 分钟" },
       { "tier": "中档", "name": "全季（太行东街高铁东站店）", "priceRange": "约 ¥250–350", "note": "华住系中端，距机场约 5.6km，评分 4.8" },
       { "tier": "高端", "name": "万达美华酒店", "priceRange": "约 ¥300–500", "note": "万达酒店集团旗下，距机场约 3km，早班机最稳" }
@@ -261,8 +263,8 @@
   ],
   "days": [
     {
-      "date": "2026-10-01", "weekday": "周四", "theme": "落地即出发 · 观音堂 + 长子国保三连",
-      "tips": ["HO2195 浦东 07:05 → 长治 09:30，机场取车（争取 10:05 前出发，西郊顺路先看观音堂）", "🚗 车程链：机场→观音堂 约8km·15分钟（西郊梁家庄，落地首站）；观音堂→长子县城 约32km·40分钟（县城午餐：长子炒饼/猪头肉夹饼，人均约 ¥20–30）→ 法兴寺 约17km·25分钟 → 布村玉皇庙 约3km·8分钟（慈林镇同镇顺路）→ 崇庆寺 约4km·10分钟", "崇庆寺→晋城城区 约70km·1.5–2h（高速），约 18:05–18:35 到店；晚饭十小碗晚市 17:30 起，若预计 19:30 后才到改酒店周边简餐", "布村玉皇庙与礼义四庙同为乡野国保·文保员制：锁门是常态，门口公示电话打不通就找村委会；行前可电话长子县文物旅游部门 0355-8331045 统一确认"],
+      "date": "2026-10-01", "stayArea": "晋城城区（凤台街/泽州路一带）", "weekday": "周四", "theme": "落地即出发 · 观音堂 + 长子国保三连",
+      "tips": ["HO2195 浦东 07:05 → 长治 09:30，机场取车（争取 10:05 前出发，西郊顺路先看观音堂）", "🚗 车程链：机场→观音堂 约8km·15分钟（西郊梁家庄，落地首站）；观音堂→长子县城 约32km·40分钟（县城午餐：长子炒饼/猪头肉夹饼，人均约 ¥20–30）→ 法兴寺 约17km·25分钟 → 布村玉皇庙 约3km·8分钟（慈林镇同镇顺路）→ 崇庆寺 约4km·10分钟 → 晋城城区宿 约70km·1.5–2h（高速，约 18:05–18:35 到店）", "晚饭十小碗晚市 17:30 起，若预计 19:30 后才到改酒店周边简餐", "布村玉皇庙与礼义四庙同为乡野国保·文保员制：锁门是常态，门口公示电话打不通就找村委会；行前可电话长子县文物旅游部门 0355-8331045 统一确认"],
       "slots": [
         { "period": "morning", "name": "观音堂", "time": "10:20–10:50", "lat": 36.22, "lng": 113.07,
           "photo": "",
@@ -294,7 +296,7 @@
       ]
     },
     {
-      "date": "2026-10-02", "weekday": "周五", "theme": "府城二十八宿 · 青莲唐塑 · 大阳古镇",
+      "date": "2026-10-02", "stayArea": "阳城北留镇（皇城相府旁）", "weekday": "周五", "theme": "府城二十八宿 · 青莲唐塑 · 大阳古镇",
       "tips": ["今日周五、国庆假期，两馆均无闭馆日问题；青莲寺已博物馆化运营、每日开放（9:00–17:00，16:00 停入）——假期预约紧张，出票后立即约", "今日金村镇三站一线（玉皇庙宋塑+晋城二仙庙天宫楼阁+青莲寺唐塑），晋城博物馆留到放弃——时间富余再顺带", "青莲寺居珏山景区内：文保本体免费（实名预约），但珏山景区大门票是否另收存在两说，行前电话核实（珏山 0356-3959730 / 玉皇庙彩塑壁画博物馆 18335684040 参考）；珏山国庆有夜游人流，白天影响不大", "大阳古镇 17:00 后亮灯，明清街巷夜景是重头戏，晚饭在古镇内解决——国庆夜场人多、停车紧张，散场晚些反而顺", "🚗 车程链：城区→玉皇庙 约8km·20分钟；玉皇庙→晋城二仙庙 约5km·10分钟；二仙庙→青莲寺 约10km·15分钟（金村镇三站一线）；青莲寺→大阳 约35km·50分钟；大阳→北留宿 约40km·50分钟（平原省道）——古镇晚饭后出发 19:10 前到，不走晋城回头路，D3 早上步行看 8:00 开城"],
       "slots": [
         { "period": "morning", "name": "玉皇庙（府城）", "time": "09:00–10:45", "lat": 35.546389, "lng": 112.936667,
@@ -329,7 +331,7 @@
       ]
     },
     {
-      "date": "2026-10-03", "weekday": "周六", "theme": "皇城相府 · 古堡群",
+      "date": "2026-10-03", "stayArea": "阳城北留镇（皇城相府旁）", "weekday": "周六", "theme": "皇城相府 · 古堡群",
       "tips": ["国庆档相府单日客流可达 10 万+（历史峰值 11.75 万）——住北留步行 7:50 前到城下、8:00 开城即入是唯一解；「迎圣驾」仪式场次以当日公告为准（11 月起固定每日 10:00）", "郭峪与皇城相府一河之隔，短驾即达", "砥洎城与湘峪古堡二选一；想都去就把晚饭推后到 19:30", "🚗 车程链（北留零挪窝）：酒店→皇城相府 约2km·5分钟；皇城→郭峪 约2km·5分钟；郭峪→砥洎城 约7km·12分钟；砥洎→北留宿 约10km·15分钟——当日无长途、无山路，傍晚富余"],
       "slots": [
         { "period": "morning", "name": "皇城相府", "time": "08:00–12:00", "lat": 35.514444, "lng": 112.577778,
@@ -360,7 +362,7 @@
       ]
     },
     {
-      "date": "2026-10-04", "weekday": "周日", "theme": "礼义四庙 · 西溪二仙庙 · 崇安寺 · 高平深线（宿壶关县城）",
+      "date": "2026-10-04", "stayArea": "壶关县城（峡谷日前哨）", "weekday": "周日", "theme": "礼义四庙 · 西溪二仙庙 · 崇安寺 · 高平深线（宿壶关县城）",
       "tips": ["🚗 车程链：北留 6:35 出发（今日 13 站，比常规提前 25 分钟，D3 晚早归早睡）→礼义镇 约66km·1h20m；四庙连看约 80 分钟（崔府君庙与南吉祥寺各压 5 分钟），09:25 出发→西溪二仙庙 约13km·20分钟（陵川县城西南山谷）10:10 收→崇安寺 约5km·10分钟（县城西北卧龙岗）10:40 收→开化寺 约42km·55分钟 11:35 到；开化寺→姬氏民居 约5km·10分钟；姬氏→清梦观 约4km·5分钟（陈区镇铁炉村）；清梦观→高平市区午餐 约18km·30分钟，13:40 到（25 分钟速战）；市区→王报二郎庙 约12km·20分钟（看 15 分钟）；王报→崇明寺 约25km·35分钟（穿市区南下河西镇郭家庄，圣佛山东麓）；崇明→铁佛寺 约9km·15分钟（北上米山镇米西村）；铁佛寺→良户古村 约23km·35分钟（原村乡傍晚场，压 50 分钟）；良户→壶关县城宿 约100km·1h40m（原村平原省道 15 分钟上长晋高速、经长治转壶关）——18:00 离开良户（贴日落 18:10），天黑后只走高速/国道，约 19:40 到店", "开化寺大雄宝殿壁画以门口观看为主、两侧配殿有复制图可细看；中午闭门曾是常态（游客口径），2026 年五一后中午基本不闭门（近期游客口径，行前电话核实）——12:00 硬节点解除、抵达弹性大增，按 50 分钟排即可；舍利山腰有一段台阶", "铁佛寺周二至周日 9:00–17:30 开放（非节假日周一闭馆，今日周日无碍）；免费但须「高平文物」公众号实名预约、限流，正殿每批约 3 分钟轮换、光线暗——国庆预约紧俏，出票后立即约；预约 15:55 前后时段，看完即出发去良户", "礼义四庙（含龙岩寺）、西溪二仙庙、王报二郎庙、崇明寺、清梦观与开化寺、姬氏民居同为乡野国保·文保员/看门人制：锁门就打门口公示电话/找村委会；崇安寺为县城开放寺院（约 8:30–17:30、门票约 ¥5，非文保员制）；良户玉虚观傍晚以看门人为准；行前经陵川县人民政府官网、高平市人民政府官网查文旅部门电话统一确认", "今日 13 站、全天平原+收尾夜路：18:00 离开良户是天黑节点——上午若延误，先舍龙岩寺（省 22 分钟）再舍崇安寺（省 30 分钟）再舍王报二郎庙（省约 55 分钟），礼义三庙+开化寺+崇明寺+姬氏+铁佛寺是底仓", "宿壶关县城是峡谷日杠杆：离八泉峡门口约 35km·40–50 分钟旅游公路，D5 日出（06:40）后 7:05 出发、8:00 前到售票口——首批入园基本保住；今晚 19:40 到店后直接休息"],
       "alternatives": [
         { "label": "备选 · 定林寺（如果来得及）", "summary": "国保第五批（2001）·高平市米山镇七佛山南麓——雷音殿为元延祐四年（1317）遗构，殿前两座宋代经幢；与铁佛寺同在米山一翼（约 3km·8 分钟）。让位崇明寺后的最佳回插位：崇明寺与铁佛寺之间——若当日比排程累计提前 25 分钟以上（四庙+西溪+崇安文保员链全顺），崇明寺收→定林寺 约10km·15分钟、看 20 分钟→铁佛寺，预约时段与良户收尾全不动；提前不足 25 分钟当日放弃，勿硬塞" }
@@ -441,7 +443,7 @@
       ]
     },
     {
-      "date": "2026-10-05", "weekday": "周一", "theme": "八泉峡慢走 · 虹霓彩蛋（松版峡谷日）",
+      "date": "2026-10-05", "stayArea": "平顺县城（青羊镇）", "weekday": "周一", "theme": "八泉峡慢走 · 虹霓彩蛋（松版峡谷日）",
       "tips": ["🚗 车程链（松版）：壶关县城→八泉峡 约35km·40–50分钟（大峡谷旅游公路，7:05 出发——日出 06:40 后全程天亮）赶 8:00 开园首批入；八泉峡→虹霓村 约50km·1h（河谷公路，出园后车上简餐补给）；虹霓→平顺县城宿 约20km·35分钟，16:50 前后到店，全程无摸黑", "10 月上旬峡谷清晨约 4–9℃，保暖外套随身；首批入园排队约 30–60 分钟可控——索道开门就上（下行才是排队重灾区）；「索道上+游船+电梯下」快线约 4h，慢走拍照留 5–6h，16:30 停止入园前尽兴", "国庆档首批入园是本日最大杠杆：宿县城 7:05 出发仍赶 8:00 开园（2023-10-03 索道排队至天黑有致歉前科）；若当日排队远超预期，13:00 前出园加看通天峡（50km·1h，虹霓村在其门口 4km）作弹性"],
       "alternatives": [
         { "label": "备选 · 通天峡", "summary": "4A·平顺，「北方小九寨」虹霓瀑布+千佛洞，门票 ¥100（索道另收）——双峡改单峡后列为弹性项：当日排队短、体力富余时 13:00 前出园顺路加看（约50km·1h，与虹霓村同路）" }
@@ -466,8 +468,8 @@
       ]
     },
     {
-      "date": "2026-10-06", "weekday": "周二", "theme": "浊漳河谷 · 一日看六代木构",
-      "tips": ["🚗 车程链：平顺县城→原起寺 约25km·40分钟；原起→天台庵 约6km·10分钟；天台→大云院 约7km·12分钟（石城镇午餐）；大云→龙门寺 约25km·40分钟（河谷路）；龙门寺 15:30 收工→长治市区 约70km·1.5h（河谷省道+国道，17:15 前到，天黑不走山路）", "国保多看门人制：锁门就找文保员（门口公示电话），殿内禁闪光灯", "原起寺淡季有锁门风险，先电话后登门", "石城镇午餐时顺带补给（水/干粮）——河谷沿线补给点少", "傍晚抵长治宿近机场，明早 HO2196"],
+      "date": "2026-10-06", "stayArea": "长治市区（近机场）", "weekday": "周二", "theme": "浊漳河谷 · 一日看六代木构",
+      "tips": ["🚗 车程链：平顺县城→原起寺 约25km·40分钟；原起→天台庵 约6km·10分钟；天台→大云院 约7km·12分钟（石城镇午餐）；大云→龙门寺 约25km·40分钟（河谷路）；龙门寺 15:30 收工→长治市区宿 约70km·1.5h（河谷省道+国道，17:15 前到，天黑不走山路）", "国保多看门人制：锁门就找文保员（门口公示电话），殿内禁闪光灯", "原起寺淡季有锁门风险，先电话后登门", "石城镇午餐时顺带补给（水/干粮）——河谷沿线补给点少", "傍晚抵长治宿近机场，明早 HO2196"],
       "slots": [
         { "period": "morning", "name": "原起寺", "time": "09:30–10:30", "lat": 36.353333, "lng": 113.425833,
           "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Lucheng%20yuanqisi.JPG?width=600",
@@ -523,7 +525,7 @@
 </script>
 
 <script>
-// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可单元测试；
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84/normalizeStays）可单元测试；
 // initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
 
 // HTML 转义，防止 XSS
@@ -610,9 +612,22 @@ function routeCoordinates(points) {
   return points.map(function (p) { return [p.lat, p.lng]; });
 }
 
+// 住宿锚点过滤：只留 name 与数值 lat/lng 齐全的条目（城区级近似坐标，缺坐标的片区直接跳过，不猜）。
+// stays: [{lat, lng, name, note?}]
+function normalizeStays(stays) {
+  if (!Array.isArray(stays)) return [];
+  return stays.filter(function (s) {
+    return s && typeof s.name === 'string' && s.name
+      && typeof s.lat === 'number' && isFinite(s.lat)
+      && typeof s.lng === 'number' && isFinite(s.lng);
+  });
+}
+
 // 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
 // elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
-// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）。
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）；
+//   { stays } 住宿片区锚点 [{lat, lng, name, note?}]，画 🏨 标记（不编号、不进路线），
+//   缺数值坐标的条目会被 normalizeStays 跳过——锚点是城区级近似，宁缺勿猜。
 function initTravelMap(elementId, points, opts) {
   opts = opts || {};
   var map = L.map(elementId);
@@ -640,11 +655,31 @@ function initTravelMap(elementId, points, opts) {
     );
   });
 
+  normalizeStays(opts.stays).forEach(function (s) {
+    var icon = L.divIcon({
+      className: 'route-pin route-pin--stay',
+      html: '<span class="route-pin__num">🏨</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(s.lat, s.lng, s.name, ua) }]
+      .concat(buildMapAppLinks(s.lat, s.lng, s.name));
+    L.marker([s.lat, s.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>🏨 ' + escapeHTML(s.name) + '</b><br>'
+      + (s.note ? escapeHTML(s.note) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
   var coords = routeCoordinates(points);
   if (coords.length > 1) {
     L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
   }
-  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  // 住宿锚点只参与视野适配，不进路线连线（片区近似坐标，连线会误导）
+  var allCoords = coords.concat(normalizeStays(opts.stays).map(function (s) { return [s.lat, s.lng]; }));
+  map.fitBounds(allCoords.length ? allCoords : [[0, 0]], { padding: [30, 30] });
   return map;
 }
 
@@ -654,6 +689,7 @@ if (typeof module !== 'undefined' && module.exports) {
     buildMapAppLinks: buildMapAppLinks,
     routeCoordinates: routeCoordinates,
     gcj02ToWgs84: gcj02ToWgs84,
+    normalizeStays: normalizeStays,
     initTravelMap: initTravelMap,
   };
 }
@@ -778,7 +814,9 @@ if (typeof module !== 'undefined' && module.exports) {
     var html = '<div class="day"><div class="day__head">'
       + '<span class="day__no">D' + (di + 1) + '</span>'
       + '<span class="day__theme">' + escapeHTML(day.theme || '') + '</span>'
-      + '<span class="day__date">' + day.date.slice(5).replace('-', '/') + ' · ' + escapeHTML(day.weekday) + '</span></div>';
+      + '<span class="day__date">' + day.date.slice(5).replace('-', '/') + ' · ' + escapeHTML(day.weekday) + '</span>'
+      + (day.stayArea ? '<span class="day__stay">🏨 当晚住宿 · ' + escapeHTML(day.stayArea) + '</span>' : '')
+      + '</div>';
     if (day.tips && day.tips.length) {
       html += '<ul class="day__tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>';
     }
@@ -838,7 +876,13 @@ if (typeof module !== 'undefined' && module.exports) {
       }
     });
   });
-  initTravelMap('map', points);
+  // 住宿片区锚点（城区级近似），画 🏨 标记、不进路线
+  var stays = (trip.hotelAreas || []).filter(function (h) {
+    return typeof h.lat === 'number' && typeof h.lng === 'number';
+  }).map(function (h) {
+    return { lat: h.lat, lng: h.lng, name: '住宿 · ' + h.area, note: h.nights + ' · ' + (h.reason || '') };
+  });
+  initTravelMap('map', points, { stays: stays });
 })();
 </script>
 </body>
