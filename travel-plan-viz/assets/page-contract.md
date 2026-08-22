@@ -120,14 +120,14 @@ const trip = {
 4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。带 `price` 的选项须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订房页为准」（dateTBD 期间不出现 `price`）。
 5. **免责声明**：在航班/酒店区域附近显著展示 `trip.disclaimer` 全文。
 6. **交互地图**：`<div id="map">`，调用 `initTravelMap('map', points, { stays })`，`points` 为所有 slot 按行程顺序汇总的 `{lat,lng,name,time}`；`stays` 为 `hotelAreas` 中带数值 `lat/lng` 锚点的片区（`{lat,lng,name,note}`，note 可用 reason 代替），画为 🏨 标记（不编号、不进路线连线）。引入 Leaflet CSS/JS（CDN）。
-7. **每日时间轴**：按天分组，显示当日 `weekday`/`theme`；**有 `stayArea` 时在当日头部显著标注「当晚住宿：XXX」**（返程日无则不标）；早/中/晚分段，每个 slot 卡片含 `photo`、`rating`、`review`，并展示存在的可选字段（`openingHours`、`closedDays`、`ticketPrice`、`transport` 的方式/票价/耗时、`seasonal`）；`needsBooking` 为 true 时插入 `reminderBadgeHTML(leadDays)`。当日若有 `tips`、`alternatives`（二选一卡片）也要展示。
+7. **每日时间轴**：按天分组，显示当日 `weekday`/`theme`；**有 `stayArea` 时在当日头部显著标注「当晚住宿：XXX」**（返程日无则不标）；早/中/晚分段，每个 slot 卡片含 `photo`、`rating`、`review`，并展示存在的可选字段（`openingHours`、`closedDays`、`ticketPrice`、`transport` 的方式/票价/耗时、`seasonal`）；`needsBooking` 为 true 时插入 `reminderBadgeHTML(leadDays)`。当日若有 `tips`、`alternatives`（二选一卡片）也要展示。**境内行程**另在当日头部加「📍 高德打开当日点位」链接：用 `map.js` 的 `buildAmapDayMarkersLinks(当日 slots 坐标 + 当晚住宿锚点)` 生成（>10 点自动分块，块多时按「第 X–Y 站」标注），并在地图区或页脚如实注明——高德路书无公开创建接口，此链接经官方免 key 多点标注 URI 带走当日全部点位（进高德后为带名称的点集合、无连线，收藏/存路书需在高德内手动操作）。境外行程不加。
 8. **每日餐饮**：展示当日 `dining`，每餐含 `place`、`hours` 与必点菜（`dishes` 的名称 + `price`）。
 9. **全程实用贴士**：展示 `trip.tips` 列表。
 
 ## 可选适配元素（仅当数据来自官方渠道——用户已装的官方旅行 skill，或 tools/ 下直连工具返回的官方数据——时才出现，详见 research-guide「第三方 skill 适配」）
 
 - **行动链接 `actionLink`**：航班 `candidates`、酒店 `options`、`slot.transport` 等若带 `actionLink={label,url}`，渲染成一个明确的「去预订 / 导航 / 叫车」按钮或链接（新标签打开）。**没有就不渲染**，绝不为此手拼链接。
-- **与引擎自带地图链接的边界**：`map.js` 在地图弹窗生成的「导航 / 高德地图 / Google 地图」点位链接**不属于 actionLink**——它们按官方公开的免 key URI 规范（Apple Maps、`geo:`、高德 URI API `coordinate=wgs84`、Google Maps URLs）由引擎生成，只做「打开地图看这个点」、不承载实时数据主张；「绝不手拼」约束针对的是预订/路线类 actionLink，两者并存不冲突。
+- **与引擎自带地图链接的边界**：`map.js` 在地图弹窗生成的「导航 / 高德地图 / Google 地图」点位链接，以及每日头部的「高德打开当日点位」链接（`buildAmapDayMarkersLinks`，多点标注 URI），**均不属于 actionLink**——它们按官方公开的免 key URI 规范（Apple Maps、`geo:`、高德 URI API `coordinate=wgs84` 单点标注 / `markers=` 多点标注、Google Maps URLs）由引擎生成，只做「打开地图看这个点/这天的点」、不承载实时数据主张；「绝不手拼」约束针对的是预订/路线类 actionLink，两者并存不冲突。注意高德多点标注与导航 URI 的参数表**无 coordinate 参数**（默认 GCJ-02），这两个通道的坐标由引擎先经 `wgs84ToGcj02` 转换，页面侧不要自己拼。
 - **数据来源 `dataSources`**：若 `trip.dataSources` 非空，在相关区块或免责声明附近用一行小字中性注明（如「实时航班/酒店来源：飞猪 skill；路线规划与天气来源：高德 skill，时效性由其官方保证」）。措辞**中性、不夸、不推荐某一家**；与 AI 静态整理的内容（标"参考·可能过时"）做视觉区分即可。
 - 这些是**渐进增强**：缺这些字段时页面与现在完全一致，不留空块、不报错。
 

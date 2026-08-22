@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { buildNavLink, buildMapAppLinks, routeCoordinates, gcj02ToWgs84, normalizeStays } = require('../travel-plan-viz/assets/map.js');
+const { buildNavLink, buildMapAppLinks, buildAmapDayMarkersLinks, routeCoordinates, gcj02ToWgs84, wgs84ToGcj02, normalizeStays } = require('../travel-plan-viz/assets/map.js');
 
 // 注：initTravelMap 依赖浏览器 + Leaflet，单测只覆盖纯函数，地图初始化由端到端手动验证。
 
@@ -72,4 +72,78 @@ test('gcj02ToWgs84 对境内坐标做百米级纠偏（天安门）', () => {
 
 test('gcj02ToWgs84 对境外坐标原样返回（东京）', () => {
   assert.deepStrictEqual(gcj02ToWgs84(35.6595, 139.7005), { lat: 35.6595, lng: 139.7005 });
+});
+
+test('wgs84ToGcj02 对境内坐标做百米级加偏，境外原样返回', () => {
+  // WGS-84 的天安门，转 GCJ-02 后应向东北偏约 0.002–0.007°
+  const { lat, lng } = wgs84ToGcj02(39.90655, 116.39135);
+  assert.ok(lat - 39.90655 > 0.001 && lat - 39.90655 < 0.01, `lat 偏移量异常: ${lat - 39.90655}`);
+  assert.ok(lng - 116.39135 > 0.001 && lng - 116.39135 < 0.01, `lng 偏移量异常: ${lng - 116.39135}`);
+  assert.deepStrictEqual(wgs84ToGcj02(35.6595, 139.7005), { lat: 35.6595, lng: 139.7005 });
+});
+
+test('wgs84ToGcj02 与 gcj02ToWgs84 互逆（往返误差米级）', () => {
+  // 长治市区一带：WGS→GCJ→WGS 应回到原点附近（同为单次近似，容差 1e-4° ≈ 11m）
+  const gcj = wgs84ToGcj02(36.2, 113.11);
+  const back = gcj02ToWgs84(gcj.lat, gcj.lng);
+  assert.ok(Math.abs(back.lat - 36.2) < 1e-4, `lat 往返误差: ${Math.abs(back.lat - 36.2)}`);
+  assert.ok(Math.abs(back.lng - 113.11) < 1e-4, `lng 往返误差: ${Math.abs(back.lng - 113.11)}`);
+});
+
+test('buildAmapDayMarkersLinks 拼多点标注 URI：markers 为 lng,lat,名称（GCJ-02）', () => {
+  const links = buildAmapDayMarkersLinks([
+    { lat: 36.2, lng: 113.11, name: '上党门' },
+    { lat: 35.505, lng: 112.585, name: '北留镇' },
+  ]);
+  assert.strictEqual(links.length, 1);
+  const url = links[0].url;
+  assert.ok(url.startsWith('https://uri.amap.com/marker?markers='), url);
+  assert.ok(url.includes('&src=travel-plan-viz&callnative=1'), url);
+  // 境内点必须已转 GCJ-02（不能原样出现 WGS 坐标对），名称须 URL 编码
+  assert.ok(!url.includes('113.110000,36.200000') && !url.includes('112.585000,35.505000'), url);
+  assert.ok(url.includes(encodeURIComponent('上党门')), url);
+  // 块元数据：覆盖下标 0–1
+  assert.deepStrictEqual(
+    { count: links[0].count, first: links[0].first, last: links[0].last },
+    { count: 2, first: 0, last: 1 },
+  );
+});
+
+test('buildAmapDayMarkersLinks 超过 10 点按序切块（官方单链接上限 10 点）', () => {
+  const points = Array.from({ length: 13 }, (_, i) => ({ lat: 35 + i * 0.01, lng: 112 + i * 0.01, name: 'P' + i }));
+  const links = buildAmapDayMarkersLinks(points);
+  assert.strictEqual(links.length, 2);
+  assert.deepStrictEqual(
+    links.map((l) => [l.count, l.first, l.last]),
+    [[10, 0, 9], [3, 10, 12]],
+  );
+  // 两块各自的 markers 都不超过 10 个点
+  links.forEach((l) => {
+    const markers = decodeURIComponent(l.url.split('markers=')[1].split('&')[0]);
+    assert.ok(markers.split('|').length === l.count, l.url);
+  });
+});
+
+test('buildAmapDayMarkersLinks 名称中的分隔符被替换，残缺点位被跳过', () => {
+  const links = buildAmapDayMarkersLinks([
+    { lat: 36.2, lng: 113.11, name: 'A,B|C' },      // 名称含分隔符
+    { lat: 35.5, name: '缺经度' },                    // 残缺，跳过
+    { lng: 112.5, name: '缺纬度' },                   // 残缺，跳过
+    { lat: 35.505, lng: 112.585 },                    // 无名称，只给坐标
+  ]);
+  assert.strictEqual(links.length, 1);
+  const markers = links[0].url.split('markers=')[1].split('&src=')[0];
+  assert.strictEqual(markers.split('|').length, 2, links[0].url);
+  assert.ok(!markers.includes('A%2CB'), markers);       // 逗号被换成空格，不得原样编码出现
+  assert.ok(markers.includes(encodeURIComponent('A B C')), markers);
+  // 第二点无名称：条目就是"lng,lat"两段
+  const second = markers.split('|')[1];
+  assert.ok(/^\d+\.\d{6},\d+\.\d{6}$/.test(second), second);
+});
+
+test('buildAmapDayMarkersLinks 全残缺或非数组输入返回空数组', () => {
+  assert.deepStrictEqual(buildAmapDayMarkersLinks([]), []);
+  assert.deepStrictEqual(buildAmapDayMarkersLinks(undefined), []);
+  assert.deepStrictEqual(buildAmapDayMarkersLinks(null), []);
+  assert.deepStrictEqual(buildAmapDayMarkersLinks([{ name: '无坐标' }]), []);
 });
