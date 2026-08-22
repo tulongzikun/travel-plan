@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { buildNavLink, buildMapAppLinks, routeCoordinates, gcj02ToWgs84 } = require('../travel-plan-viz/assets/map.js');
+const { buildNavLink, buildMapAppLinks, routeCoordinates, gcj02ToWgs84, normalizeStays } = require('../travel-plan-viz/assets/map.js');
 
 // 注：initTravelMap 依赖浏览器 + Leaflet，单测只覆盖纯函数，地图初始化由端到端手动验证。
 
@@ -45,6 +45,20 @@ test('routeCoordinates 按顺序提取 [lat,lng]', () => {
     { lat: 3, lng: 4, name: 'B' },
   ]);
   assert.deepStrictEqual(out, [[1, 2], [3, 4]]);
+});
+
+test('normalizeStays 留下 name+数值坐标齐全的锚点，滤掉残缺与非数组输入', () => {
+  const out = normalizeStays([
+    { name: '北留镇', lat: 35.505, lng: 112.585, note: '皇城相府旁' },
+    { name: '缺坐标的片区' },
+    { name: '缺经度', lat: 35.5 },
+    { lat: 35.5, lng: 112.5 }, // 缺 name
+    { name: '坐标非数字', lat: '35.5', lng: 112.5 },
+  ]);
+  assert.strictEqual(out.length, 1);
+  assert.strictEqual(out[0].name, '北留镇');
+  assert.deepStrictEqual(normalizeStays(undefined), []);
+  assert.deepStrictEqual(normalizeStays(null), []);
 });
 
 test('gcj02ToWgs84 对境内坐标做百米级纠偏（天安门）', () => {

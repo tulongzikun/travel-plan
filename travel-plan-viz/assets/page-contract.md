@@ -38,6 +38,9 @@ const trip = {
     {
       area: "尖沙咀",
       reason: "靠近星光大道、天星小轮，地铁交通便利",
+      // lat/lng 可选：片区锚点（城区级近似即可，如取县政府/镇区坐标），给就成对给、WGS-84。
+      // 供地图画 🏨 标记（initTravelMap 的 opts.stays）；宁缺勿猜——没核到的锚点直接省略
+      lat: 22.298, lng: 114.172,
       // option 可选 price + priceQueriedAt：仅当经官方渠道（已装官方 skill 或 tools/hotel_research.py）查到实时价时给，
       // 两者必须成对出现；出发日期未定（dateTBD）期间不给 price、只给 priceRange（时机拍板见 research-guide「酒店」节）
       options: [
@@ -72,7 +75,8 @@ const trip = {
       date: "2026-07-15",
       weekday: "周二",
       theme: "港岛经典 · 都市印象",        // 当日主题（可选）
-      tips: ["上午先排户外，午后转室内避雷暴"],   // 当日小贴士（可选）
+      stayArea: "尖沙咀",                 // 当晚住宿片区（大体区域，如城区/镇名；返程日可省略）——须在当日头部显著标注
+      tips: ["上午先排户外，午后转室内避雷暴"],   // 当日小贴士（可选）；若以「🚗 车程链」汇总当日交通，链条须终于「→当晚住宿」段（与 slot.transport 的逐段链一致，别让住宿腿散在链条外）
       alternatives: [                          // 单日二选一（可选）
         { label: "方案A 香港迪士尼", summary: "暑期皮克斯限定，成人约 ¥580 起，港铁迪士尼线直达" },
         { label: "方案B 海洋公园",   summary: "水上乐园重开，联票约 ¥800，南港岛线海洋公园站直达" }
@@ -115,8 +119,8 @@ const trip = {
 3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个建议班次，每项标"待选 · 请自行核实预订"并显示 `note`；带 `price` 的须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订票页为准」。
 4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。带 `price` 的选项须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订房页为准」（dateTBD 期间不出现 `price`）。
 5. **免责声明**：在航班/酒店区域附近显著展示 `trip.disclaimer` 全文。
-6. **交互地图**：`<div id="map">`，调用 `initTravelMap('map', points)`，`points` 为所有 slot 按行程顺序汇总的 `{lat,lng,name,time}`。引入 Leaflet CSS/JS（CDN）。
-7. **每日时间轴**：按天分组，显示当日 `weekday`/`theme`；早/中/晚分段，每个 slot 卡片含 `photo`、`rating`、`review`，并展示存在的可选字段（`openingHours`、`closedDays`、`ticketPrice`、`transport` 的方式/票价/耗时、`seasonal`）；`needsBooking` 为 true 时插入 `reminderBadgeHTML(leadDays)`。当日若有 `tips`、`alternatives`（二选一卡片）也要展示。
+6. **交互地图**：`<div id="map">`，调用 `initTravelMap('map', points, { stays })`，`points` 为所有 slot 按行程顺序汇总的 `{lat,lng,name,time}`；`stays` 为 `hotelAreas` 中带数值 `lat/lng` 锚点的片区（`{lat,lng,name,note}`，note 可用 reason 代替），画为 🏨 标记（不编号、不进路线连线）。引入 Leaflet CSS/JS（CDN）。
+7. **每日时间轴**：按天分组，显示当日 `weekday`/`theme`；**有 `stayArea` 时在当日头部显著标注「当晚住宿：XXX」**（返程日无则不标）；早/中/晚分段，每个 slot 卡片含 `photo`、`rating`、`review`，并展示存在的可选字段（`openingHours`、`closedDays`、`ticketPrice`、`transport` 的方式/票价/耗时、`seasonal`）；`needsBooking` 为 true 时插入 `reminderBadgeHTML(leadDays)`。当日若有 `tips`、`alternatives`（二选一卡片）也要展示。
 8. **每日餐饮**：展示当日 `dining`，每餐含 `place`、`hours` 与必点菜（`dishes` 的名称 + `price`）。
 9. **全程实用贴士**：展示 `trip.tips` 列表。
 
