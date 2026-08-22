@@ -27,6 +27,14 @@ function validateTrip(trip) {
   if (!trip.preTrip) warnings.push('缺 trip.preTrip（行前须知）');
   if (!trip.tips || !trip.tips.length) warnings.push('缺 trip.tips（全程贴士）');
   if (!trip.hotelAreas || !trip.hotelAreas.length) warnings.push('缺 trip.hotelAreas（片区酒店）');
+  // 住宿片区锚点：lat/lng 可选，但要给就成对给数字（城区级近似坐标，画 🏨 用）
+  (trip.hotelAreas || []).forEach(function (h, i) {
+    var hasLat = h && h.lat !== undefined, hasLng = h && h.lng !== undefined;
+    if (hasLat !== hasLng) errors.push('hotelAreas[' + i + '] lat/lng 须成对出现');
+    else if (hasLat && (typeof h.lat !== 'number' || typeof h.lng !== 'number')) {
+      errors.push('hotelAreas[' + i + '] lat/lng 须为数字');
+    }
+  });
   if (!trip.flights) warnings.push('缺 trip.flights（航班区）');
 
   (trip.reminders || []).forEach(function (r, i) {
@@ -61,6 +69,25 @@ function validateTrip(trip) {
       }
     });
     if (!day.slots || !day.slots.length) warnings.push('days[' + di + '] 没有 slots');
+    // 当晚住宿片区标注：除返程日外每天应有 stayArea（大体区域即可）
+    if (day.stayArea !== undefined && typeof day.stayArea !== 'string') {
+      errors.push('days[' + di + '].stayArea 须为字符串（当晚住宿片区）');
+    } else if (!day.stayArea && di < trip.days.length - 1) {
+      warnings.push('days[' + di + '] 缺 stayArea（当晚住宿片区标注，仅返程日可省）');
+    }
+    // 车程链应终于「→住宿」段：链里有「宿」字是最机械的代理判据
+    var dayTips = (day.tips || []).map(function (t) { return String(t); });
+    if (dayTips.some(function (t) { return t.indexOf('车程链') !== -1; })
+      && !dayTips.some(function (t) { return t.indexOf('宿') !== -1; })) {
+      warnings.push('days[' + di + '] 车程链未见「宿」收尾段（末站→当晚住宿），请确认');
+    }
+  });
+
+  // 住宿片区锚点坐标并入离群检测（写错县城会跟景点一样被中位数比出来）
+  (trip.hotelAreas || []).forEach(function (h, i) {
+    if (h && typeof h.lat === 'number' && typeof h.lng === 'number') {
+      lats.push(h.lat); lngs.push(h.lng);
+    }
   });
 
   // 离群检测：与中位数偏差 > 3°（约 300km）多半是查错城市/写错数量级
@@ -78,6 +105,13 @@ function validateTrip(trip) {
             + '" 坐标疑似离群（与行程中位点差 >3°），请核实: ' + s.lat + ',' + s.lng);
         }
       });
+    });
+    (trip.hotelAreas || []).forEach(function (h, i) {
+      if (!h || typeof h.lat !== 'number' || typeof h.lng !== 'number') return;
+      if (Math.abs(h.lat - mLat) > 3 || Math.abs(h.lng - mLng) > 3) {
+        warnings.push('hotelAreas[' + i + '] "' + h.area
+          + '" 锚点坐标疑似离群（与行程中位点差 >3°），请核实: ' + h.lat + ',' + h.lng);
+      }
     });
   }
   return { errors: errors, warnings: warnings };

@@ -1,4 +1,4 @@
-// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84）可单元测试；
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/routeCoordinates/gcj02ToWgs84/normalizeStays）可单元测试；
 // initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
 
 // HTML 转义，防止 XSS
@@ -85,9 +85,22 @@ function routeCoordinates(points) {
   return points.map(function (p) { return [p.lat, p.lng]; });
 }
 
+// 住宿锚点过滤：只留 name 与数值 lat/lng 齐全的条目（城区级近似坐标，缺坐标的片区直接跳过，不猜）。
+// stays: [{lat, lng, name, note?}]
+function normalizeStays(stays) {
+  if (!Array.isArray(stays)) return [];
+  return stays.filter(function (s) {
+    return s && typeof s.name === 'string' && s.name
+      && typeof s.lat === 'number' && isFinite(s.lat)
+      && typeof s.lng === 'number' && isFinite(s.lng);
+  });
+}
+
 // 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
 // elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
-// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）。
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）；
+//   { stays } 住宿片区锚点 [{lat, lng, name, note?}]，画 🏨 标记（不编号、不进路线），
+//   缺数值坐标的条目会被 normalizeStays 跳过——锚点是城区级近似，宁缺勿猜。
 function initTravelMap(elementId, points, opts) {
   opts = opts || {};
   var map = L.map(elementId);
@@ -115,11 +128,31 @@ function initTravelMap(elementId, points, opts) {
     );
   });
 
+  normalizeStays(opts.stays).forEach(function (s) {
+    var icon = L.divIcon({
+      className: 'route-pin route-pin--stay',
+      html: '<span class="route-pin__num">🏨</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(s.lat, s.lng, s.name, ua) }]
+      .concat(buildMapAppLinks(s.lat, s.lng, s.name));
+    L.marker([s.lat, s.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>🏨 ' + escapeHTML(s.name) + '</b><br>'
+      + (s.note ? escapeHTML(s.note) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
   var coords = routeCoordinates(points);
   if (coords.length > 1) {
     L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
   }
-  map.fitBounds(coords.length ? coords : [[0, 0]], { padding: [30, 30] });
+  // 住宿锚点只参与视野适配，不进路线连线（片区近似坐标，连线会误导）
+  var allCoords = coords.concat(normalizeStays(opts.stays).map(function (s) { return [s.lat, s.lng]; }));
+  map.fitBounds(allCoords.length ? allCoords : [[0, 0]], { padding: [30, 30] });
   return map;
 }
 
@@ -129,6 +162,7 @@ if (typeof module !== 'undefined' && module.exports) {
     buildMapAppLinks: buildMapAppLinks,
     routeCoordinates: routeCoordinates,
     gcj02ToWgs84: gcj02ToWgs84,
+    normalizeStays: normalizeStays,
     initTravelMap: initTravelMap,
   };
 }
