@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>武汉·襄阳 6天5晚 · 编钟与汉水古城</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --bg:#f4f1e8;          /* 素绢米白 */
+    --panel:#fffdf7;
+    --ink:#26302b;
+    --ink-soft:#66706a;
+    --accent:#2f6e5f;      /* 青铜绿 */
+    --accent-soft:#ddebe5;
+    --secondary:#8a6d2f;   /* 错金 */
+    --secondary-soft:#f0e9d8;
+    --gold:#b08d3e;
+    --line:#e3ddcc;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.7 "PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  img{object-fit:cover;display:block}
+  .container{max-width:920px;margin:0 auto;padding:0 16px 56px}
+
+  /* ===== 页顶 ===== */
+  header.hero{background:linear-gradient(160deg,#26433a 0%,#1b312a 55%,#6e5a23 100%);color:#f4f1e8;padding:40px 16px 30px;text-align:center}
+  .hero__kicker{font-size:13px;letter-spacing:.35em;opacity:.82}
+  .hero__title{font-size:clamp(26px,6vw,40px);font-weight:800;margin:10px 0 6px}
+  .hero__meta{font-size:14px;opacity:.9}
+  .hero__meta b{color:#e8d5a0}
+  .banner-tbd{max-width:920px;margin:14px auto 0;background:rgba(244,241,232,.14);border:1px dashed rgba(244,241,232,.6);border-radius:10px;padding:8px 14px;font-size:13.5px}
+
+  section{margin-top:30px}
+  h2.sec{font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  h2.sec::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--accent),var(--gold))}
+  .sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:12px}
+
+  /* ===== 待办清单 ===== */
+  .pretrip-todo{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.pretrip-todo{grid-template-columns:1fr 1fr}}
+  .todo-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .todo-item input{accent-color:var(--accent);transform:translateY(1px)}
+  .todo-deadline{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
+
+  /* ===== 行前须知 ===== */
+  .pretrip-grid{display:grid;gap:12px}
+  @media(min-width:768px){.pretrip-grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card h3{font-size:15.5px;color:var(--secondary);margin-bottom:6px}
+  .card p,.card li{font-size:14.5px;color:var(--ink)}
+  .card ul{padding-left:18px}
+
+  /* ===== 高铁 ===== */
+  .flight{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+  .flight__code{grid-row:span 2;background:var(--accent);color:#fff;font-weight:800;font-size:13px;border-radius:8px;padding:6px 10px;align-self:start;white-space:nowrap}
+  .flight--alt .flight__code{background:var(--secondary)}
+  .flight__label{font-weight:700;font-size:15px}
+  .flight__time{font-size:15px;color:var(--secondary);font-weight:700}
+  .flight__note{grid-column:2;font-size:13.5px;color:var(--ink-soft)}
+
+  /* ===== 酒店 ===== */
+  .hotel-grid{display:grid;gap:12px}
+  @media(min-width:768px){.hotel-grid{grid-template-columns:1fr 1fr}}
+  .hotel-area h3{font-size:16px}
+  .hotel-area .nights{font-size:12.5px;color:#fff;background:var(--secondary);border-radius:99px;padding:2px 10px;margin-left:8px;vertical-align:2px}
+  .hotel-area .reason{font-size:13.5px;color:var(--ink-soft);margin:4px 0 10px}
+  .tier{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:baseline;padding:7px 0;border-top:1px dashed var(--line);font-size:14px}
+  .tier b:first-child{grid-column:1}
+  .tier .t-name{font-weight:600}
+  .tier .t-price{color:var(--accent);font-size:13px;white-space:nowrap}
+  .tier .t-note{grid-column:2/4;font-size:12.5px;color:var(--ink-soft)}
+  .tier-label{font-size:12px;color:#fff;border-radius:6px;padding:1px 6px;justify-self:start}
+  .tier-label--e{background:#7a8b6f}.tier-label--m{background:var(--gold)}.tier-label--h{background:var(--accent)}
+
+  /* ===== 免责声明 ===== */
+  .disclaimer{background:var(--secondary-soft);border:1px solid #ddcfa8;border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:#6e5518}
+
+  /* ===== 地图 ===== */
+  #map{height:430px;border-radius:var(--radius);border:1px solid var(--line);z-index:1}
+  @media(min-width:768px){#map{height:520px}}
+  .route-pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font:700 13px/1 system-ui,sans-serif;box-shadow:0 1px 5px rgba(0,0,0,.45);border:2px solid #fff}
+  .route-pin--stay{background:var(--secondary);border-radius:9px;font-size:14px}
+  .map-legend{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
+
+  /* ===== 每日时间轴 ===== */
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:18px}
+  .day__head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+  .day__no{background:var(--ink);color:#f4f1e8;font-weight:800;border-radius:8px;padding:2px 10px;font-size:14px}
+  .day__date{font-size:13.5px;color:var(--ink-soft)}
+  .day__theme{font-size:16.5px;font-weight:800;color:var(--secondary)}
+  .day__stay{font-size:13px;font-weight:700;color:var(--secondary);background:var(--secondary-soft);border-radius:99px;padding:2px 10px;white-space:nowrap}
+  .day__amap{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:2px 10px;white-space:nowrap;text-decoration:none}
+  .day__tips{background:var(--secondary-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+  .day__tips li{font-size:13px;color:var(--secondary);margin-left:16px}
+  .period{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.2em;margin:12px 0 8px}
+  .slots{display:grid;gap:12px}
+  @media(min-width:768px){.slots{grid-template-columns:1fr 1fr}}
+  .slot{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+  .slot__visual{position:relative;aspect-ratio:16/9;background:linear-gradient(140deg,var(--secondary) 0%,var(--accent) 130%)}
+  .slot__visual img{position:absolute;inset:0;width:100%;height:100%}
+  .slot__visual .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.9);font-size:20px;font-weight:800;letter-spacing:.12em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .slot__time{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:6px;padding:1px 8px}
+  .slot__body{padding:12px 14px 14px}
+  .slot__name{font-size:16.5px;font-weight:800}
+  .slot__name .rating{font-size:12px;color:var(--gold);font-weight:700;margin-left:8px}
+  .slot__review{font-size:13.5px;color:var(--ink-soft);margin:4px 0 8px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{font-size:12px;border-radius:99px;padding:2px 10px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+  .slot__note{font-size:12.5px;color:#6e5518;background:#f6efdc;border-radius:8px;padding:6px 10px;margin-top:8px}
+  .reminder-badge{display:inline-block;font-size:12px;background:#fff3e0;border:1px solid #ecc78a;color:#a05e00;border-radius:99px;padding:2px 10px;margin-top:8px}
+  .alt-card{border:1px dashed var(--gold);background:#fdf9ef;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px}
+  .alt-card b{color:var(--gold)}
+  .dining{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  .meal{margin-bottom:8px}
+  .meal__tag{font-size:12px;color:#fff;background:var(--gold);border-radius:6px;padding:1px 8px;margin-right:6px}
+  .meal__place{font-weight:700;font-size:14.5px}
+  .meal__hours{font-size:12.5px;color:var(--ink-soft)}
+  .dish{display:inline-block;font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:1px 10px;margin:4px 4px 0 0}
+  .dish .p{color:var(--accent);font-weight:700}
+
+  /* ===== 全程贴士 ===== */
+  .tips-list{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.tips-list{grid-template-columns:1fr 1fr}}
+  .tips-list li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+
+  footer{margin-top:36px;text-align:center;font-size:12.5px;color:var(--ink-soft)}
+  footer .line{width:64px;height:3px;border-radius:2px;background:var(--gold);margin:0 auto 10px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero__kicker">编钟 · 江湖 · 古城</div>
+  <div class="hero__title" id="pageTitle">武汉·襄阳 6天5晚</div>
+  <div class="hero__meta" id="pageMeta"></div>
+  <div class="banner-tbd" id="tbdBanner" style="display:none"></div>
+</header>
+
+<div class="container">
+
+  <section>
+    <h2 class="sec">⏰ 出发前待办清单</h2>
+    <div class="sub" id="checklistHint"></div>
+    <div id="checklist"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🌦️ 行前须知 <span style="font-size:13px;color:var(--ink-soft);font-weight:400">（按 11 月中旬 · 深秋 · 鄂北双城定制）</span></h2>
+    <div class="pretrip-grid" id="preTrip"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🚄 跨城高铁（未预订 · 请自行核实）</h2>
+    <div class="sub">高铁环线：汉口 → 随州南 → 襄阳东 → 钟祥南 → 汉口，不走回头路（襄荆高铁 2025-09、武宜高铁钟祥南站 2025-12 通车后成环）。班次与票价为 2026 年当季调研参考，未走实时渠道，一律以 12306 为准。</div>
+    <div id="flights"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🏨 住宿片区（按行程节点 · 三档价位）</h2>
+    <div class="hotel-grid" id="hotels"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">⚠️ 免责声明</h2>
+    <p class="disclaimer">本页全部信息（天气、车次、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。</p>
+  </section>
+
+  <section>
+    <h2 class="sec">🗺️ 行程地图</h2>
+    <div id="map"></div>
+    <div class="map-legend">编号即游览顺序（D1→D6）；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。每日头部「📍 高德打开当日点位」经官方免 key 多点标注 URI 带走当日全部点位（高德路书无公开创建接口，链接打开的是带名称的点集合，收藏/存路书须在高德内手动操作）。地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
+  </section>
+
+  <section>
+    <h2 class="sec">📅 每日行程</h2>
+    <div id="days"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">💡 全程实用贴士</h2>
+    <ul class="tips-list" id="globalTips"></ul>
+  </section>
+
+  <footer>
+    <div class="line"></div>
+    由 travel-plan-viz 生成 · 数据为公开资料整理的参考 · 行程数据内嵌本页（可丢回给 AI 迭代修改）
+  </footer>
+</div>
+
+<script id="trip-data" type="application/json">
+{
+  "title": "武汉·襄阳 6天5晚 · 编钟与汉水古城",
+  "startDate": "2026-11-10",
+  "dateTBD": true,
+  "colorScheme": "荆楚 · 青铜绿 × 错金 × 素绢米白",
+  "preTrip": {
+    "weather": {
+      "summary": "11 月中旬武汉约 12–18℃ / 8–11℃，襄阳、随州、钟祥约 10–17℃ / 5–9℃（清晨凉）；晴天多、偶有秋雨，体感与深秋相符",
+      "typhoon": "11 月已无台风影响；主要变量是寒潮大风——大风大雾时知音号/两江游船有停航史，行前看公众号；银杏（随州银杏谷、广德寺将军树）恰在 11-08 后的最佳窗口，寒潮大风会加速落叶，想看满金赶早"
+    },
+    "packing": "洋葱式穿搭：长袖打底 + 抓绒/薄羽绒 + 防风外套（早晚 5–9℃）；舒适步行鞋（武大坡道、古城石板路、明显陵神道长）；折叠伞；充电宝（全天刷码乘车 + 各馆预约二维码）",
+    "payment": "城市内移动支付全覆盖；地铁走「Metro 新时代」App 或支付宝乘车码，打车用网约车平台；演出票（知音号/唐城）线上购票、现场换票",
+    "apps": [
+      "12306（全程高铁 + 候补，钟祥南班次少优先锁）",
+      "Metro 新时代 / 支付宝乘车码（武汉地铁）",
+      "「湖北省博物馆」公众号（入馆预约）",
+      "「汉口古德寺」公众号（预约唯一渠道，最早提前 10 天）",
+      "「江汉关博物馆」公众号或「武汉文旅码」",
+      "「襄阳市博物馆」公众号或「游湖北」小程序（新馆预约）",
+      "「知音号」公众号（购票）",
+      "「襄阳盛世唐城」公众号（夜场排期）",
+      "随州市博物馆乐舞确认电话 0722-3810518（官网公示）"
+    ],
+    "ticketTip": "省博入馆最多提前 5 天、每天 17:18 放票，周末秒没——本行程排了周三（D2），11-06（周五）17:18 放票即约；编钟演出票 ¥50 不随入馆预约线上卖，到馆自助机购；知音号提前 3–7 天；唐城夜场提前 1–3 天；古德寺提前 10 天内约；酒店 11 月淡季提前 3–7 天即可"
+  },
+  "flights": {
+    "booked": [],
+    "candidates": [
+      {
+        "label": "去程 · 沪汉通道",
+        "code": "高铁 G 次",
+        "time": "上海虹桥 → 汉口 约 3.5–4.5h（早班 07:00–08:00 档，约 11:30 前后抵汉口）",
+        "note": "直达班次多，二等座参考 ¥280–360（非实时，以 12306 为准）；估算日按 11:30 前后到汉口排 D1 下午段，出票后若车次偏晚，D1 顺序前移压缩黎黄陂路即可"
+      },
+      {
+        "label": "城际 · 武汉 → 随州",
+        "code": "汉十高铁",
+        "time": "汉口 → 随州南 约 50–70 分钟（D3 午后班次）",
+        "note": "D3 按 12:30 前后班次排程：13:35 前到随州南，衔接 15:30 编钟乐舞场留足缓冲；具体车次以 12306 为准"
+      },
+      {
+        "label": "城际 · 随州 → 襄阳",
+        "code": "汉十高铁",
+        "time": "随州南 → 襄阳东 约 25–40 分钟（D3 傍晚班次）",
+        "note": "襄阳东站在东津新区，打车到襄城古城约 30 分钟（¥35–45）；当晚北街夜宵"
+      },
+      {
+        "label": "返程环线 · 襄阳 → 钟祥 → 武汉 → 上海",
+        "code": "襄荆 + 沪汉通道",
+        "time": "襄阳东 → 钟祥南 约 0.5–1h；钟祥南 → 汉口 约 1–1.5h；汉口 → 上海虹桥 约 3.5–4.5h",
+        "note": "高铁环线不走回头路（襄荆高铁 2025-09、武宜高铁钟祥南站 2025-12 通车后成环）；钟祥南班次相对少，定档后先锁 D6 早班；到虹桥约 21:00 前后"
+      }
+    ]
+  },
+  "hotelAreas": [
+    {
+      "area": "汉口江滩-江汉路",
+      "nights": "D1 一晚",
+      "lat": 30.581,
+      "lng": 114.2892,
+      "reason": "知音号码头、江汉关、吉庆街步行圈——晚上看完演出步行回酒店；沿江大道夜景即门外",
+      "options": [
+        {
+          "tier": "经济",
+          "name": "汉庭（江汉路步行街美术馆店 / 汉口江滩店）",
+          "priceRange": "约 ¥180–260（周中）",
+          "note": "华住系"
+        },
+        {
+          "tier": "中档",
+          "name": "全季（江汉路步行街店，江汉二路 118 号 / 汉口江滩店，天津路 1 号）",
+          "priceRange": "约 ¥300–400",
+          "note": "华住系中端；桔子（江汉路步行街店）公开报价约 ¥309 起，同档可换"
+        },
+        {
+          "tier": "高端",
+          "name": "武汉马哥孛罗酒店（沿江大道 159 号）",
+          "priceRange": "约 ¥700–1,100",
+          "note": "五星，步行可达江汉路 + 江滩，离知音号码头最近"
+        }
+      ]
+    },
+    {
+      "area": "武昌司门口-黄鹤楼",
+      "nights": "D2 一晚",
+      "lat": 30.549361,
+      "lng": 114.296724,
+      "reason": "粮道街过早、户部巷、昙华林步行圈，清晨黄鹤楼开园即入；换 1 次酒店换来两个早黄金档",
+      "options": [
+        {
+          "tier": "经济",
+          "name": "汉庭（黄鹤楼武昌火车站店，中山路 497 号）",
+          "priceRange": "约 ¥160–240",
+          "note": "华住系，地铁通勤"
+        },
+        {
+          "tier": "中档",
+          "name": "如家·昙华林华驿精选（胭脂路 13 号，2023 新开）",
+          "priceRange": "约 ¥200–300",
+          "note": "首旅如家系；桔子（黄鹤楼户部巷店，中华路）约 ¥280–380，紧邻粮道街，同档可换"
+        },
+        {
+          "tier": "高端",
+          "name": "武汉富力威斯汀酒店（临江大道 96 号）",
+          "priceRange": "约 ¥700–1,200",
+          "note": "五星，临江，积玉桥地铁站约 600 米，黄鹤楼车程约 8 分钟"
+        }
+      ]
+    },
+    {
+      "area": "襄城古城",
+      "nights": "D3–D5 三晚",
+      "lat": 32.025138,
+      "lng": 112.141631,
+      "reason": "北街/城墙/管家巷步行圈，此后 3 晚零挪窝——D4 唐城夜场、D5 古城全境都以这里为轴心；襄阳市博新馆在城南宋家庄方向、车程约 15 分钟",
+      "options": [
+        {
+          "tier": "经济",
+          "name": "汉庭（襄阳古城盛世唐城店，陈侯巷 4 号）",
+          "priceRange": "约 ¥160–240",
+          "note": "华住系，北街城墙下"
+        },
+        {
+          "tier": "中档",
+          "name": "维也纳（襄阳唐城鼓楼店）",
+          "priceRange": "约 ¥220–320",
+          "note": "锦江系；桔子（襄阳古城鼓楼店，东街 27 号）约 ¥260–360、全季古城周边约 ¥340 起，同档可换"
+        },
+        {
+          "tier": "高端",
+          "name": "亚朵（襄阳古城盛世唐城店，胜利街）",
+          "priceRange": "约 ¥400–600",
+          "note": "轻高端步行约 7 分钟到古城；再上一档为襄城温德姆华美达（约 ¥500–750）"
+        }
+      ]
+    }
+  ],
+  "disclaimer": "本页全部信息（天气、车次、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。",
+  "tips": [
+    "高铁环线不走回头路：汉口 → 随州南 → 襄阳东 → 钟祥南 → 汉口（襄荆高铁 2025-09、武宜高铁钟祥南站 2025-12 通车后成环）；页内城际时刻为调研参考，一律以 12306 为准",
+    "全程公共交通 + 打车，不租车；跨城腿均为高铁 25–70 分钟，市内腿地铁/打车 10–40 分钟，无山路",
+    "省博编钟演出票不随入馆预约线上卖：先约入馆（免费、提前 5 天 17:18 放票），到馆后在南馆负一楼演奏厅外自助机购演出票（¥50，选座对号入座）",
+    "周一闭馆矩阵：省博 / 江汉关 / 随州博 / 襄阳市博周一闭馆，知音号周一休演、唐城周一停夜场——本行程 11-10 周二出发恰好全程避开周一；若定档平移压到周一，把页面丢回给 AI 重排",
+    "编钟双站互补：省博看曾侯乙编钟原件 + 复刻演奏，随州博看更早的叶家山编钟 + 擂鼓墩原址墓坑，两地合计把「曾国之钟」看完",
+    "银杏当季：11-08 后是随州银杏谷、广德寺「将军树」、古隆中的金黄窗口，寒潮大风会加速落叶，想看满金把相关点位赶早",
+    "11 月中旬非节假日淡季：除省博（周末票秒没，本行程已排周三）外各馆预约基本无压力；随州博乐舞 10 人起演，淡季有不开演风险，行前电话确认",
+    "武大入校刷本人身份证（珞珈门/弘毅门速通闸机），未带证件无法入校——2026-05-13 起免预约"
+  ],
+  "reminders": [
+    {
+      "item": "去程高铁出票（上海虹桥 → 汉口，12306 提前 15 天起售）",
+      "leadDays": 15
+    },
+    {
+      "item": "返程高铁出票（汉口 → 上海虹桥傍晚班）",
+      "leadDays": 15
+    },
+    {
+      "item": "城际四段锁定（汉口→随州南 / 随州南→襄阳东 / 襄阳东→钟祥南 / 钟祥南→汉口——钟祥南班次少优先）",
+      "leadDays": 12
+    },
+    {
+      "item": "古德寺预约（「汉口古德寺」公众号唯一渠道，最早提前 10 天，每微信约 3 人）",
+      "leadDays": 10
+    },
+    {
+      "item": "沿途酒店预订（汉口 / 武昌 / 襄城×3，11 月淡季不紧张）",
+      "leadDays": 7
+    },
+    {
+      "item": "知音号 11-10 场购票（平日场 ¥248–268，官方公众号/大麦，19:30 场）",
+      "leadDays": 7
+    },
+    {
+      "item": "省博入馆预约（D2 周三场：11-06 周五 17:18 放票即约——本行程最大预约节点）",
+      "leadDays": 4
+    },
+    {
+      "item": "襄阳市博新馆 + 江汉关预约 / 唐城夜场购票",
+      "leadDays": 3
+    },
+    {
+      "item": "随州博编钟乐舞 15:30 场电话确认（0722-3810518，10 人起演、问拼场）",
+      "leadDays": 2
+    }
+  ],
+  "days": [
+    {
+      "date": "2026-11-10",
+      "stayArea": "汉口江滩-江汉路",
+      "weekday": "周二",
+      "theme": "汉口租界与长江夜 · 落地即开走",
+      "tips": [
+        "虹桥早班高铁（07:00–08:00 档）约 3.5–4.5h，11:30 前后抵汉口站；行李寄存酒店后轻装",
+        "🚕 车程链：汉口站→酒店（寄存）地铁 2 号线约 20 分钟；→古德寺 打车约 15 分钟（¥15–20）；→黎黄陂路 打车约 10 分钟；黎黄陂路→江汉关→江汉路 全程步行（沿中山大道历史街区）；→知音号码头（汉口江滩三阳路-五福路段）步行约 15 分钟；散场步行回江汉路一带 → 宿汉口江滩-江汉路",
+        "古德寺冬季 16:00 停入——落地首站排它就是为这个；公众号预约按时段持二维码核销",
+        "知音号 19:30 场建议提前 45–60 分钟到码头换票；演出约 108 分钟，散场约 21:30",
+        "今日无闭馆冲突：江汉关周一闭、今日周二开"
+      ],
+      "slots": [
+        {
+          "period": "noon",
+          "name": "古德寺",
+          "time": "13:00–14:00",
+          "lat": 30.621161,
+          "lng": 114.301658,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自汉口站（行李先寄存酒店）约 15 分钟（¥15–20）"
+          },
+          "review": "缅式阿难陀风格混搭哥特与中式——汉口租界里最不像汉口的一座寺，百年孤品",
+          "openingHours": "冬季 8:30–16:00（16:00 停入）",
+          "ticketPrice": "香花券 ¥13（公众号预约）",
+          "note": "全国重点文保第七批；「汉口古德寺」公众号为唯一预约渠道、最早提前 10 天、每微信约 3 人；寺内无停车场，周边单行路多",
+          "needsBooking": true,
+          "leadDays": 10
+        },
+        {
+          "period": "afternoon",
+          "name": "黎黄陂路（巴公房子）",
+          "time": "14:30–15:40",
+          "lat": 30.589548,
+          "lng": 114.295362,
+          "photo": "",
+          "transport": {
+            "mode": "打车+步行",
+            "duration": "自古德寺约 10 分钟；到黎黄陂路后沿街步行"
+          },
+          "review": "俄租界「街头博物馆」——巴公房子转角楼是汉口最上镜的街角，咖啡与老墙并排",
+          "openingHours": "街区全天",
+          "ticketPrice": "免费",
+          "note": "历史街区非文保单位；巴公房子为优秀历史建筑，内部不开放、以街面为主",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "afternoon",
+          "name": "江汉关博物馆",
+          "time": "15:50–16:50",
+          "lat": 30.578636,
+          "lng": 114.292039,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自黎黄陂路沿沿江大道步行约 12 分钟"
+          },
+          "review": "1924 年落成的海关钟楼本体即展品——汉口开埠百年史的最短路径",
+          "openingHours": "9:00–17:00（16:00 停止入馆，周一闭馆）",
+          "ticketPrice": "免费（公众号/武汉文旅码预约）",
+          "note": "全国重点文保第五批；沿江大道 129 号江汉路口，看完顺江汉路步行街回酒店方向",
+          "needsBooking": true,
+          "leadDays": 3
+        },
+        {
+          "period": "evening",
+          "name": "汉口江滩 · 知音号",
+          "time": "18:30–21:30",
+          "lat": 30.598182,
+          "lng": 114.30709,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自江汉路步行至知音号码头（三阳路-五福路段江滩）约 15 分钟"
+          },
+          "rating": 4.6,
+          "review": "漂在长江上的沉浸式民国剧——汽笛一响，汉口的夜晚就完整了",
+          "openingHours": "19:30 场（周一休演；演出约 108 分钟）",
+          "ticketPrice": "平日 ¥248–268（周末 ¥298–328）",
+          "note": "提前 45–60 分钟到码头换票；2026 年 11 月场次表通常 10 月才发布，购票前以「知音号」公众号当期排期为准；大风大雾有停航史",
+          "needsBooking": true,
+          "leadDays": 7
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 两江游船（知音号平替）",
+          "summary": "夜游长江 ¥104–163，看两岸灯光即可、无剧目——砍知音号换它约省 ¥350/人；知音号没票或想省预算时用"
+        },
+        {
+          "label": "备选 · 吉庆街扫街",
+          "summary": "知音号前晚餐若有余量，吉庆民俗街（老通城一带）非遗小吃街区可替换黎黄陂路的咖啡时间"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "汉口站—酒店沿线简餐 / 江汉路小吃（落地过渡餐）",
+          "hours": "随到随吃",
+          "dishes": [
+            {
+              "name": "热干面"
+            },
+            {
+              "name": "面窝"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "老通城豆皮大王（吉庆街店，中山大道 667/669 号）",
+          "hours": "7:00–19:00，晚餐务必 17:30 前进店（看完演出不再有正餐，码头前解决）",
+          "dishes": [
+            {
+              "name": "三鲜豆皮",
+              "price": "约 ¥9/份"
+            },
+            {
+              "name": "蛋酒"
+            }
+          ]
+        },
+        {
+          "meal": "夜宵",
+          "place": "吉庆民俗街小民大排档（知音号散场后，打车约 10 分钟）",
+          "hours": "夜市",
+          "dishes": [
+            {
+              "name": "藕汤"
+            },
+            {
+              "name": "烧烤"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-11-11",
+      "stayArea": "武昌司门口-黄鹤楼",
+      "weekday": "周三",
+      "theme": "武昌登楼与省博 · 编钟主场",
+      "tips": [
+        "今日两个黄金档：粮道街过早赶 7:00 前（赵师傅油饼包烧麦旺季排队 20 分钟起）、黄鹤楼 9:00 开园即入（旅行团未到）",
+        "🚕 车程链：江汉路→粮道街 打车过江约 25 分钟（¥25–30）；粮道街→昙华林 步行约 10 分钟；昙华林→黄鹤楼西爽门 步行约 15 分钟；黄鹤楼→红楼 步行约 10 分钟（阅马场）；红楼→户部巷 步行约 12 分钟；户部巷→省博 打车约 20 分钟（¥25）；省博→凌波门 打车约 10 分钟；凌波门→司门口 打车约 20 分钟 → 宿武昌司门口-黄鹤楼",
+        "省博 13:00–13:30 入馆（16:00 停止入馆）：先看曾侯乙展厅（编钟原件）+ 越王勾践剑 + 梁庄王墓，15:00 场前 20 分钟到南馆负一楼自助机购演出票（¥50）",
+        "编钟乐舞淡季（11–12 月）周二至周五每天两场：11:30 / 15:00——15:00 场为官方明文场次；周末场次须知未列，本行程刻意排周三",
+        "日落约 17:30：凌波门 16:50 前到位，栈桥日落是武昌一天的收尾"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "粮道街（过早）",
+          "time": "06:40–07:40",
+          "lat": 30.550103,
+          "lng": 114.302989,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自江汉路酒店过江约 25 分钟（¥25–30）"
+          },
+          "review": "武汉过早的「街道级博物馆」——一条街把碳水之都讲完",
+          "openingHours": "早市 6:00 起（赵师傅旺季 6:30–7:00 前到）",
+          "ticketPrice": "人均 ¥10–20",
+          "note": "家阳赵师傅油饼包烧麦（粮道街 139 号）约 ¥10/份；三镇民生甜食馆热干面/豆皮/糊米酒一站，同街可顺",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "morning",
+          "name": "昙华林",
+          "time": "07:50–08:50",
+          "lat": 30.553746,
+          "lng": 114.308042,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自粮道街东段步行约 10 分钟"
+          },
+          "review": "武昌老城文艺街区，清晨没人时的老墙与教堂最耐看",
+          "openingHours": "街区全天（店铺 10:00 前多未开，看街不看店）",
+          "ticketPrice": "免费",
+          "note": "历史街区；清晨场是刻意安排——店铺开门前先走完街面，再赶黄鹤楼开园",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "morning",
+          "name": "黄鹤楼",
+          "time": "09:00–11:30",
+          "lat": 30.547078,
+          "lng": 114.297047,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自昙华林步行约 15 分钟（蛇山西爽门入）"
+          },
+          "rating": 4.5,
+          "review": "开园即入的黄鹤楼才像自己的黄鹤楼——登楼看长江与武汉长江大桥同框",
+          "openingHours": "约 8:30–17:00（11 月，以景区公告为准）",
+          "ticketPrice": "¥70（线上常有小幅优惠）",
+          "note": "园内胜像宝塔为全国重点文保第七批（元代白塔）；现楼主楼为 1985 年重建；夜游「夜上黄鹤楼」与日场重复、本行程不排",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "红楼·武昌起义纪念馆",
+          "time": "11:35–12:05",
+          "lat": 30.544712,
+          "lng": 114.300901,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自黄鹤楼南门步行约 10 分钟（阅马场）"
+          },
+          "review": "1911 年 10 月 10 日的湖北军政府旧址——辛亥首义的原点建筑",
+          "openingHours": "9:00–17:00（16:00 停止入馆；周二闭馆、周一开放，注意与多数馆相反）",
+          "ticketPrice": "免费（预约）",
+          "note": "全国重点文保第一批；今日周三开馆 ✓；按顺路快看排（约 30 分钟外观 + 前区），深看展陈需 1.5h、会挤掉省博，取舍见备选",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "afternoon",
+          "name": "湖北省博物馆",
+          "time": "13:00–16:40",
+          "lat": 30.563741,
+          "lng": 114.359726,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自户部巷（午餐）约 20 分钟（¥25）"
+          },
+          "rating": 4.8,
+          "review": "曾侯乙编钟原件 + 越王勾践剑 + 梁庄王墓——一个馆撑起半个楚文化",
+          "openingHours": "9:00–17:00（16:00 停止入馆，周一闭馆）",
+          "ticketPrice": "免费（提前 5 天 17:18 放票预约）；编钟乐舞 ¥50",
+          "note": "编钟乐舞 15:00 场（淡季周二至五官方场次），演出票到馆在南馆负一楼演奏厅外大厅自助机购、先约入馆再买票；看展顺序建议：曾侯乙展厅 → 勾践剑 → 梁庄王 → 15:00 乐舞",
+          "needsBooking": true,
+          "leadDays": 4
+        },
+        {
+          "period": "evening",
+          "name": "东湖凌波门",
+          "time": "17:00–17:50",
+          "lat": 30.545859,
+          "lng": 114.365883,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自省博约 10 分钟（东湖边）"
+          },
+          "review": "武大人的天然泳池栈桥——11 月无人游泳，只剩落日和栈道",
+          "openingHours": "全天（栈桥开放式）",
+          "ticketPrice": "免费",
+          "note": "日落约 17:30，16:50 前从省博出发到位；看玩日落到司门口晚餐",
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 盘龙城遗址博物院",
+          "summary": "全国重点文保第三批 · 商代长江流域城址，展陈口碑极佳——想深看可与凌波门/省博半天互换（黄陂区，地铁 2 号线转达约 1h）"
+        },
+        {
+          "label": "备选 · 红楼深看",
+          "summary": "辛亥革命博物院（新馆）+ 红楼旧址联看约 1.5h 室内展——升格需挤掉昙华林清晨场或凌波门日落，二选一"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "早餐",
+          "place": "粮道街 · 家阳赵师傅热干面（粮道街 139 号）",
+          "hours": "早市（旺季 6:30–7:00 前到）",
+          "dishes": [
+            {
+              "name": "油饼包烧麦",
+              "price": "约 ¥10/份"
+            },
+            {
+              "name": "热干面"
+            },
+            {
+              "name": "糊米酒"
+            }
+          ]
+        },
+        {
+          "meal": "午餐",
+          "place": "老宅藕香（黄鹤楼景观店，民主路 71 号，户部巷西南门旁）",
+          "hours": "午市",
+          "dishes": [
+            {
+              "name": "排骨藕汤"
+            },
+            {
+              "name": "清蒸武昌鱼"
+            },
+            {
+              "name": "香酥藕夹"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "司门口/户部巷夜市（凌波门日落回来）",
+          "hours": "晚市",
+          "dishes": [
+            {
+              "name": "汤包"
+            },
+            {
+              "name": "糊汤粉配油条"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-11-12",
+      "stayArea": "襄城古城",
+      "weekday": "周四",
+      "theme": "编钟溯源走廊 · 武大—随州—襄阳",
+      "tips": [
+        "今日跨三城：武昌（早）→ 随州（午后）→ 襄阳（晚）；城际腿均约 1h 内，节奏靠两段高铁串起来",
+        "🚕 车程链：司门口→武大珞珈门 打车约 20 分钟；武大→汉口站 打车约 40 分钟（过江，¥40–50）；汉口→随州南 高铁约 55 分钟；随州南→市博物馆 打车约 15 分钟（¥15–20）；市博→擂鼓墩遗址 打车约 8 分钟（相邻）；擂鼓墩→随州南 打车约 15 分钟；随州南→襄阳东 高铁约 35 分钟；襄阳东→襄城古城（北街）打车约 30 分钟（¥35–45）→ 宿襄城古城",
+        "武大刷身份证珞珈门/弘毅门入校（2026-05-13 起免预约），车禁入、只能步行——老斋舍-樱顶-图书馆一圈约 90 分钟",
+        "随州博免费、周二至日开放（周一闭）；乐舞 15:30 场 ¥40 现场购（演奏厅旁售票处）——10 人起演、淡季有不开演风险，11-08 前后电话 0722-3810518 确认并问拼场",
+        "擂鼓墩 17:00 停止入园——乐舞 16:00 结束即出发，墓坑原址 40 分钟足够；票价历史口径 ¥40、另有免费说，以现场/官方小程序为准",
+        "到襄阳约 19:00，北街夜宵收尾（22 点后想再吃去樊城一桥头面馆群）"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "武汉大学早期建筑",
+          "time": "08:40–10:20",
+          "lat": 30.542528,
+          "lng": 114.358135,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自司门口酒店约 20 分钟（珞珈门入）"
+          },
+          "review": "老斋舍的百年樱顶与狮子山轴线——民国大学建筑的最完整群落",
+          "openingHours": "刷身份证入校（珞珈门/弘毅门速通闸机，全天可入）",
+          "ticketPrice": "免费",
+          "note": "全国重点文保第五批；2026-05-13 起取消预约、刷本人身份证步行入校，未带证件无法入校；车辆禁入，步行上山约 20 分钟到老斋舍",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "随州市博物馆",
+          "time": "13:50–16:00",
+          "lat": 31.72881,
+          "lng": 113.3492,
+          "photo": "",
+          "transport": {
+            "mode": "高铁+打车",
+            "duration": "汉口站 12:30 前后班次 → 随州南约 55 分钟；打车约 15 分钟到馆"
+          },
+          "rating": 4.5,
+          "review": "叶家山编钟比曾侯乙早五百年——编钟溯源走廊的下半场在原产地",
+          "openingHours": "周二至日 9:00–17:00（官网参观指南口径 16:00 后入馆从严，周一闭馆）",
+          "ticketPrice": "免费；编钟乐舞 ¥40（现场购）",
+          "note": "乐舞每天 10:30 / 15:30 两场（周一除外）、每场 20–30 分钟、10 人以上开演——15:30 场前 10 分钟入场；散客票演奏厅旁售票处现场买，无线上渠道",
+          "needsBooking": false,
+          "leadDays": 2
+        },
+        {
+          "period": "afternoon",
+          "name": "擂鼓墩曾侯乙墓遗址",
+          "time": "16:15–17:00",
+          "lat": 31.7309,
+          "lng": 113.3449,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自市博物馆约 8 分钟（擂鼓墩墓群同片区）"
+          },
+          "review": "编钟出土的原址墓坑——在省博看钟、在这里看钟的家",
+          "openingHours": "8:30–17:30（17:00 停止入园）",
+          "ticketPrice": "历史口径 ¥40，另有免费说——以「炎帝故里文化旅游区」官方小程序/现场为准",
+          "note": "全国重点文保第三批（擂鼓墩墓群）；2026-01 曾临时闭馆过，行前看官方公告；看完即赴随州南站",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "襄阳北街（夜）",
+          "time": "19:00–21:00",
+          "lat": 32.020262,
+          "lng": 112.145237,
+          "photo": "",
+          "transport": {
+            "mode": "高铁+打车",
+            "duration": "随州南 17:40 前后班次 → 襄阳东约 35 分钟；打车约 30 分钟到襄城古城"
+          },
+          "review": "古城中轴夜街一头扎进昭明台——此后三晚都住这里，今晚先认门",
+          "openingHours": "街区全天",
+          "ticketPrice": "免费",
+          "note": "北街-昭明台-临汉门一线步行街；晚餐夜宵在街内解决，22 点后深宵面馆多在樊城一桥头",
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 随州银杏谷（当季！）",
+          "summary": "11-08 后正是中国银杏千年群落金黄窗口（随州洛阳镇永兴村）——翻案方案：D3 改全天随州（上午银杏谷、下午市博+擂鼓墩、晚到襄阳），代价=当天节奏紧 + 随州南/银杏谷往返打车约 ¥200；想看满金赶早，寒潮大风会加速落叶"
+        },
+        {
+          "label": "备选 · 东湖绿道骑行",
+          "summary": "武大出来顺东湖南路骑行 1h——列车时刻偏晚时把武大压到 60 分钟换它"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "早午餐",
+          "place": "汉口站周边/站内简餐（12:30 班次前，40 分钟速战）",
+          "hours": "午前",
+          "dishes": [
+            {
+              "name": "热干面"
+            },
+            {
+              "name": "豆皮"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "襄阳北街小吃 + 深宵可打车去樊城一桥头（邓家牛腩/龚老三牛肉面荘，24h 老店赛家金牛肉面同片）",
+          "hours": "夜市",
+          "dishes": [
+            {
+              "name": "襄阳牛肉面",
+              "price": "约 ¥6–10/碗"
+            },
+            {
+              "name": "黄酒"
+            },
+            {
+              "name": "牛杂面"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-11-13",
+      "stayArea": "襄城古城",
+      "weekday": "周五",
+      "theme": "卧龙岗与唐宫夜 · 古隆中—广德寺—唐城",
+      "tips": [
+        "今日一轴线：城西古隆中（半日）→ 广德寺（顺路）→ 傍晚唐城夜场（灯光 + 《大唐倚梦》）",
+        "🚕 车程链：北街→古隆中游客中心 打车约 25 分钟（约 15km，¥30–40）；古隆中→广德寺 打车约 10 分钟（相邻）；广德寺→唐城 打车约 25 分钟（约 15km）；唐城 21:30 前散场→回北街 打车约 15 分钟（¥20–25）→ 宿襄城古城",
+        "古隆中含观光车（参考 ¥87 联票口径，以景区当日为准）——草庐剧场片区解决午餐，景区内餐饮有限",
+        "广德寺多宝塔看千年银杏「将军树」——11 月中旬正当季，比银杏谷省一整段路",
+        "唐城周一维护停夜场（今日周五 ✓）；2026 年营业 8:30–22:00、21:30 停止入场，夜场票约 17:00 起售检；《大唐倚梦》含在夜场票内，胡月楼/青龙寺部分区域夜场不开放；11 月排期 10 月才公布，行前看「襄阳盛世唐城」公众号",
+        "夜场 17:00 入园先吃再看：朱雀大街/西市小吃边逛边解决"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "古隆中",
+          "time": "09:00–12:30",
+          "lat": 31.994077,
+          "lng": 112.027003,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自北街约 25 分钟（约 15km，游客中心换观光车）"
+          },
+          "rating": 4.4,
+          "review": "三顾茅庐的原产地——躬耕地之争吵了六百年，风景自证",
+          "openingHours": "约 8:30–17:30（以景区公告为准）",
+          "ticketPrice": "参考 ¥87（含观光车，两说以景区为准）",
+          "note": "全国重点文保第四批（古隆中遗址）；草庐剧场片区午餐；银杏季的隆中路两侧也有金黄段",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "afternoon",
+          "name": "广德寺多宝塔",
+          "time": "14:30–15:30",
+          "lat": 32.010278,
+          "lng": 112.035833,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自古隆中约 10 分钟（相邻）"
+          },
+          "review": "金刚宝座式多宝塔 + 千年银杏「将军树」——11 月中旬一树金黄",
+          "openingHours": "约 8:00–17:00（以现场为准）",
+          "ticketPrice": "以现场为准",
+          "note": "全国重点文保第三批；与古隆中同路顺看，银杏当季是把它排进主线的理由",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "襄阳唐城（夜场）",
+          "time": "17:00–21:30",
+          "lat": 31.987823,
+          "lng": 112.176266,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自广德寺约 20 分钟（夜场 17:00 起检票入园）"
+          },
+          "rating": 4.5,
+          "review": "《妖猫传》的唐城入夜才开机——灯火楼阙 + 《大唐倚梦》全场",
+          "openingHours": "8:30–22:00（21:30 停止入场；周一停夜场维护）",
+          "ticketPrice": "夜场 ¥100–128（含《大唐倚梦》；渠道报价不一）",
+          "note": "11 月排期以「襄阳盛世唐城」公众号当日公告为准；夜场部分区域（胡月楼/青龙寺）不开放；园内朱雀大街/西市小吃解决晚餐",
+          "needsBooking": true,
+          "leadDays": 3
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 鹿门山·鹿门寺",
+          "summary": "孟浩然隐居地（国保，森林公园内）——公交稀疏需打车 30 分钟以上；D4 上午已满，翻案需牺牲广德寺或压缩古隆中"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "古隆中草庐剧场片区（诸葛菜主题餐厅/文创小吃）；赶不上回城吃 檀溪路桥头排骨（襄城二桥头檀溪店）/ 花间集融合餐厅",
+          "hours": "午市",
+          "dishes": [
+            {
+              "name": "诸葛菜"
+            },
+            {
+              "name": "襄阳牛肉面"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "唐城内朱雀大街/西市小吃 + 唐城夜市（17:00 入园先吃再看演出）",
+          "hours": "随夜市",
+          "dishes": [
+            {
+              "name": "襄阳黄酒"
+            },
+            {
+              "name": "红糖饼"
+            },
+            {
+              "name": "烤串"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-11-14",
+      "stayArea": "襄城古城",
+      "weekday": "周六",
+      "theme": "铁打的襄阳 · 古城全境日",
+      "tips": [
+        "今日全在襄阳城内外小半径打车/步行——早米公祠（樊城江边）→ 市博新馆（城南）→ 回古城午餐 → 下午绿影壁+滨江步道 → 傍晚城墙看汉江落日",
+        "🚕 车程链：北街→米公祠 打车过江约 12 分钟（¥15）；米公祠→市博新馆 打车约 20 分钟（回襄城向南，胜利街 268 号）；市博→管家巷 打车约 15 分钟；管家巷→绿影壁 步行约 10 分钟；绿影壁→临汉门 沿城墙/滨江步行约 25 分钟（途经襄樊码头遗址段）；临汉门→襄水街 打车约 10 分钟；襄水街→北街 步行/打车收尾 → 宿襄城古城",
+        "襄阳市博新馆在襄城区胜利街 268 号（凤凰山冲，2024-05 开放）——不在昭明台！老馆址已迁；免费预约「襄阳市博物馆」公众号或「游湖北」小程序，每日限 8000，周六开馆 ✓（周一闭）",
+        "城楼 17:00 前后关闭（小北门城楼约 9:00–17:00，夫人城段冬季约 8:00–17:30）——16:00 前登楼，落日（约 17:25）在开放的沿江步道/江堤看；登城楼是否单独收费官方列为免门票景区、第三方有 ¥20 说，以现场为准",
+        "绿影壁体量小（5–10 分钟看完、现存最大石雕龙壁），顺路排不占档"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "米公祠",
+          "time": "08:30–09:40",
+          "lat": 32.031667,
+          "lng": 112.138611,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自北街过江约 12 分钟（¥15，樊城沿江大道）"
+          },
+          "review": "米芾拜石的祠堂 + 汉江晨景——书法史的江城一页",
+          "openingHours": "约 8:00–17:30（以现场为准）",
+          "ticketPrice": "约 ¥25（以现场为准）",
+          "note": "全国重点文保第六批；樊城江边，与古城隔江相望，清晨过江人少",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "morning",
+          "name": "襄阳市博物馆（新馆）",
+          "time": "10:10–12:00",
+          "lat": 31.994183,
+          "lng": 112.162776,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自米公祠约 20 分钟（过江回襄城向南，胜利街 268 号）"
+          },
+          "rating": 4.6,
+          "review": "凤凰山冲的仿唐新馆——把襄阳从三国到唐宋的家底重新讲一遍",
+          "openingHours": "周二至日 9:00–17:00（16:00 停止入馆，周一闭馆）",
+          "ticketPrice": "免费（公众号/「游湖北」预约，日限 8000）",
+          "note": "2024-05-17 开放的新馆，位于襄城区胜利街 268 号（古城南门外约 2–3km）——昭明台为老馆址、勿跑错；今日周六开馆 ✓",
+          "needsBooking": true,
+          "leadDays": 3
+        },
+        {
+          "period": "noon",
+          "name": "管家巷（午餐街区）",
+          "time": "12:20–13:40",
+          "lat": 32.024507,
+          "lng": 112.142983,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自市博新馆约 15 分钟回古城"
+          },
+          "review": "古城里的新烟火巷——牛肉面、黄酒馆、红糖饼一条街",
+          "openingHours": "街区全天（午市为主）",
+          "ticketPrice": "免费",
+          "note": "历史街区更新项目；午餐牛肉面 + 黄酒 + 双沟胡辣汤一套",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "afternoon",
+          "name": "襄阳王府绿影壁",
+          "time": "13:50–14:10",
+          "lat": 32.015493,
+          "lng": 112.152092,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自管家巷约 10 分钟"
+          },
+          "review": "明代王府唯一遗存——现存最大的石雕龙壁，5–10 分钟看完但值得",
+          "openingHours": "8:00–17:30",
+          "ticketPrice": "¥20（线上团购约 ¥15 起）",
+          "note": "全国重点文保第五批；体量小顺路排；当前开放状态以现场为准",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "afternoon",
+          "name": "襄樊码头遗址（滨江步道）",
+          "time": "14:20–15:50",
+          "lat": 32.025701,
+          "lng": 112.141298,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自绿影壁沿城墙向江边约 20 分钟"
+          },
+          "review": "十里汉江码头的青石与缆痕——「铁打的襄阳」的水路注脚",
+          "openingHours": "步道开放式全天",
+          "ticketPrice": "免费",
+          "note": "全国重点文保第八批（襄樊码头遗址）；沿汉江步道走到临汉门，一路看对岸樊城与江面",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "临汉门·夫人城（城墙落日）",
+          "time": "16:00–17:40",
+          "lat": 32.023373,
+          "lng": 112.138433,
+          "photo": "",
+          "transport": {
+            "mode": "步行",
+            "duration": "自码头遗址步道即达（小北门）"
+          },
+          "review": "「汉沔津梁」的小北门城楼 + 夫人城段——汉江落日就挂在这段城墙上",
+          "openingHours": "城楼约 9:00–17:00（夫人城段冬季约 8:00–17:30）；城墙下滨江步道全天开放",
+          "ticketPrice": "官方列为免门票景区；登城楼另有 ¥20 说——以现场为准",
+          "note": "16:00 前登楼（17:00 关楼），落日约 17:25 移到开放的江堤步道看完；襄阳城墙为全国重点文保（批次以名录为准）",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "襄水街（夜市）",
+          "time": "18:00–20:30",
+          "lat": 32.007527,
+          "lng": 112.123415,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自临汉门约 10 分钟"
+          },
+          "review": "襄水岸边的夜市街——糖油饼与烤串收尾古城最后一晚",
+          "openingHours": "夜市",
+          "ticketPrice": "免费",
+          "note": "街区级推荐，具体店铺以当日营业为准；对面闸口一带同风格可替换",
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 习家池 + 岘山绿道",
+          "summary": "东汉习氏私家园林遗存 + 岘山环线（免费）——与市博新馆同向城南，翻案位在 D5 上午市博后顺延 1.5h，代价=压掉滨江步道/城墙落日的从容"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "早餐",
+          "place": "北街/管家巷一带牛肉面馆（襄阳牛肉面 + 黄酒早酒是本地常态）",
+          "hours": "早市",
+          "dishes": [
+            {
+              "name": "襄阳牛肉面",
+              "price": "约 ¥5–6/碗（早年探店口径，现价以现场为准）"
+            },
+            {
+              "name": "黄酒",
+              "price": "论碗几元"
+            },
+            {
+              "name": "牛骨头",
+              "price": "约 ¥20/大碗"
+            }
+          ]
+        },
+        {
+          "meal": "午餐",
+          "place": "管家巷（襄阳牛肉面 / 黄酒馆 / 红糖饼 / 双沟胡辣汤）",
+          "hours": "午市",
+          "dishes": [
+            {
+              "name": "襄阳牛肉面"
+            },
+            {
+              "name": "红糖饼"
+            },
+            {
+              "name": "双沟胡辣汤"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "襄水街夜市（糖油饼、烤串；或闸口夜市同风格）",
+          "hours": "晚市",
+          "dishes": [
+            {
+              "name": "糖油饼"
+            },
+            {
+              "name": "烤串"
+            },
+            {
+              "name": "牛杂面配黄酒"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-11-15",
+      "weekday": "周日",
+      "theme": "世遗环线返程 · 明显陵—莫愁村—汉口—上海",
+      "tips": [
+        "返程环线不走回头路：襄阳东 → 钟祥南（襄荆高铁）→ 明显陵 → 莫愁村 → 钟祥南 → 汉口 → 上海虹桥；钟祥南班次少，定档后第一时间锁早班",
+        "🚕 车程链：北街→襄阳东 打车约 30 分钟（¥35–45）；襄阳东→钟祥南 高铁约 0.5–1h；钟祥南→明显陵 打车约 25–30 分钟（约 17km——钟祥南站为沪渝蓉高铁站，在钟祥城区以南约 15km）；明显陵→莫愁村 打车约 10 分钟（相邻）；莫愁村→钟祥南 打车约 15 分钟；钟祥南→汉口 高铁约 1–1.5h；汉口站内换乘→上海虹桥 高铁约 3.5–4.5h（约 21:00 前后到）",
+        "明显陵 8:30 开门（17:00 停入园）——「一陵两冢」结构为明代帝陵孤例，神道长、穿舒适的鞋；园内无餐饮",
+        "莫愁村午餐蟠龙菜 + 米茶解腻；村内御厨坊/蟠龙菜老店人均约 ¥30–74",
+        "汉口站中转预留至少 40 分钟；虹桥到得晚地铁/出租按 21:30 后排（返程日，不再排宿）"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "明显陵",
+          "time": "09:50–12:00",
+          "lat": 31.205675,
+          "lng": 112.62976,
+          "photo": "",
+          "transport": {
+            "mode": "高铁+打车",
+            "duration": "襄阳东早班（约 08:15）→ 钟祥南约 0.5–1h；打车约 15–20 分钟到陵"
+          },
+          "rating": 4.6,
+          "review": "「一陵两冢」的明代帝陵孤例——世遗「明清皇家陵寝」的增量项，人少陵大",
+          "openingHours": "8:30–17:00（17:00 停止入园/售票）",
+          "ticketPrice": "¥65（优待 ¥30）",
+          "note": "世界文化遗产（明清皇家陵寝·2000 年列入）+ 全国重点文保第三批；明显陵+莫愁村联票口径未核实，以现场为准",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "莫愁村",
+          "time": "12:15–14:00",
+          "lat": 31.202632,
+          "lng": 112.618496,
+          "photo": "",
+          "transport": {
+            "mode": "打车",
+            "duration": "自明显陵约 10 分钟（相邻）"
+          },
+          "review": "钟祥民俗美食村——蟠龙菜的故乡，返程前最后一站正餐",
+          "openingHours": "街区全天（店铺 10:00 后渐开）",
+          "ticketPrice": "免费",
+          "note": "午餐蟠龙菜（非遗宫廷菜「吃肉不见肉」）+ 米茶；小吃张集酥粑粑、石牌豆腐、葛粉粑粑",
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "备选 · 云梦县博物馆（睡虎地秦简）",
+          "summary": "秦简原件的家——汉口转车时差 2h 可插（云梦东高铁 40 分钟往返）——代价=明显陵只剩上午、D6 压缩到极限，想看就舍弃莫愁村"
+        },
+        {
+          "label": "备选 · 龙泉山明楚王墓",
+          "summary": "全国重点文保第五批 · 明代楚王寝群（武汉江夏）——与明显陵同主题，本行程取世遗舍王墓；若舍弃钟祥段可作武汉近郊替换"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "早餐",
+          "place": "北街面馆早酒（出发前，襄阳最后一碗牛肉面）",
+          "hours": "早市 6:30 起",
+          "dishes": [
+            {
+              "name": "襄阳牛肉面"
+            },
+            {
+              "name": "黄酒"
+            }
+          ]
+        },
+        {
+          "meal": "午餐",
+          "place": "莫愁村 · 御厨坊蟠龙菜 / 蟠龙菜老店（人均约 ¥30–74）",
+          "hours": "午市",
+          "dishes": [
+            {
+              "name": "蟠龙菜",
+              "price": "热吃/冷切皆可"
+            },
+            {
+              "name": "米茶"
+            },
+            {
+              "name": "张集酥粑粑"
+            },
+            {
+              "name": "石牌豆腐"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "汉口站换乘简餐 / 高铁上（到虹桥约 21:00 前后）",
+          "hours": "随车次",
+          "dishes": [
+            {
+              "name": "热干面（便携装伴手礼亦可）"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/buildAmapDayMarkersLinks/routeCoordinates/
+// gcj02ToWgs84/wgs84ToGcj02/normalizeStays）可单元测试；
+// initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
+
+// HTML 转义，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳转手机地图导航的链接。
+// iOS 不识别 geo: scheme，用 Apple Maps 的 https 通用链接；其余平台用 geo:。
+// ua 可选（浏览器里传 navigator.userAgent），不传则回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地图 App 的点位链接（免 key 的官方 URI 规范：高德 URI API、Google Maps URLs）。
+// 这不是 page-contract 的 actionLink——不承载实时数据主张，只是"打开地图看这个点"。
+// 境内点只给高德（Google 地图境内不可用、底图坐标系还会偏移）；境外点给 Google + 高德。
+// 输入坐标一律 WGS-84：高德 URI 用 coordinate=wgs84 声明由其换算，Google 本身即 WGS-84。
+// isInChinaBBox 声明在下方 GCJ 区块（函数声明有提升，此处可用）。
+function buildMapAppLinks(lat, lng, label) {
+  var amap = {
+    label: '高德地图',
+    url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+      + '&name=' + encodeURIComponent(label)
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-viz',
+  };
+  var google = {
+    label: 'Google 地图',
+    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+  };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
+}
+
+// 「高德打开当日点位」链接（免 key 官方多点标注 URI：uri.amap.com/marker?markers=…）。
+// 高德路书无公开创建接口，这是官方通道里最接近"带着整天点位去高德"的能力：
+//   - markers 最多 10 点/链接（官方文档上限），超出自动按序切块，返回多条；
+//   - 每点可带名称（/,/ 和 /|/ 是分隔符，名称里出现会被替换成空格，防串位）；
+//   - 该 URI 无 coordinate 参数（默认 GCJ-02），坐标先经 wgs84ToGcj02 转换；
+//   - 进高德后只是带名称的点位集合（无连线），想存路书须在高德内收藏或手动创建。
+// points: [{lat, lng, name}]（按行程顺序，WGS-84）；残缺/非数值坐标的条目跳过。
+// 返回 [{url, count, first, last}]（first/last 为该块覆盖的原数组下标，从 0 计），无有效点返回 []。
+var AMAP_MARKERS_MAX = 10;
+
+function buildAmapDayMarkersLinks(points) {
+  var valid = (Array.isArray(points) ? points : []).filter(function (p) {
+    return p && typeof p.lat === 'number' && isFinite(p.lat)
+      && typeof p.lng === 'number' && isFinite(p.lng);
+  });
+  var links = [];
+  for (var start = 0; start < valid.length; start += AMAP_MARKERS_MAX) {
+    var chunk = valid.slice(start, start + AMAP_MARKERS_MAX);
+    var markers = chunk.map(function (p) {
+      var gcj = wgs84ToGcj02(p.lat, p.lng);
+      var name = String(p.name || '').replace(/[,|]/g, ' ').trim();
+      return gcj.lng.toFixed(6) + ',' + gcj.lat.toFixed(6)
+        + (name ? ',' + encodeURIComponent(name) : '');
+    }).join('|');
+    links.push({
+      url: 'https://uri.amap.com/marker?markers=' + markers
+        + '&src=travel-plan-viz&callnative=1',
+      count: chunk.length,
+      first: start,
+      last: start + chunk.length - 1,
+    });
+  }
+  return links;
+}
+
+// —— GCJ-02 → WGS-84 坐标转换 ——
+// 高德/腾讯地图返回的坐标是 GCJ-02（国测局加密），直接画在 OSM（WGS-84）瓦片上
+// 会偏移一百到几百米。凡坐标来自高德/腾讯类 skill，必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// —— WGS-84 → GCJ-02 坐标转换 ——
+// gcj02ToWgs84 的逆变换：在 WGS 点处求偏移量再加回（与正向同为单次近似，往返误差米级，
+// 对锚点/导航吸附足够）。高德导航 URI 与多点标注 URI 的参数表均无 coordinate 参数
+// （默认即 GCJ-02），所以这两个通道的坐标必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+function wgs84ToGcj02(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
+// 从有序点位提取 [lat,lng] 数组，用于连线
+function routeCoordinates(points) {
+  return points.map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 住宿锚点过滤：只留 name 与数值 lat/lng 齐全的条目（城区级近似坐标，缺坐标的片区直接跳过，不猜）。
+// stays: [{lat, lng, name, note?}]
+function normalizeStays(stays) {
+  if (!Array.isArray(stays)) return [];
+  return stays.filter(function (s) {
+    return s && typeof s.name === 'string' && s.name
+      && typeof s.lat === 'number' && isFinite(s.lat)
+      && typeof s.lng === 'number' && isFinite(s.lng);
+  });
+}
+
+// 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）；
+//   { stays } 住宿片区锚点 [{lat, lng, name, note?}]，画 🏨 标记（不编号、不进路线），
+//   缺数值坐标的条目会被 normalizeStays 跳过——锚点是城区级近似，宁缺勿猜。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  normalizeStays(opts.stays).forEach(function (s) {
+    var icon = L.divIcon({
+      className: 'route-pin route-pin--stay',
+      html: '<span class="route-pin__num">🏨</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(s.lat, s.lng, s.name, ua) }]
+      .concat(buildMapAppLinks(s.lat, s.lng, s.name));
+    L.marker([s.lat, s.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>🏨 ' + escapeHTML(s.name) + '</b><br>'
+      + (s.note ? escapeHTML(s.note) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  // 住宿锚点只参与视野适配，不进路线连线（片区近似坐标，连线会误导）
+  var allCoords = coords.concat(normalizeStays(opts.stays).map(function (s) { return [s.lat, s.lng]; }));
+  map.fitBounds(allCoords.length ? allCoords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    buildAmapDayMarkersLinks: buildAmapDayMarkersLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    wgs84ToGcj02: wgs84ToGcj02,
+    normalizeStays: normalizeStays,
+    initTravelMap: initTravelMap,
+  };
+}
+
+</script>
+
+<script>
+// 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 为 'YYYY-MM-DD'
+// 用 UTC 做日期运算，避免本地时区导致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建议提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+function reminderBadgeHTML(leadDays) {
+  return '<span class="reminder-badge">⚠️ 建议提前' + leadDays + '天订</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+</script>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ===== 设计步骤渲染层：读取 trip-data JSON 渲染全部区块 =====
+(function () {
+  var trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  // —— 页顶 ——
+  var WD = ['周日','周一','周二','周三','周四','周五','周六'];
+  var slotCount = trip.days.reduce(function (n, d) { return n + (d.slots || []).length; }, 0);
+  document.getElementById('pageMeta').innerHTML =
+    '<b>6 天 5 晚</b> · 估算 ' + trip.startDate + ' → 11-15（' + WD[new Date(trip.startDate + 'T00:00:00Z').getUTCDay()] + '出发 · dateTBD）'
+    + ' · 上海 ⇄ 武汉·襄阳 · 高铁环线 + 地铁/打车 · ' + slotCount + ' 处点位';
+  if (trip.dateTBD) {
+    var b = document.getElementById('tbdBanner');
+    b.style.display = 'block';
+    b.innerHTML = '📌 出发日期未定：以下提醒与行程按估算日 <b>' + trip.startDate + '</b>（' + WD[new Date(trip.startDate + 'T00:00:00Z').getUTCDay()] + '）排布，定档后把本页丢回给 AI 重算';
+    document.getElementById('checklistHint').textContent =
+      '提醒按估算出发日 ' + trip.startDate + ' 倒推；实际定档后日期会整体平移。';
+  }
+
+  // —— 待办清单（reminders.js 引擎） ——
+  document.getElementById('checklist').innerHTML =
+    renderChecklistHTML(computeReminders(trip.startDate, trip.reminders));
+
+  // —— 行前须知 ——
+  var pt = trip.preTrip;
+  document.getElementById('preTrip').innerHTML = [
+    '<div class="card"><h3>🌡️ 天气</h3><p>' + escapeHTML(pt.weather.summary) + '</p></div>',
+    '<div class="card"><h3>🌬️ 降雨/停航与银杏窗口</h3><p>' + escapeHTML(pt.weather.typhoon) + '</p></div>',
+    '<div class="card"><h3>🧥 穿搭</h3><p>' + escapeHTML(pt.packing) + '</p></div>',
+    '<div class="card"><h3>💳 支付</h3><p>' + escapeHTML(pt.payment) + '</p></div>',
+    '<div class="card"><h3>📱 必备 App / 电话</h3><ul>' + pt.apps.map(function (a) { return '<li>' + escapeHTML(a) + '</li>'; }).join('') + '</ul></div>',
+    '<div class="card"><h3>🎫 购票时机</h3><p>' + escapeHTML(pt.ticketTip) + '</p></div>'
+  ].join('');
+
+  // —— 跨城高铁 ——
+  var fl = trip.flights;
+  var flHtml = (fl.booked || []).map(function (f) {
+    return '<div class="flight"><span class="flight__code">已预订</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span></div>';
+  }).concat(fl.candidates.map(function (f, i) {
+    var alt = f.code.indexOf('备选') > -1 || i > 1 ? ' flight--alt' : '';
+    return '<div class="flight' + alt + '"><span class="flight__code">' + escapeHTML(f.code) + '</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span>'
+      + '<span class="flight__note">' + escapeHTML(f.note) + '</span></div>';
+  })).join('');
+  document.getElementById('flights').innerHTML = flHtml;
+
+  // —— 酒店 ——
+  var tierCls = { '经济': 'tier-label--e', '中档': 'tier-label--m', '高端': 'tier-label--h' };
+  document.getElementById('hotels').innerHTML = trip.hotelAreas.map(function (h) {
+    return '<div class="card hotel-area"><h3>' + escapeHTML(h.area)
+      + (h.nights ? '<span class="nights">' + escapeHTML(h.nights) + '</span>' : '')
+      + '</h3><div class="reason">' + escapeHTML(h.reason) + '</div>'
+      + h.options.map(function (o) {
+          return '<div class="tier"><span class="tier-label ' + tierCls[o.tier] + '">' + escapeHTML(o.tier) + '</span>'
+            + '<span class="t-name">' + escapeHTML(o.name) + '</span>'
+            + '<span class="t-price">' + escapeHTML(o.priceRange) + '</span>'
+            + '<span class="t-note">' + escapeHTML(o.note) + '</span></div>';
+        }).join('') + '</div>';
+  }).join('');
+
+  // —— 每日时间轴 ——
+  var PERIODS = [['morning', '上 午'], ['noon', '午 间'], ['afternoon', '午 后'], ['evening', '傍 晚']];
+  document.getElementById('days').innerHTML = trip.days.map(function (day, di) {
+    // 「高德打开当日点位」：当日 slots + 当晚住宿锚点 → 官方免 key 多点标注 URI（引擎生成，>10 点自动分块）
+    // 高德路书无公开创建接口——链接带走的是带名称的点集合（无连线），收藏/存路书须在高德内手动操作
+    var amapNote = '高德路书无公开创建接口：此链接经官方多点标注 URI 打开当日全部点位（带名称、无连线），收藏/存路书须在高德内手动操作';
+    // stayArea 与 hotelAreas[].area 的括号补语可能不一致，按「（」前的核心区名比对
+    var areaCore = function (x) { return String(x || '').split('（')[0]; };
+    var stayAnchor = (trip.hotelAreas || []).filter(function (h) {
+      if (!day.stayArea || typeof h.lat !== 'number' || typeof h.lng !== 'number') return false;
+      return areaCore(day.stayArea).indexOf(areaCore(h.area)) > -1 || areaCore(h.area).indexOf(areaCore(day.stayArea)) > -1;
+    })[0];
+    var dayPoints = (day.slots || []).filter(function (s) {
+      return typeof s.lat === 'number' && typeof s.lng === 'number';
+    }).map(function (s) { return { lat: s.lat, lng: s.lng, name: s.name }; });
+    if (stayAnchor) dayPoints.push({ lat: stayAnchor.lat, lng: stayAnchor.lng, name: '当晚住宿·' + stayAnchor.area });
+    var amapHtml = buildAmapDayMarkersLinks(dayPoints).map(function (l, i, arr) {
+      var label = arr.length > 1
+        ? '📍 高德·第' + (l.first + 1) + '–' + (l.last + 1) + '站'
+        : '📍 高德打开当日点位';
+      return '<a class="day__amap" href="' + l.url + '" target="_blank" rel="noopener" title="' + amapNote + '">' + label + '</a>';
+    }).join('');
+    var html = '<div class="day"><div class="day__head">'
+      + '<span class="day__no">D' + (di + 1) + '</span>'
+      + '<span class="day__theme">' + escapeHTML(day.theme || '') + '</span>'
+      + '<span class="day__date">' + day.date.slice(5).replace('-', '/') + ' · ' + escapeHTML(day.weekday) + '</span>'
+      + (day.stayArea ? '<span class="day__stay">🏨 当晚住宿 · ' + escapeHTML(day.stayArea) + '</span>' : '')
+      + amapHtml
+      + '</div>';
+    if (day.tips && day.tips.length) {
+      html += '<ul class="day__tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>';
+    }
+    PERIODS.forEach(function (pd) {
+      var slots = (day.slots || []).filter(function (s) { return s.period === pd[0]; });
+      if (!slots.length) return;
+      html += '<div class="period">' + pd[1] + '</div><div class="slots">';
+      slots.forEach(function (s) {
+        var visual = '<div class="fallback">' + escapeHTML(s.name) + '</div>'
+          + (s.photo
+            ? '<img src="' + escapeHTML(s.photo) + '" alt="' + escapeHTML(s.name) + '" referrerpolicy="no-referrer" onerror="this.remove()">'
+            : '');
+        html += '<div class="slot"><div class="slot__visual">' + visual
+          + '<span class="slot__time">' + escapeHTML(s.time || '') + '</span></div>'
+          + '<div class="slot__body"><div class="slot__name">' + escapeHTML(s.name)
+          + (s.rating ? '<span class="rating">★ ' + s.rating + '</span>' : '') + '</div>'
+          + (s.review ? '<div class="slot__review">' + escapeHTML(s.review) + '</div>' : '')
+          + '<div class="meta">'
+          + (s.transport ? '<span class="pill">🚕 ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
+          + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
+          + '</div>'
+          + (s.note ? '<div class="slot__note">' + escapeHTML(s.note) + '</div>' : '')
+          + (s.needsBooking ? reminderBadgeHTML(s.leadDays) : '')
+          + '</div></div>';
+      });
+      html += '</div>';
+    });
+    if (day.alternatives && day.alternatives.length) {
+      html += day.alternatives.map(function (a) {
+        return '<div class="alt-card"><b>⚖️ ' + escapeHTML(a.label) + '</b> — ' + escapeHTML(a.summary) + '</div>';
+      }).join('');
+    }
+    if (day.dining && day.dining.length) {
+      html += '<div class="dining">' + day.dining.map(function (m) {
+        return '<div class="meal"><span class="meal__tag">' + escapeHTML(m.meal) + '</span>'
+          + '<span class="meal__place">' + escapeHTML(m.place) + '</span> '
+          + (m.hours ? '<span class="meal__hours">· ' + escapeHTML(m.hours) + '</span>' : '')
+          + '<div>' + (m.dishes || []).map(function (d) {
+              return '<span class="dish">' + escapeHTML(d.name) + (d.price ? ' <span class="p">' + escapeHTML(d.price) + '</span>' : '') + '</span>';
+            }).join('') + '</div></div>';
+      }).join('') + '</div>';
+    }
+    return html + '</div>';
+  }).join('');
+
+  // —— 全程贴士 ——
+  document.getElementById('globalTips').innerHTML =
+    trip.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('');
+
+  // —— 地图（map.js 引擎） ——
+  var points = [];
+  trip.days.forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') {
+        points.push({ lat: s.lat, lng: s.lng, name: s.name, time: (day.date.slice(5) + ' ' + (s.time || '')) });
+      }
+    });
+  });
+  // 住宿片区锚点（城区级近似），画 🏨 标记、不进路线
+  var stays = (trip.hotelAreas || []).filter(function (h) {
+    return typeof h.lat === 'number' && typeof h.lng === 'number';
+  }).map(function (h) {
+    return { lat: h.lat, lng: h.lng, name: '住宿 · ' + h.area, note: h.nights + ' · ' + (h.reason || '') };
+  });
+  initTravelMap('map', points, { stays: stays });
+})();
+</script>
+</body>
