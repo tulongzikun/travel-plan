@@ -122,8 +122,6 @@ Ready-made outputs in `samples/`, open them in a browser:
 
 - `chengdu-4d3n-real.html` — Chengdu, 4D3N (Mode A: planned from just destination + days; Dujiangyan/Mt. Qingcheng day trip + either-or options)
 - `hongkong-4d3n-real.html` — Hong Kong, 4D3N (real researched data)
-- `shenzhen-3d2n-real.html` — Shenzhen, 3D2N (generated from days only)
-- `tokyo-5d4n-real.html` — Tokyo, 5D4N (Mode B: rough plan + agent suggestions)
 - `changzhi-jincheng-7d6n-real.html` — Changzhi & Jincheng, 7D6N (Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons; leg-by-leg drive chain, no-mountain-roads-after-dark scheduling, chain-hotel-first picks, Gaoping heritage deep-dive (Chongming Temple's 971 hall, Kaihua Temple murals, Ji residence, Tiefo Temple, Lianghu village), rail-via-Zhengzhou fallback, National-Day-week (Oct 1–7) crowd-aware scheduling)
 - `wuhan-xiangyang-6d5n-real.html` — Wuhan, Xiangyang & Zhongxiang, 6D5N (Mode A: HSR from Shanghai, dates TBD; a bianzhong-bronze-bells pilgrimage loop — Hubei Provincial Museum → the Zenghouyi tomb pit at Suizhou, an HSR ring with no backtracking; Zhiyin cruise / Tang-dynasty night shows, three zero-move nights inside Xiangyang's old city, UNESCO Ming Xianling tomb on the way home, leg-by-leg transit chain and 9 booking reminders; all 29 points carry dual-sourced WGS-84 coordinates, zero guesswork)
 - `taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html` — Taiyuan, Pingyao, Jiexiu & Fenyang, 6D5N (Mode A: flight + downtown car rental from Shanghai, dates TBD, National-Day week; a Shanxi-merchant heritage line — Jinci's 984 Song-dynasty hall and statues, UNESCO Shuanglin/Zhenguo temples' sculptures, Houtu Temple's glazed rooftops, the one-of-a-kind XianShen Lou, Taifu Guan's Ming suspended sculptures; crowd-aware scheduling for the holiday (a Monday-closure-proof day, first-entry-at-opening strategy), leg-by-leg drive chain, 9 booking reminders, and shows kept out of the main line by rule; every point carries WGS-84 coordinates, zero guesswork)
@@ -140,7 +138,7 @@ Half agreed. Time-sensitive info (prices, opening hours, schedules) must be veri
 
 **Q: Does it work for cities outside China?**
 
-Yes — the Tokyo 5D4N sample is one. The map uses global OpenStreetMap tiles; overseas coordinates are already WGS-84 and need no conversion (GCJ-02 correction only applies to coordinates coming from Amap/Tencent).
+Yes. The map uses global OpenStreetMap tiles; overseas coordinates are already WGS-84 and need no conversion (GCJ-02 correction only applies to coordinates coming from Amap/Tencent).
 
 ### 📁 Structure
 
