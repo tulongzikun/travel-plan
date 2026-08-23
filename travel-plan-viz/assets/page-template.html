@@ -198,7 +198,7 @@
   <section>
     <h2 class="sec">🗺️ 行程地图</h2>
     <div id="map"></div>
-    <div class="map-legend">编号即游览顺序；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。每日头部「📍 高德打开当日点位」经官方免 key 多点标注 URI 带走当日全部点位（高德路书无公开创建接口，链接打开的是带名称的点集合，收藏/存路书须在高德内手动操作）。地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
+    <div class="map-legend">编号即游览顺序；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。<span id="legendAmapNote">每日头部「📍 高德打开当日点位」经官方免 key 多点标注 URI 带走当日全部点位（高德路书无公开创建接口，链接打开的是带名称的点集合，收藏/存路书须在高德内手动操作）。</span>地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
   </section>
 
   <section>
@@ -306,6 +306,21 @@ __ENGINES__
     if (m.indexOf('打车') > -1) return '🚕';
     return '🚗';
   };
+  // 境内/境外分流：全部点位都落在中国大陆 bbox（引擎 isInChinaBBox 同口径）才算境内行程，
+  // 境外不加「高德打开当日点位」当日头部链接（地图弹窗里的单点链接由 buildMapAppLinks 自行分流）。
+  var allPoints = [];
+  trip.days.forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') allPoints.push(s);
+    });
+  });
+  var isMainlandTrip = allPoints.length > 0 && allPoints.every(function (s) {
+    return isInChinaBBox(s.lat, s.lng);
+  });
+  if (!isMainlandTrip) {
+    var legendAmapNote = document.getElementById('legendAmapNote');
+    if (legendAmapNote) legendAmapNote.style.display = 'none';
+  }
   document.getElementById('days').innerHTML = trip.days.map(function (day, di) {
     // 「高德打开当日点位」：当日 slots + 当晚住宿锚点 → 官方免 key 多点标注 URI（引擎生成，>10 点自动分块）
     // 高德路书无公开创建接口——链接带走的是带名称的点集合（无连线），收藏/存路书须在高德内手动操作
@@ -320,12 +335,12 @@ __ENGINES__
       return typeof s.lat === 'number' && typeof s.lng === 'number';
     }).map(function (s) { return { lat: s.lat, lng: s.lng, name: s.name }; });
     if (stayAnchor) dayPoints.push({ lat: stayAnchor.lat, lng: stayAnchor.lng, name: '当晚住宿·' + stayAnchor.area });
-    var amapHtml = buildAmapDayMarkersLinks(dayPoints).map(function (l, i, arr) {
+    var amapHtml = isMainlandTrip ? buildAmapDayMarkersLinks(dayPoints).map(function (l, i, arr) {
       var label = arr.length > 1
         ? '📍 高德·第' + (l.first + 1) + '–' + (l.last + 1) + '站'
         : '📍 高德打开当日点位';
       return '<a class="day__amap" href="' + l.url + '" target="_blank" rel="noopener" title="' + amapNote + '">' + label + '</a>';
-    }).join('');
+    }).join('') : '';
     var html = '<div class="day"><div class="day__head">'
       + '<span class="day__no">D' + (di + 1) + '</span>'
       + '<span class="day__theme">' + escapeHTML(day.theme || '') + '</span>'
