@@ -297,13 +297,15 @@ __ENGINES__
 
   // —— 每日时间轴 ——
   var PERIODS = [['morning', '上 午'], ['noon', '午 间'], ['afternoon', '午 后'], ['evening', '傍 晚']];
-  // 交通方式 → 图标（步行/地铁/景交/打车/自驾）
+  // 交通方式 → 图标（步行/地铁/公交/打车/铁路/航空/自驾）
   var transportIcon = function (mode) {
     var m = mode || '';
     if (m.indexOf('步行') > -1) return '🚶';
     if (m.indexOf('地铁') > -1) return '🚇';
-    if (m.indexOf('景交') > -1 || m.indexOf('公交') > -1) return '🚌';
+    if (m.indexOf('景交') > -1 || m.indexOf('公交') > -1 || m.indexOf('快线') > -1) return '🚌';
     if (m.indexOf('打车') > -1) return '🚕';
+    if (m.indexOf('高铁') > -1 || m.indexOf('火车') > -1 || m.indexOf('AVE') > -1) return '🚄';
+    if (m.indexOf('飞机') > -1 || m.indexOf('航班') > -1) return '✈️';
     return '🚗';
   };
   // 境内/境外分流：全部点位都落在中国大陆 bbox（引擎 isInChinaBBox 同口径）才算境内行程，
