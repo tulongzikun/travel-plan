@@ -24,7 +24,13 @@ const trip = {
     packing: "短袖短裤 + 轻薄防晒衣 + 防滑凉鞋 + 晴雨两用伞；室内空调极冷，务必带一件长袖外套",
     payment: "推荐电子八达通（Apple/华为钱包可加，内地卡可充值），另备 500–800 港币现金给传统茶餐厅/红色小巴",
     apps: ["MTR Mobile（港铁）", "香港天文台（天气）", "景点官方 App（如迪士尼查排队）"],
-    ticketTip: "热门景点门票建议提前 3–7 天网上购买，避免现场排队"
+    ticketTip: "热门景点门票建议提前 3–7 天网上购买，避免现场排队",
+    // 可选（境外行程建议给，2026-08-23 拍板）：市内交通卡/单程票参考——每城一条 {city, card, price, note}。
+    // card 写卡名/乘车方式（如"T-casual 10 次票"或"上车刷 contactless"），price 为参考价（非实时、以官方为准），
+    // note 写适用建议（含机场线怎么算）。配套原则：欧洲/日本等地**出租车贵且非必要**，主线交通一律公交/地铁/步行/铁路优先，打车只作行李/深夜兜底并在链上标注。
+    transitCards: [
+      { city: "巴塞罗那", card: "T-casual 10 次票", price: "约 €13（不含机场线补价）", note: "机场往返另有 Aerobús 或 Hola Barcelona 多日卡" }
+    ]
   },
 
   // 航班：已预订高亮；未预订时给 3-5 个建议班次（航司+航班号+起降时刻）供自行核实
@@ -51,6 +57,13 @@ const trip = {
           price: "¥420", priceQueriedAt: "2026-08-21T10:00:00" },
         { tier: "中档", name: "...", priceRange: "约 ¥1000/晚", note: "..." },
         { tier: "高端", name: "...", priceRange: "约 ¥2000/晚", note: "..." }
+      ],
+      // 可选（境外行程建议给，2026-08-23 拍板）：网友推荐酒店（主要来自小红书调研/旅友实测）——
+      // {name, priceNote, note, source}。priceNote 必须带实付年份（如"约 ¥720/晚（2025 网友实付）"），**非实时价**；
+      // note 一句话优缺点（水壶/行李寄存/城市税/位置等实测细节正是这类情报的价值）；source 标"小红书"/"旅友实测"等。
+      // 渲染为片区下「🗣 网友推荐」子列表并带"价格为实付当年参考、非实时"脚注；境内行程或没调研到就整个省略。
+      crowdPicks: [
+        { name: "...", priceNote: "约 ¥720/晚（2025 网友实付）", note: "位置极佳；房间小，城市税另付", source: "旅友实测" }
       ]
     }
   ],
@@ -93,8 +106,9 @@ const trip = {
           photo: "https://...缩略图URL",  // 可选：无图/图未校验完时省略或留空，走统一降级；图片按景点优先级后补（改 trip-data 的 photo 重渲染即可，见 research-guide）
           rating: 4.7,
           review: "一句话点评",
-          openingHours: "全天开放",        // 可选
-          closedDays: "周一休",            // 可选，无则省略
+          openingHours: "全天开放",        // 可选；有免费时段/季节时段的一并写（如"周一至周六 10:00–18:30；18:00–20:00 免费"）
+          closedDays: "周一休",            // 可选，无则省略。**开放限制较大时必须写、即使当日排程已避开（2026-08-23 拍板）**——
+                                         // 闭馆日/仅周日短开/免费时段限制等写清楚（如"周日仅 14:00–18:00 开放（上午礼拜）"），读者改期时才知道边界在哪
           ticketPrice: "免费 / 缆车套票约 ¥88",  // 可选，参考价（非实时）
           transport: { mode: "天星小轮", fare: "约 ¥3", duration: "约 10 分钟", actionLink }, // 可选：如何到达本点（自上一站/住宿点）。任何交通方式都应给，形成「住宿点→首站→景点间→末站→住宿点」的逐段交通链——自驾/包车 duration 写「自<上一站> 约 Xkm·Y 分钟」、公共交通写方式+票价+耗时（见 research-guide「点到点交通」节）；actionLink 可选={label,url}，仅当来自官方地图 skill 的路线规划/导航链接（高德/腾讯/滴滴）
           seasonal: "暑期限定灯光秀（6/12–8/31）",  // 可选：时令活动
@@ -118,9 +132,9 @@ const trip = {
 ## 必须包含的区块（顺序可由美学微调，内容不可缺）
 
 1. **页顶**：行程标题 + 出发前待办清单。清单用 `reminders.js` 的 `computeReminders(trip.startDate, trip.reminders)` 再 `renderChecklistHTML(...)` 生成。若 `trip.dateTBD` 为 true，清单上方须加一行醒目提示（如「出发日期未定，以下提醒按 {startDate} 估算，定档后把本页丢回给 AI 重算」）。
-2. **行前须知区块**：展示 `preTrip` 全部——天气与台风提醒、穿搭、支付、必备 App、购票时机。突出"日期/季节定制"。
+2. **行前须知区块**：展示 `preTrip` 全部——天气与台风提醒、穿搭、支付、必备 App、购票时机；有 `transitCards` 时加「🚇 市内交通与交通卡」一卡（每城一条：卡名+参考价+建议）。突出"日期/季节定制"。
 3. **航班区**：`flights.booked` 高亮标"已预订"；`flights.candidates` 列表展示 3-5 个建议班次，每项标"待选 · 请自行核实预订"并显示 `note`；带 `price` 的须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订票页为准」。
-4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。带 `price` 的选项须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订房页为准」（dateTBD 期间不出现 `price`）。
+4. **酒店区（片区 + 价位）**：遍历 `hotelAreas`，每片区显示 `area` + `reason`，其下按 `经济/中档/高端` 列出 `options`（名称 + `priceRange` + `note`）。带 `price` 的选项须同时显示 `priceQueriedAt` 与「价格随订位实时变动，以订房页为准」（dateTBD 期间不出现 `price`）。带 `crowdPicks` 的片区在其下加「🗣 网友推荐」子列表（名称 + `priceNote` + `note` + `source` 徽标），并附「价格为网友实付当年参考、非实时，以订房页为准」脚注。
 5. **免责声明**：在航班/酒店区域附近显著展示 `trip.disclaimer` 全文。
 6. **交互地图**：`<div id="map">`，调用 `initTravelMap('map', points, { stays })`，`points` 为所有 slot 按行程顺序汇总的 `{lat,lng,name,time}`；`stays` 为 `hotelAreas` 中带数值 `lat/lng` 锚点的片区（`{lat,lng,name,note}`，note 可用 reason 代替），画为 🏨 标记（不编号、不进路线连线）。引入 Leaflet CSS/JS（CDN）。
 7. **每日时间轴**：按天分组，显示当日 `weekday`/`theme`；**有 `stayArea` 时在当日头部显著标注「当晚住宿：XXX」**（返程日无则不标）；早/中/晚分段，每个 slot 卡片含 `photo`、`rating`、`review`，并展示存在的可选字段（`openingHours`、`closedDays`、`ticketPrice`、`transport` 的方式/票价/耗时、`seasonal`）；`needsBooking` 为 true 时插入 `reminderBadgeHTML(leadDays)`。当日若有 `tips`、`alternatives`（二选一卡片）也要展示。**境内行程**另在当日头部加「📍 高德打开当日点位」链接：用 `map.js` 的 `buildAmapDayMarkersLinks(当日 slots 坐标 + 当晚住宿锚点)` 生成（>10 点自动分块，块多时按「第 X–Y 站」标注），并在地图区或页脚如实注明——高德路书无公开创建接口，此链接经官方免 key 多点标注 URI 带走当日全部点位（进高德后为带名称的点集合、无连线，收藏/存路书需在高德内手动操作）。境外行程不加。**境内/境外判定口径**：全部点位坐标都落在中国大陆 bbox（与引擎 `isInChinaBBox` 同口径）才算境内；骨架模板渲染层已内置该分流（境外自动省略当日链接并隐藏图例相应说明），设计步骤整体重设计时照此执行。
