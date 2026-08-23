@@ -100,6 +100,11 @@
   .tier .t-note{grid-column:2/4;font-size:12.5px;color:var(--ink-soft)}
   .tier-label{font-size:12px;color:#fff;border-radius:6px;padding:1px 6px;justify-self:start}
   .tier-label--e{background:#8b8276}.tier-label--m{background:var(--gold)}.tier-label--h{background:var(--accent)}
+  .tier-label--crowd{background:var(--ink-soft)}
+  /* 网友推荐（crowdPicks）：酒店区里"网友实测"子列表，价格非实时、标注实付年份 */
+  .crowd{margin-top:8px}
+  .crowd__title{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:6px 0 0}
+  .crowd__foot{font-size:12px;color:var(--ink-soft);margin-top:2px}
 
   /* ===== 免责声明 ===== */
   .disclaimer{background:var(--secondary-soft);border:1px solid #ddcfa8;border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:#6e5518}
@@ -266,7 +271,14 @@ __ENGINES__
     '<div class="card"><h3>💳 支付</h3><p>' + escapeHTML(pt.payment) + '</p></div>',
     '<div class="card"><h3>📱 必备 App / 电话</h3><ul>' + pt.apps.map(function (a) { return '<li>' + escapeHTML(a) + '</li>'; }).join('') + '</ul></div>',
     '<div class="card"><h3>🎫 购票时机</h3><p>' + escapeHTML(pt.ticketTip) + '</p></div>'
-  ].join('');
+  ].concat(pt.transitCards && pt.transitCards.length ? [
+    // 境外行程给市内交通卡/单程票参考（无此字段时不渲染，境内自驾行程通常省略）
+    '<div class="card"><h3>🚇 市内交通与交通卡</h3><ul>' + pt.transitCards.map(function (t) {
+      return '<li><b>' + escapeHTML(t.city) + '</b>：' + escapeHTML(t.card)
+        + (t.price ? '（' + escapeHTML(t.price) + '）' : '')
+        + (t.note ? ' — ' + escapeHTML(t.note) : '') + '</li>';
+    }).join('') + '</ul></div>'
+  ] : []).join('');
 
   // —— 交通与班次（booked 高亮；candidates 含「备选」字样走辅色） ——
   var fl = trip.flights;
@@ -294,7 +306,16 @@ __ENGINES__
             + '<span class="t-name">' + escapeHTML(o.name) + '</span>'
             + '<span class="t-price">' + escapeHTML(o.price || o.priceRange) + '</span>'
             + '<span class="t-note">' + escapeHTML(o.note) + '</span></div>';
-        }).join('') + '</div>';
+        }).join('')
+      // 网友推荐（境外行程，小红书等来源）：价格为网友实付年份、非实时（crowdPicks 缺省时不渲染）
+      + (h.crowdPicks && h.crowdPicks.length ? '<div class="crowd"><div class="crowd__title">🗣 网友推荐（价格为其实付当年参考、非实时）</div>'
+        + h.crowdPicks.map(function (p) {
+            return '<div class="tier"><span class="tier-label tier-label--crowd">' + escapeHTML(p.source || '网友') + '</span>'
+              + '<span class="t-name">' + escapeHTML(p.name) + '</span>'
+              + '<span class="t-price">' + escapeHTML(p.priceNote || '') + '</span>'
+              + '<span class="t-note">' + escapeHTML(p.note || '') + '</span></div>';
+          }).join('') + '</div>' : '')
+      + '</div>';
   }).join('');
 
   // —— 每日时间轴 ——
@@ -372,6 +393,7 @@ __ENGINES__
           + '<div class="meta">'
           + (s.transport ? '<span class="pill">' + transportIcon(s.transport.mode) + ' ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
           + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.closedDays ? '<span class="pill">🚫 ' + escapeHTML(s.closedDays) + '</span>' : '')
           + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
           + (s.seasonal ? '<span class="pill">🎋 ' + escapeHTML(s.seasonal) + '</span>' : '')
           + '</div>'
