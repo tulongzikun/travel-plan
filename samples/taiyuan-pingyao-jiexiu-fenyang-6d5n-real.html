@@ -211,7 +211,7 @@
       "高德/百度地图——导航 + 每日「高德打开当日点位」链接跳转",
       "乡野国保电话清单（祆神楼/太符观/介休城隍庙/双林镇国修缮）——行前 3 天打一轮"
     ],
-    "ticketTip": "预约三连环按倒计时打：省博提前 3 天当天 7:00 准点抢（十一最难）；北齐壁画馆提前 5 天；晋祠天龙山联票、平遥通票提前 7 天线上预购（现场排队费时）。双林寺/镇国寺单独售票、分段半封闭修缮中——行前 7 天电话确认开放范围。"
+    "ticketTip": "预约三连环按倒计时打：省博提前 3 天当天 7:00 准点抢（十一最难）；北齐壁画馆提前 5 天；晋祠天龙山联票、平遥通票提前 7 天线上预购（现场排队费时）。双林寺/镇国寺单独售票、分段半封闭修缮中——行前 7 天电话确认开放范围。另比价（算过）：山西文旅年卡 ¥258/年（2026 版覆盖全省 120+ 景区，晋祠/双林寺/镇国寺在列）vs 本行程晋祠天龙山联票 ¥110+双林 ¥35+镇国 ¥25≈¥170——卡是否再含张壁古堡/永祚寺/平遥通票以官方名单为准，命中一处即回本、只这三处则单买划算；别与 ¥50 太原市级一卡通混淆（仅覆盖太原市属景区）。"
   },
   "flights": {
     "booked": [],
@@ -545,7 +545,8 @@
           "ticketPrice": "免费（预约）",
           "note": "「晋魂」基本陈列按文明摇篮–晋国霸业–民族熔炉走；3 小时只算快闪，闭馆前留 20 分钟买文创",
           "needsBooking": true,
-          "leadDays": 3
+          "leadDays": 3,
+          "closedDays": "周一闭馆（本行程已避开周一）"
         },
         {
           "period": "afternoon",
@@ -581,7 +582,8 @@
           "ticketPrice": "免费（预约·提前 5 天）",
           "note": "娄睿墓/九原岗壁画数字化同场；预约按人头限流，同行人一并约齐",
           "needsBooking": true,
-          "leadDays": 5
+          "leadDays": 5,
+          "closedDays": "周一闭馆（本行程已避开周一）"
         },
         {
           "period": "afternoon",
@@ -1153,7 +1155,7 @@
     }
   ]
 }
-</script>
+    </script>
 
 <script>
 // Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/buildAmapDayMarkersLinks/routeCoordinates/
@@ -1557,6 +1559,7 @@ if (typeof module !== 'undefined' && module.exports) {
           + '<div class="meta">'
           + (s.transport ? '<span class="pill">' + transportIcon(s.transport.mode) + ' ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
           + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.closedDays ? '<span class="pill">🚫 ' + escapeHTML(s.closedDays) + '</span>' : '')
           + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
           + '</div>'
           + (s.note ? '<div class="slot__note">' + escapeHTML(s.note) + '</div>' : '')

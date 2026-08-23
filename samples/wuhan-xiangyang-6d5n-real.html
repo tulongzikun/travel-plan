@@ -213,7 +213,7 @@
       "「襄阳盛世唐城」公众号（夜场排期）",
       "随州市博物馆乐舞确认电话 0722-3810518（官网公示）"
     ],
-    "ticketTip": "省博入馆最多提前 5 天、每天 17:18 放票，周末秒没——本行程排了周三（D2），11-06（周五）17:18 放票即约；编钟演出票 ¥50 不随入馆预约线上卖，到馆自助机购；知音号提前 3–7 天；唐城夜场提前 1–3 天；古德寺提前 10 天内约；酒店 11 月淡季提前 3–7 天即可"
+    "ticketTip": "省博入馆最多提前 5 天、每天 17:18 放票，周末秒没——本行程排了周三（D2），11-06（周五）17:18 放票即约；编钟演出票 ¥50 不随入馆预约线上卖，到馆自助机购；知音号提前 3–7 天；唐城夜场提前 1–3 天；古德寺提前 10 天内约；酒店 11 月淡季提前 3–7 天即可另比价（算过）：湖北旅游惠民卡约 ¥300（240+ 景区、古隆中在列；黄鹤楼/唐城夜场/知音号/明显陵是否纳入以「畅游湖北」当季名单为准）——若含黄鹤楼+古隆中+明显陵（70+87+65≈¥222）再加一处即回本；博物馆类全免费预约、与卡无关。"
   },
   "flights": {
     "booked": [],
@@ -442,7 +442,8 @@
           "ticketPrice": "免费（公众号/武汉文旅码预约）",
           "note": "全国重点文保第五批；沿江大道 129 号江汉路口，看完顺江汉路步行街回酒店方向",
           "needsBooking": true,
-          "leadDays": 3
+          "leadDays": 3,
+          "closedDays": "周一闭馆（本行程已避开）"
         },
         {
           "period": "evening",
@@ -461,7 +462,8 @@
           "ticketPrice": "平日 ¥248–268（周末 ¥298–328）",
           "note": "提前 45–60 分钟到码头换票；2026 年 11 月场次表通常 10 月才发布，购票前以「知音号」公众号当期排期为准；大风大雾有停航史",
           "needsBooking": true,
-          "leadDays": 7
+          "leadDays": 7,
+          "closedDays": "知音号周一休演（本行程已避开）"
         }
       ],
       "alternatives": [
@@ -620,7 +622,8 @@
           "ticketPrice": "免费（提前 5 天 17:18 放票预约）；编钟乐舞 ¥50",
           "note": "编钟乐舞 15:00 场（淡季周二至五官方场次），演出票到馆在南馆负一楼演奏厅外大厅自助机购、先约入馆再买票；看展顺序建议：曾侯乙展厅 → 勾践剑 → 梁庄王 → 15:00 乐舞",
           "needsBooking": true,
-          "leadDays": 4
+          "leadDays": 4,
+          "closedDays": "周一闭馆（本行程排 D2 周三）"
         },
         {
           "period": "evening",
@@ -749,7 +752,8 @@
           "ticketPrice": "免费；编钟乐舞 ¥40（现场购）",
           "note": "乐舞每天 10:30 / 15:30 两场（周一除外）、每场 20–30 分钟、10 人以上开演——15:30 场前 10 分钟入场；散客票演奏厅旁售票处现场买，无线上渠道",
           "needsBooking": false,
-          "leadDays": 2
+          "leadDays": 2,
+          "closedDays": "周一闭馆（本行程已避开）"
         },
         {
           "period": "afternoon",
@@ -899,7 +903,8 @@
           "ticketPrice": "夜场 ¥100–128（含《大唐倚梦》；渠道报价不一）",
           "note": "11 月排期以「襄阳盛世唐城」公众号当日公告为准；夜场部分区域（胡月楼/青龙寺）不开放；园内朱雀大街/西市小吃解决晚餐",
           "needsBooking": true,
-          "leadDays": 3
+          "leadDays": 3,
+          "closedDays": "周一停夜场（本行程已避开）"
         }
       ],
       "alternatives": [
@@ -988,7 +993,8 @@
           "ticketPrice": "免费（公众号/「游湖北」预约，日限 8000）",
           "note": "2024-05-17 开放的新馆，位于襄城区胜利街 268 号（古城南门外约 2–3km）——昭明台为老馆址、勿跑错；今日周六开馆 ✓",
           "needsBooking": true,
-          "leadDays": 3
+          "leadDays": 3,
+          "closedDays": "周一闭馆（本行程已避开）"
         },
         {
           "period": "noon",
@@ -1249,7 +1255,7 @@
     }
   ]
 }
-</script>
+    </script>
 
 <script>
 // Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/buildAmapDayMarkersLinks/routeCoordinates/
@@ -1644,6 +1650,7 @@ if (typeof module !== 'undefined' && module.exports) {
           + '<div class="meta">'
           + (s.transport ? '<span class="pill">🚕 ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
           + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.closedDays ? '<span class="pill">🚫 ' + escapeHTML(s.closedDays) + '</span>' : '')
           + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
           + '</div>'
           + (s.note ? '<div class="slot__note">' + escapeHTML(s.note) + '</div>' : '')
