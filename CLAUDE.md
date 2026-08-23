@@ -26,7 +26,7 @@
 ```bash
 node --test test/*.test.js          # 注意是 glob，不是 `node --test test/`（后者在本机 Node 会报模块找不到）
 ```
-只覆盖纯函数（提醒日期计算、导航链接、路线坐标、GCJ-02→WGS-84 转换、契约校验）；地图初始化与 HTML 生成靠 `samples/` 手动验证。生成成品的机械校验用 `node travel-plan-viz/assets/validate.js <成品.html>`（注意：`samples/` 里的旧样例先于 trip-data 内嵌约定，跑校验会报缺块，属预期）。
+只覆盖纯函数（提醒日期计算、导航链接、路线坐标、GCJ-02→WGS-84 转换、契约校验）；地图初始化与 HTML 生成靠 `samples/` 手动验证。生成成品的机械校验用 `node travel-plan-viz/assets/validate.js <成品.html>`（现存样例均为 trip-data 内嵌约定后的产物，校验应通过；早期一代样例已于 2026-08 删除）。
 
 ## 数据采集约束（写在 references/research-guide.md，改动要同步）
 
