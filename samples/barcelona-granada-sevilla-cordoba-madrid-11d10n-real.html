@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!--
+  travel-plan-viz · 页面模板（骨架，非硬依赖）
+  ============================================================
+  来源：从已发布样例（长治·晋城 / 武汉·襄阳 / 太原·平遥三份成品）蒸馏出的公共骨架，
+  渲染层与三份成品同源（含住宿锚点、高德多点标注链、动态交通图标、无图降级）。
+
+  组装出成品（单文件 HTML）：
+    1) 完整 trip JSON 写入页面中段 id 为 trip-data 的 JSON 脚本块（TRIP_DATA 占位符处）；
+       注意：本文件所有注释里都不要出现该 script 标签与占位符的字面量——
+       校验器与组装脚本按字符串/正则定位它们，注释里的字面量会被误当成真块。
+    2) 把 assets/map.js 与 assets/reminders.js 全文分别包一对 script 标签，
+       替换紧随其后的 ENGINES 占位符（两段引擎顺序任意，均须完整内联）；
+    3) 按 :root 注释换配色与 hero 渐变（page-contract 硬性约束：每趟行程用不同配色），
+       改主题词 / 行前须知 sub / 交通节标题与说明（各处有「按行程改」注释）；
+       正文免责声明段落须与 trip.disclaimer 原文一致（校验器要求该文在 JSON 外至少出现一次）；
+    4) 跑 node travel-plan-viz/assets/validate.js <成品.html>，ERROR 必须清零。
+
+  边界：这是设计步骤的「加速器/兜底」，不是唯一出品路径——用 frontend-design /
+  huashu-design 等设计 skill 整体重设计时无须套本模板，但须保住 page-contract 的
+  机械标记（trip-data 内嵌 / initTravelMap / computeReminders / renderChecklistHTML /
+  Leaflet / @media / object-fit / 免责声明入正文）。
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>西班牙 · 高迪与安达卢西亚 11 天 10 晚</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    /* 配色：每趟行程换一套（改这 6 个变量 + header.hero 渐变即整体换肤）。
+       已发布样例参考：长治·晋城=宣纸米白/朱砂红/黛青；武汉·襄阳=素绢米白/青铜绿/错金；
+       太原·平遥=砖灰米/晋商绛红/鎏金。下面这套「黛蓝暖砂」仅是骨架占位，别原样发布。 */
+    --bg:#f7f1e8;          /* 底色 */
+    --panel:#fffaf3;       /* 卡片底 */
+    --ink:#2e2723;         /* 正文墨色 */
+    --ink-soft:#6f665c;    /* 次级文字 */
+    --accent:#9c4a30;      /* 主色 */
+    --accent-soft:#f2ddd4; /* 主色淡底 */
+    --secondary:#2f5d73;   /* 辅色（金/对比色） */
+    --secondary-soft:#ddeaf0;
+    --gold:#b3873e;        /* 点缀金 */
+    --line:#e8dfd2;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.7 "PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  img{object-fit:cover;display:block}
+  .container{max-width:920px;margin:0 auto;padding:0 16px 56px}
+
+  /* ===== 页顶 ===== */
+  /* hero 渐变按行程换主题色（三份样例：黛青→朱砂 / 青铜绿→错金 / 绛红→鎏金） */
+  header.hero{background:linear-gradient(160deg,#3a1f16 0%,#9c4a30 55%,#2f5d73 100%);color:var(--bg);padding:40px 16px 30px;text-align:center}
+  .hero__kicker{font-size:13px;letter-spacing:.35em;opacity:.82}
+  .hero__title{font-size:clamp(26px,6vw,40px);font-weight:800;margin:10px 0 6px}
+  .hero__meta{font-size:14px;opacity:.9}
+  .hero__meta b{color:#e8d5a0}
+  .banner-tbd{max-width:920px;margin:14px auto 0;background:rgba(243,241,236,.14);border:1px dashed rgba(243,241,236,.6);border-radius:10px;padding:8px 14px;font-size:13.5px}
+
+  section{margin-top:30px}
+  h2.sec{font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  h2.sec::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--accent),var(--gold))}
+  .sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:12px}
+
+  /* ===== 待办清单 ===== */
+  .pretrip-todo{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.pretrip-todo{grid-template-columns:1fr 1fr}}
+  .todo-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .todo-item input{accent-color:var(--accent);transform:translateY(1px)}
+  .todo-deadline{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
+
+  /* ===== 行前须知 ===== */
+  .pretrip-grid{display:grid;gap:12px}
+  @media(min-width:768px){.pretrip-grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card h3{font-size:15.5px;color:var(--secondary);margin-bottom:6px}
+  .card p,.card li{font-size:14.5px;color:var(--ink)}
+  .card ul{padding-left:18px}
+
+  /* ===== 交通与班次 ===== */
+  .flight{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+  .flight__code{grid-row:span 2;background:var(--accent);color:#fff;font-weight:800;font-size:13px;border-radius:8px;padding:6px 10px;align-self:start;white-space:nowrap}
+  .flight--alt .flight__code{background:var(--secondary)}
+  .flight__label{font-weight:700;font-size:15px}
+  .flight__time{font-size:15px;color:var(--secondary);font-weight:700}
+  .flight__note{grid-column:2;font-size:13.5px;color:var(--ink-soft)}
+
+  /* ===== 酒店 ===== */
+  .hotel-grid{display:grid;gap:12px}
+  @media(min-width:768px){.hotel-grid{grid-template-columns:1fr 1fr}}
+  .hotel-area h3{font-size:16px}
+  .hotel-area .nights{font-size:12.5px;color:#fff;background:var(--secondary);border-radius:99px;padding:2px 10px;margin-left:8px;vertical-align:2px}
+  .hotel-area .reason{font-size:13.5px;color:var(--ink-soft);margin:4px 0 10px}
+  .tier{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:baseline;padding:7px 0;border-top:1px dashed var(--line);font-size:14px}
+  .tier b:first-child{grid-column:1}
+  .tier .t-name{font-weight:600}
+  .tier .t-price{color:var(--accent);font-size:13px;white-space:nowrap}
+  .tier .t-note{grid-column:2/4;font-size:12.5px;color:var(--ink-soft)}
+  .tier-label{font-size:12px;color:#fff;border-radius:6px;padding:1px 6px;justify-self:start}
+  .tier-label--e{background:#8b8276}.tier-label--m{background:var(--gold)}.tier-label--h{background:var(--accent)}
+
+  /* ===== 免责声明 ===== */
+  .disclaimer{background:var(--secondary-soft);border:1px solid #ddcfa8;border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:#6e5518}
+
+  /* ===== 地图 ===== */
+  #map{height:430px;border-radius:var(--radius);border:1px solid var(--line);z-index:1}
+  @media(min-width:768px){#map{height:520px}}
+  .route-pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font:700 13px/1 system-ui,sans-serif;box-shadow:0 1px 5px rgba(0,0,0,.45);border:2px solid #fff}
+  .route-pin--stay{background:var(--secondary);border-radius:9px;font-size:14px}
+  .map-legend{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
+
+  /* ===== 每日时间轴 ===== */
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:18px}
+  .day__head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+  .day__no{background:var(--ink);color:var(--bg);font-weight:800;border-radius:8px;padding:2px 10px;font-size:14px}
+  .day__date{font-size:13.5px;color:var(--ink-soft)}
+  .day__theme{font-size:16.5px;font-weight:800;color:var(--secondary)}
+  .day__stay{font-size:13px;font-weight:700;color:var(--secondary);background:var(--secondary-soft);border-radius:99px;padding:2px 10px;white-space:nowrap}
+  .day__amap{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:2px 10px;white-space:nowrap;text-decoration:none}
+  .day__tips{background:var(--secondary-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+  .day__tips li{font-size:13px;color:var(--secondary);margin-left:16px}
+  .period{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.2em;margin:12px 0 8px}
+  .slots{display:grid;gap:12px}
+  @media(min-width:768px){.slots{grid-template-columns:1fr 1fr}}
+  .slot{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+  .slot__visual{position:relative;aspect-ratio:16/9;background:linear-gradient(140deg,var(--secondary) 0%,var(--accent) 130%)}
+  .slot__visual img{position:absolute;inset:0;width:100%;height:100%}
+  .slot__visual .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.9);font-size:20px;font-weight:800;letter-spacing:.12em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .slot__time{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:6px;padding:1px 8px}
+  .slot__body{padding:12px 14px 14px}
+  .slot__name{font-size:16.5px;font-weight:800}
+  .slot__name .rating{font-size:12px;color:var(--gold);font-weight:700;margin-left:8px}
+  .slot__review{font-size:13.5px;color:var(--ink-soft);margin:4px 0 8px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{font-size:12px;border-radius:99px;padding:2px 10px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+  .slot__note{font-size:12.5px;color:#6e5518;background:#f6efdc;border-radius:8px;padding:6px 10px;margin-top:8px}
+  .reminder-badge{display:inline-block;font-size:12px;background:#fff3e0;border:1px solid #ecc78a;color:#a05e00;border-radius:99px;padding:2px 10px;margin-top:8px}
+  .alt-card{border:1px dashed var(--gold);background:#fdf9ef;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px}
+  .alt-card b{color:var(--gold)}
+  .dining{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  .meal{margin-bottom:8px}
+  .meal__tag{font-size:12px;color:#fff;background:var(--gold);border-radius:6px;padding:1px 8px;margin-right:6px}
+  .meal__place{font-weight:700;font-size:14.5px}
+  .meal__hours{font-size:12.5px;color:var(--ink-soft)}
+  .dish{display:inline-block;font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:1px 10px;margin:4px 4px 0 0}
+  .dish .p{color:var(--accent);font-weight:700}
+
+  /* ===== 全程贴士 ===== */
+  .tips-list{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.tips-list{grid-template-columns:1fr 1fr}}
+  .tips-list li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+
+  footer{margin-top:36px;text-align:center;font-size:12.5px;color:var(--ink-soft)}
+  footer .line{width:64px;height:3px;border-radius:2px;background:var(--gold);margin:0 auto 10px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <!-- 主题词按行程改（如「票号 · 琉璃 · 古建」「编钟 · 江湖 · 古城」）；标题由渲染层从 trip.title 生成 -->
+  <div class="hero__kicker">高迪 · 世遗 · 安达卢西亚</div>
+  <div class="hero__title" id="pageTitle"></div>
+  <div class="hero__meta" id="pageMeta"></div>
+  <div class="banner-tbd" id="tbdBanner" style="display:none"></div>
+</header>
+
+<div class="container">
+
+  <section>
+    <h2 class="sec">⏰ 出发前待办清单</h2>
+    <div class="sub" id="checklistHint"></div>
+    <div id="checklist"></div>
+  </section>
+
+  <section>
+    <!-- sub 文案按行程的日期/季节改 -->
+    <h2 class="sec">🌦️ 行前须知 <span style="font-size:13px;color:var(--ink-soft);font-weight:400">（按行程的日期与季节定制）</span></h2>
+    <div class="pretrip-grid" id="preTrip"></div>
+  </section>
+
+  <section>
+    <!-- 标题按交通形态改：高铁行程「🚄 跨城高铁（未预订 · 请自行核实）」、飞机+租车「✈️ 航班与租车（…）」；sub 写本行程的交通格局与票价口径 -->
+    <h2 class="sec">✈️🚄 航班与 AVE 高铁（未预订 · 请自行核实）</h2>
+    <div class="sub">班次与价格为公开资料整理的当季参考，未走实时渠道，一律以官方订票页为准。</div>
+    <div id="flights"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🏨 住宿片区（按行程节点 · 三档价位）</h2>
+    <div class="hotel-grid" id="hotels"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">⚠️ 免责声明</h2>
+    <p class="disclaimer">本页全部信息（天气、航班、租车、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。</p>
+  </section>
+
+  <section>
+    <h2 class="sec">🗺️ 行程地图</h2>
+    <div id="map"></div>
+    <div class="map-legend">编号即游览顺序；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。<span id="legendAmapNote">每日头部「📍 高德打开当日点位」经官方免 key 多点标注 URI 带走当日全部点位（高德路书无公开创建接口，链接打开的是带名称的点集合，收藏/存路书须在高德内手动操作）。</span>地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
+  </section>
+
+  <section>
+    <h2 class="sec">📅 每日行程</h2>
+    <div id="days"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">💡 全程实用贴士</h2>
+    <ul class="tips-list" id="globalTips"></ul>
+  </section>
+
+  <footer>
+    <div class="line"></div>
+    由 travel-plan-viz 生成 · 数据为公开资料整理的参考 · 行程数据内嵌本页（可丢回给 AI 迭代修改）
+  </footer>
+</div>
+
+<script id="trip-data" type="application/json">
+{
+  "title": "西班牙 · 高迪与安达卢西亚 11 天 10 晚",
+  "startDate": "2026-09-22",
+  "dateTBD": true,
+  "colorScheme": "陶土红 × 阿苏莱霍蓝（安达卢西亚暖调）",
+  "routeSummary": "上海 ⇄ 巴塞罗那·格拉纳达·塞维利亚·科尔多瓦·马德里 · 直飞进 + AVE 高铁纵贯 + 直飞出",
+  "preTrip": {
+    "weather": {
+      "summary": "9 月下旬–10 月初气候均值：巴塞罗那 19–26°C；格拉纳达 11–26°C（昼夜温差最大）；塞维利亚 16–31°C（午后仍热）；科尔多瓦 14–29°C；马德里 11–26°C。全程以晴为主、偶有秋雨，出发前一周再看预报。",
+      "typhoon": "西班牙无台风；安达卢西亚午后紫外线强（UV 常在 7+），格拉纳达/马德里等高原城市夜里降温快，早晚与午后体感差可达 15°C。"
+    },
+    "packing": "洋葱式穿搭：短袖打底 + 薄外套 + 一件抓绒或薄羽绒（格拉纳达/马德里夜里 10–15°C）；舒适防滑步行鞋（五城老城全部石板路，阿尔拜辛/托莱多坡道多）；防晒霜/墨镜/檐帽；折叠伞防秋雨。",
+    "payment": "Visa/Master 信用卡 + Apple Pay 覆盖绝大多数场景；老城塔帕斯小馆与市场摊位常只收现金，人均备 €50–100 现金；银联覆盖有限，主刷双币信用卡；博物馆商店/纪念品店基本都能刷卡。",
+    "apps": [
+      "Renfe（AVE 车票与时刻表，票面即电子票）",
+      "TMB（巴塞罗那地铁/公交购票）",
+      "EMT Madrid（马德里公交）",
+      "Google Maps（境外步行导航与公交方案）",
+      "顶流票务官网收藏：Alhambra / Sagrada Família / Prado / Mezquita"
+    ],
+    "ticketTip": "西班牙顶流景点实名制：纳宫/圣家堂票面绑定购票护照、入园核对原件；AVE 车票姓名须与护照一致。放票节奏（2026-08 核实参考）：阿尔罕布拉宫约提前 90 天、圣家堂约提前 30 天、AVE 早鸟价约提前 60 天起售，热门时段放票即抢。"
+  },
+  "flights": {
+    "booked": [],
+    "candidates": [
+      {
+        "label": "去程 · 国航 CA839 直飞",
+        "code": "CA839",
+        "time": "上海浦东 T2 00:30 → 巴塞罗那 约 07:55（飞行约 13h25）",
+        "note": "夜班直飞，凌晨出发当日上午抵达，首日行程可用度高；直飞往返经济舱参考约 ¥6,000–10,000（2026-08 联网检索快照，随订位浮动，以订票页为准）"
+      },
+      {
+        "label": "去程 · 东航 MU249 直飞",
+        "code": "MU249",
+        "time": "上海浦东 T1 00:50 → 巴塞罗那 约 08:05（空客 A350）",
+        "note": "与 CA839 同为沪巴塞直飞档（每周多班），可与 MU710 返程凑东航往返；参考价同上，以订票页为准"
+      },
+      {
+        "label": "去程中转 · 阿联酋航空（迪拜转）",
+        "code": "EK 沪—DXB—BCN 组合",
+        "time": "总程约 18–20 小时，当日或次晨抵达",
+        "note": "中转档性价比之选：2026-08 检索快照往返约 $673 起；适合不排斥转机、想省预算的场景"
+      },
+      {
+        "label": "去程中转 · 国泰/荷航（香港或阿姆斯特丹转）",
+        "code": "CX via HKG / KL via AMS",
+        "time": "总程约 17–21 小时，视衔接",
+        "note": "衔接班次多、时段灵活；2026-08 快照价与直飞互有高低，以订票页为准"
+      },
+      {
+        "label": "返程 · 东航 MU710 直飞",
+        "code": "MU710",
+        "time": "马德里 10:30 → 上海浦东 次日 06:35（飞行约 14h05，空客 A350，每日一班）",
+        "note": "上午出发次日清晨到，最后一天不用摸黑赶飞机；返程柜台排队与退税耗时都长，仍需提前 3 小时到机场"
+      }
+    ]
+  },
+  "hotelAreas": [
+    {
+      "area": "巴塞罗那·哥特区",
+      "reason": "老城核心：哥特区/兰布拉/博盖利亚/港口全部步行覆盖，加泰罗尼亚广场是机场快线总站，去 Sants 车站地铁直达",
+      "lat": 41.38715,
+      "lng": 2.17095,
+      "options": [
+        {
+          "tier": "高端",
+          "name": "Mercer Hotel Barcelona",
+          "priceRange": "约 €350–550/晚",
+          "note": "罗马城墙遗址上的精品酒店，老城巷内，口碑稳定"
+        },
+        {
+          "tier": "中档",
+          "name": "Catalonia Portal de l'Àngel",
+          "priceRange": "约 €180–280/晚",
+          "note": "本土 Catalonia 连锁，加泰罗尼亚广场步行 2 分钟，位置效率高"
+        },
+        {
+          "tier": "经济",
+          "name": "Hotel Peninsular",
+          "priceRange": "约 €110–160/晚",
+          "note": "兰布拉侧巷家庭经营老旅馆，庭院安静，性价比之选"
+        }
+      ]
+    },
+    {
+      "area": "格拉纳达·市中心（大教堂圈）",
+      "reason": "塔帕斯街区 Calle Navas 与老城步行圈核心；去阿尔罕布拉打车约 10 分钟，去 AVE 车站约 15 分钟",
+      "lat": 37.17646,
+      "lng": -3.59921,
+      "options": [
+        {
+          "tier": "高端",
+          "name": "NH Collection Granada Victoria",
+          "priceRange": "约 €160–240/晚",
+          "note": "本土 NH 连锁旗舰线，Puerta Real 圆环旁"
+        },
+        {
+          "tier": "中档",
+          "name": "Hotel Casa 1800 Granada",
+          "priceRange": "约 €130–200/晚",
+          "note": "老宅改造精品，含下午茶，阿尔拜辛边缘步行到观景台方便"
+        },
+        {
+          "tier": "经济",
+          "name": "Hotel Navas",
+          "priceRange": "约 €80–120/晚",
+          "note": "就在塔帕斯街 Calle Navas 上，出门即小吃街"
+        }
+      ]
+    },
+    {
+      "area": "塞维利亚·圣十字区",
+      "reason": "王宫与大教堂的后巷街区，安达卢西亚庭院式旅馆聚集，步行覆盖老城全部点位；去 Santa Justa 车站打车约 15 分钟",
+      "lat": 37.38623,
+      "lng": -5.99163,
+      "options": [
+        {
+          "tier": "高端",
+          "name": "EME Catedral",
+          "priceRange": "约 €280–450/晚",
+          "note": "大教堂正对面，顶楼露台正对希拉达塔"
+        },
+        {
+          "tier": "中档",
+          "name": "Hotel Casa 1800 Sevilla",
+          "priceRange": "约 €180–260/晚",
+          "note": "圣十字区中心庭院酒店，口碑稳定，含下午茶"
+        },
+        {
+          "tier": "经济",
+          "name": "Hotel Adriano",
+          "priceRange": "约 €100–150/晚",
+          "note": "斗牛场侧、老城边缘，步行到王宫约 10 分钟"
+        }
+      ]
+    },
+    {
+      "area": "科尔多瓦·老城犹太区",
+      "reason": "大清真寺 5 分钟步行圈，百花巷与 patio 庭院旅馆聚集，夜拍罗马桥免爬坡；AVE 车站步行约 20 分钟或打车 10 分钟",
+      "lat": 37.87981,
+      "lng": -4.78338,
+      "options": [
+        {
+          "tier": "高端",
+          "name": "Hotel Palacio del Bailío",
+          "priceRange": "约 €220–350/晚",
+          "note": "16 世纪宫殿改造，老城北缘，庭院与浴场是招牌"
+        },
+        {
+          "tier": "中档",
+          "name": "NH Collection Amistad Córdoba",
+          "priceRange": "约 €140–220/晚",
+          "note": "紧邻 AVE 车站与老城之间，拖箱进出最友好"
+        },
+        {
+          "tier": "经济",
+          "name": "Balcón de Córdoba",
+          "priceRange": "约 €120–180/晚",
+          "note": "小体量露台正对大清真寺，房少常满房，订到即是赚"
+        }
+      ]
+    },
+    {
+      "area": "马德里·太阳门中心区",
+      "reason": "地铁 1/2/3 号线交汇，步行覆盖马约尔广场/格兰大道/午餐市集，去 Atocha 车站一站地铁，去机场快线总站西贝莱斯广场步行可达",
+      "lat": 40.41686,
+      "lng": -3.70388,
+      "options": [
+        {
+          "tier": "高端",
+          "name": "Hotel Urban",
+          "priceRange": "约 €300–450/晚",
+          "note": "设计型五星，索尔区核心，顶楼泳池"
+        },
+        {
+          "tier": "中档",
+          "name": "Petit Palace Puerta del Sol",
+          "priceRange": "约 €180–260/晚",
+          "note": "本土 High Hospitality 连锁，太阳门旁"
+        },
+        {
+          "tier": "经济",
+          "name": "Hotel Europa",
+          "priceRange": "约 €110–160/晚",
+          "note": "太阳门步行 3 分钟的老牌性价比，隔音一般属老城常态"
+        }
+      ]
+    }
+  ],
+  "disclaimer": "本页全部信息（天气、航班、租车、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。",
+  "tips": [
+    "时差 6 小时（西班牙夏令时比中国慢 6 小时）：红眼航班抵达当日别回酒店硬睡，撑到 20 点后入睡倒时差最快",
+    "西班牙作息整体偏晚：本地人午餐 14:00 后、晚餐 21:00 后；游客 20 点前吃晚餐基本不用等位",
+    "午休 siesta 约 14:00–17:00：街边小店关门，大景点与博物馆照常——把 siesta 时段留给大景点或庭院咖啡馆",
+    "扒手高发区：巴塞罗那兰布拉/地铁、马德里阿托查与太阳门——背包前背、手机别放桌面、护照与复印件分开存放",
+    "实名制票（纳宫/圣家堂等）与 AVE 车票均须与护照姓名一致，入园/进站可能查原件",
+    "小费非强制：正餐账单凑整即可（约 5–10%），塔帕斯小馆不用给",
+    "教堂与修道院着装：肩膝覆盖，清真寺-主教座堂执行较宽、修道院较严",
+    "紧急电话 112 全欧通用；药店看绿色十字 Farmacia 标志",
+    "退税：单店消费满约 €90 可退（约 10–15%），马德里机场退税盖章排队久，返程日预留 3 小时余量"
+  ],
+  "reminders": [
+    {
+      "item": "申根签证（上海 BLS 西班牙签证中心预约 + 材料清单）",
+      "leadDays": 60
+    },
+    {
+      "item": "国际机票（直飞档班次少，先锁班次）",
+      "leadDays": 45
+    },
+    {
+      "item": "AVE 高铁早鸟票（巴塞→格拉纳达→塞维利亚→科尔多瓦→马德里⇄托莱多 全部五段）",
+      "leadDays": 60
+    },
+    {
+      "item": "阿尔罕布拉宫门票（官方约提前 90 天放票，含纳宫时段）",
+      "leadDays": 85
+    },
+    {
+      "item": "圣家堂含塔票（官方约提前 30 天放票）",
+      "leadDays": 30
+    },
+    {
+      "item": "全程酒店（La Mercè 周巴塞罗那房价明显上浮）",
+      "leadDays": 30
+    },
+    {
+      "item": "申根旅行保险（医疗保额 ≥ €30,000，签证硬要求）",
+      "leadDays": 45
+    },
+    {
+      "item": "塞维利亚王宫门票（实名，官方渠道）",
+      "leadDays": 14
+    },
+    {
+      "item": "加泰罗尼亚音乐宫导览或演出票",
+      "leadDays": 14
+    },
+    {
+      "item": "eSIM / 运营商国际漫游开通",
+      "leadDays": 14
+    }
+  ],
+  "days": [
+    {
+      "date": "2026-09-22",
+      "weekday": "周二",
+      "theme": "红眼直飞抵达 · 哥特区慢启动",
+      "stayArea": "巴塞罗那·哥特区",
+      "tips": [
+        "🚗 车程链：机场→Aerobús 机场快线 加泰罗尼亚广场 约 35 分钟→酒店（哥特区）步行 8 分钟寄存行李→主教座堂 步行 3 分钟→兰布拉大道 步行 6 分钟→博盖利亚市场 步行 4 分钟→宿（哥特区·老城）步行 8 分钟",
+        "时差 -6 小时：抵达当日走完老城轻量路线即可，20 点后困意来了就睡，第二天时差基本倒平",
+        "行李寄存：正规酒店退房前/后都可寄存，哥特区酒店基本步行可达机场快线总站"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "国航 CA839 / 东航 MU249 抵达巴塞罗那",
+          "time": "07:55 / 08:05 落地",
+          "lat": 41.296944,
+          "lng": 2.079047,
+          "transport": {
+            "mode": "Aerobús 机场快线公交",
+            "fare": "约 €7–8",
+            "duration": "机场→加泰罗尼亚广场 约 35 分钟（24h 班次密）"
+          },
+          "note": "红眼直飞上午落地，机上补眠 4–5 小时即可撑过全天",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "巴塞罗那主教座堂与哥特区",
+          "time": "11:30–13:30",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Barcelona%20Gothic%20Quarter%20%2853593807263%29.jpg?width=600",
+          "lat": 41.38393,
+          "lng": 2.17655,
+          "rating": 4.6,
+          "review": "加泰罗尼亚哥特式主座堂 + 回廊白鹅，哥特区巷道本体的中心",
+          "openingHours": "约 10:30–19:30（礼拜时段清场，以官网为准）",
+          "ticketPrice": "约 €8–12（含唱诗班回廊）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自酒店（哥特区）约 5 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "兰布拉大道",
+          "time": "14:00–16:00",
+          "lat": 41.38001,
+          "lng": 2.17443,
+          "rating": 4.3,
+          "review": "从加泰罗尼亚广场一路向海的步行林荫大道，人流即风景也是扒手高峰",
+          "openingHours": "全天开放",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自主教座堂 约 6 分钟"
+          },
+          "note": "背包前背；街头「猜杯」「剪彩」类把戏直接绕开",
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "博盖利亚市场",
+          "time": "17:30–19:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Boqueria%2C%20Barcelona%20%28P1170751%29.jpg?width=600",
+          "lat": 41.38174,
+          "lng": 2.17155,
+          "rating": 4.5,
+          "review": "1840 年老市场：火腿、鲜榨果汁、海鲜档，逛吃式晚餐前菜",
+          "openingHours": "约 08:00–20:30（部分摊位 18 点后收摊，周日部分休）",
+          "ticketPrice": "免费入场，鲜榨果汁约 €2–4/杯",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自兰布拉中段 约 4 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "El Xampanyet（1929 年老塔帕斯馆，El Born）",
+          "hours": "约 12:00–16:00 / 20:00–23:00，周一休",
+          "dishes": [
+            {
+              "name": "伊比利亚火腿",
+              "price": "约 €8–12/份"
+            },
+            {
+              "name": "醋渍凤尾鱼",
+              "price": "约 €6–9"
+            },
+            {
+              "name": "卡瓦酒杯",
+              "price": "约 €3–5"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "7 Portes（1837 年老店，老港侧）",
+          "hours": "每日约 13:00–01:00",
+          "dishes": [
+            {
+              "name": "海鲜饭 Paella（墨鱼/龙虾档）",
+              "price": "约 €22–32/份"
+            },
+            {
+              "name": "加泰罗尼亚焦糖布丁 Crema catalana",
+              "price": "约 €6–8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-23",
+      "weekday": "周三",
+      "theme": "高迪双联画 · 圣家堂与圣保罗",
+      "stayArea": "巴塞罗那·哥特区",
+      "tips": [
+        "🚗 车程链：酒店→地铁 L2/L5 圣家堂站 约 20 分钟→圣保罗医院 步行（高迪大道）约 15 分钟→Bunkers 公交约 25 分钟/打车约 10 分钟→宿（哥特区）公交+地铁 约 30 分钟",
+        "圣家堂 2026 年是高迪逝世百年，耶稣塔（172.5m）已可登——但整塔未完工（荣耀立面与钟塔仍在建），官网选「含塔」票时看当日开放时段",
+        "纳宫时段票提醒挂在待办第 85 天：明晚定闹钟"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "圣家堂（含耶稣塔登顶）",
+          "time": "09:00–11:30",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Sagrada%20Fam%C3%ADlia%2C%20Pla%C3%A7a%20de%20Gaud%C3%AD%2C%20Barcelona%20-%20panoramio%20%282%29.jpg?width=600",
+          "lat": 41.4035,
+          "lng": 2.17443,
+          "rating": 4.8,
+          "review": "高迪毕生之作、世遗（1984/2005 系列）：光之森林中殿 + 受难/诞生立面对比，塔顶俯瞰巴塞罗那网格城区",
+          "openingHours": "约 09:00–20:00（9 月档，以官网为准）",
+          "ticketPrice": "€26 基础 / €36 含塔（官方 sagradafamilia.org，2026-08 核实）",
+          "transport": {
+            "mode": "地铁 L2/L5 Sagrada Família 站",
+            "fare": "单程约 €2.5（十次 T-casual 更划算）",
+            "duration": "自酒店 约 20 分钟"
+          },
+          "needsBooking": true,
+          "leadDays": 30
+        },
+        {
+          "period": "noon",
+          "name": "圣保罗医院现代主义建筑群",
+          "time": "15:00–17:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/2014-%20Hospital%20Sant%20Pau%2C%20Barcelona%2C%20Spain%20%28%20Ank%20Kumar%20%29%2001.jpg?width=600",
+          "lat": 41.41398,
+          "lng": 2.17555,
+          "rating": 4.6,
+          "review": "与音乐宫同列世遗的 Domènech i Montaner 主笔：粉色亭阁 + 地下联廊，游客密度只有圣家堂的零头",
+          "openingHours": "约 09:30–18:30（末场提前，以官网为准）",
+          "ticketPrice": "约 €15–18",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自圣家堂沿高迪大道直行 约 15 分钟（1.2km）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "卡梅尔山观景台 Bunkers del Carmel",
+          "time": "18:30–20:00 日落",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Barcelona%2C%20View%20from%20Bunkers%20del%20Carmel.jpg?width=600",
+          "lat": 41.41939,
+          "lng": 2.16169,
+          "rating": 4.7,
+          "review": "内战防空阵地改造的 360° 免费观景台，本地年轻人日落据点，看整城从提比达波到海",
+          "openingHours": "全天开放（日落前 1 小时最佳，注意关门时间以现场告示为准）",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "公交（或打车）",
+            "fare": "约 €2.5 / 打车约 €10–12",
+            "duration": "自圣保罗 约 25 分钟（v17/28 路）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "La Paradeta Sagrada Família（海鲜自选现做）",
+          "hours": "约 13:00–16:00 / 20:00–23:00，周一休",
+          "dishes": [
+            {
+              "name": "市场价海鲜按斤称（面包蟹/大虾/蛏子）",
+              "price": "人均约 €25–35"
+            },
+            {
+              "name": "桑格利亚酒杯",
+              "price": "约 €4–6"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Bar del Pla（El Born 小馆）",
+          "hours": "约 19:00–23:30",
+          "dishes": [
+            {
+              "name": "火腿可乐饼 Croquetas",
+              "price": "约 €9–12"
+            },
+            {
+              "name": "炙烤章鱼",
+              "price": "约 €14–18"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-24",
+      "weekday": "周四",
+      "theme": "La Mercè 正日 · 古埃尔公园与节庆狂欢",
+      "stayArea": "巴塞罗那·哥特区",
+      "tips": [
+        "🚗 车程链：酒店→地铁 L3 Lesseps + 公园接驳公交/步行上山 约 35 分钟→古埃尔公园→文森之家 步行下坡 约 20 分钟→回酒店 地铁 约 30 分钟→晚间节庆 老城区步行→宿（哥特区）步行",
+        "La Mercè 是巴塞罗那主保圣人节（9/24 正日），全城免费狂欢：白天人塔、傍晚火跑、深夜烟花——节目单以 mercè.bcn 官网为准",
+        "节庆人潮极密：只带手机+少量现金，包放身前；correfoc（火跑）要穿长袖长裤护目"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "古埃尔公园",
+          "time": "09:30–11:30",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Mosaics%20of%20Park%20G%C3%BCell%20Barcelona%2001.jpg?width=600",
+          "lat": 41.41423,
+          "lng": 2.15246,
+          "rating": 4.6,
+          "review": "高迪世遗系列之一：马赛克蜥蜴、百柱厅与蛇形长椅，俯瞰全城到海",
+          "openingHours": "约 08:00–19:30（9 月档）",
+          "ticketPrice": "中心区约 €10 起（分时段，官方 parkguell.barcelona）",
+          "transport": {
+            "mode": "地铁 L3 + 接驳公交",
+            "fare": "约 €2.5 + 接驳免费/低价",
+            "duration": "自酒店 约 35 分钟（上山段有扶梯）"
+          },
+          "needsBooking": true,
+          "leadDays": 20
+        },
+        {
+          "period": "noon",
+          "name": "文森之家",
+          "time": "12:00–13:15",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Barcelona%20-%20Carrer%20de%20les%20Carolines%20-%20Casa%20Vicens%20I.jpg?width=600",
+          "lat": 41.40351,
+          "lng": 2.15063,
+          "rating": 4.5,
+          "review": "高迪首作（1883/世遗 2005 增补）：摩尔-东方主义立面与烟草花墙，小体量但完成度惊人",
+          "openingHours": "约 10:00–19:00（以官网为准）",
+          "ticketPrice": "约 €20–26",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自古埃尔公园下坡 约 20 分钟（1.3km）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "La Mercè 节庆全城狂欢",
+          "time": "16:00–23:00",
+          "lat": 41.38715,
+          "lng": 2.17095,
+          "rating": 4.8,
+          "review": "一年一度主保节正日：Plaça Sant Jaume 人塔 Castells、傍晚 Correfoc 火跑、22 点前后蒙特惠奇烟花压轴",
+          "ticketPrice": "免费（全城公共活动）",
+          "seasonal": "La Mercè 2026 正日 9/24（周四）：人塔约上午/正午在 Sant Jaume 广场，火跑约晚间，压轴烟花在蒙特惠奇山脚——当日节目单出发前一周看 mercè.bcn",
+          "transport": {
+            "mode": "步行（老城区各场点间）",
+            "fare": "免费",
+            "duration": "自酒店 5–15 分钟圈内"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "方案B 蒙特惠奇山半日（对节庆无感时）",
+          "summary": "MNAC 国家艺术博物馆（罗马式壁画镇馆，露台看全城）+ 缆车 + 蒙特惠奇城堡；MNAC 约 €12，博物馆周一休、周四开至 20:00 档"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "Flash Flash Tortillería（1970 年蛋饼专门店，Eixample）",
+          "hours": "约 13:00–16:30 / 20:00–23:00，8 月中旬休",
+          "dishes": [
+            {
+              "name": "经典土豆蛋饼 Tortilla de patatas",
+              "price": "约 €10–14"
+            },
+            {
+              "name": "蔬菜蛋饼（几十种选项）",
+              "price": "约 €10–16"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Els Quatre Gats（1897 年四只猫咖啡馆， Picasso 早年据点，哥特区）",
+          "hours": "约 13:00–01:00，周日晚早收",
+          "dishes": [
+            {
+              "name": "当日套餐 Menú",
+              "price": "约 €25–40"
+            },
+            {
+              "name": "加泰式炖肉 Escudella",
+              "price": "约 €16–22"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-25",
+      "weekday": "周五",
+      "theme": "扩展区现代主义走廊 · 三联建筑收官",
+      "stayArea": "巴塞罗那·哥特区",
+      "tips": [
+        "🚗 车程链：酒店→步行 米拉之家 约 25 分钟（或地铁 L3 约 12 分钟）→巴特罗之家 步行 约 5 分钟→古埃尔宫 步行 约 15 分钟→音乐宫 步行 约 12 分钟→宿（哥特区）步行 约 8 分钟",
+        "米拉/巴特罗两家相距 300 米，同在格拉西亚大道上，先米拉（早场人少）后巴特罗顺路；两馆都可用中文导览",
+        "明早 AVE：今晚收拾行李，Sants 车站早高峰提前 40 分钟到（安检+找站台）"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "米拉之家（采石场）",
+          "time": "09:00–10:45",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Casa%20Mil%C3%A0%2C%20general%20view.jpg?width=600",
+          "lat": 41.3954,
+          "lng": 2.16176,
+          "rating": 4.7,
+          "review": "高迪世遗民用收官作：武士烟囱天台 + 无直角楼层，早场人少光线好",
+          "openingHours": "约 09:00–20:30（以官网为准）",
+          "ticketPrice": "约 €25–36 视档（夜间票另）",
+          "transport": {
+            "mode": "步行（或地铁 L3 Diagonal）",
+            "fare": "免费 / 约 €2.5",
+            "duration": "自酒店 约 25 分钟"
+          },
+          "needsBooking": true,
+          "leadDays": 15
+        },
+        {
+          "period": "noon",
+          "name": "巴特罗之家",
+          "time": "11:00–12:30",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Casa%20Batll%C3%B3%2C%20Barcelona%2017.jpg?width=600",
+          "lat": 41.39154,
+          "lng": 2.1647,
+          "rating": 4.7,
+          "review": "圣乔治屠龙的外壳：骨感阳台 + 龙鳞屋顶，室内光影装置沉浸感最强的一座",
+          "openingHours": "约 09:00–21:00（动态时段票）",
+          "ticketPrice": "约 €35 起（动态定价，早场/晚场更便宜）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自米拉之家沿格拉西亚大道 约 5 分钟（300m）"
+          },
+          "needsBooking": true,
+          "leadDays": 15
+        },
+        {
+          "period": "noon",
+          "name": "古埃尔宫",
+          "time": "15:30–17:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Palau%20G%C3%BCell%2C%20Antoni%20Gaudi%2C%20Barcelona%202.jpg?width=600",
+          "lat": 41.37882,
+          "lng": 2.17423,
+          "rating": 4.6,
+          "review": "高迪为古埃尔伯爵建的宅邸（1984 年首批世遗）：抛物线拱地下室 + 屋顶糖果烟囱，团客极少",
+          "openingHours": "约 10:00–20:00（周二至周日，以官网为准）",
+          "ticketPrice": "约 €12–15",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自巴特罗之家 约 15 分钟（1.2km 下坡向兰布拉）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "加泰罗尼亚音乐宫",
+          "time": "18:00–19:15 导览（或晚间演出）",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Palau%20de%20la%20M%C3%BAsica%20-%20Interior%20general.JPG?width=600",
+          "lat": 41.38758,
+          "lng": 2.17523,
+          "rating": 4.8,
+          "review": "世遗、现代主义巅峰室内：彩玻璃穹顶倾泻而下，导览含不开放包厢席",
+          "openingHours": "导览约 10:00–19:00 多档；演出多在晚间",
+          "ticketPrice": "导览约 €15–20 / 演出票视曲目",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自古埃尔宫 约 12 分钟"
+          },
+          "needsBooking": true,
+          "leadDays": 14
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "方案B 老港+哥伦布塔黄昏",
+          "summary": "兰布拉南端哥伦布塔电梯（约 €9）+ 老港帆船码头黄昏 + Barceloneta 海滩踩水，适合建筑审美疲劳后的放松夜"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "Cervecería Catalana（巴特罗之家步行 5 分钟的塔帕斯名店）",
+          "hours": "约 12:00–00:30",
+          "dishes": [
+            {
+              "name": "塔帕斯拼盘（鹅肝牛肉串/虾串）",
+              "price": "每串约 €3–6"
+            },
+            {
+              "name": "土豆蛋饼",
+              "price": "约 €6–9"
+            },
+            {
+              "name": "桑格利亚壶",
+              "price": "约 €12–18"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Quimet & Quimet（Poble Sec 站立式 montadito 老馆）",
+          "hours": "约 12:00–16:00 / 19:00–23:00，周日休",
+          "dishes": [
+            {
+              "name": "蜂蜜茄泥鳀鱼小面包 Montadito",
+              "price": "约 €3–5/个"
+            },
+            {
+              "name": "自选奶酪/鱼罐头拼盘",
+              "price": "约 €8–15"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-26",
+      "weekday": "周六",
+      "theme": "AVE 南下六小时 · 格拉纳达初见",
+      "stayArea": "格拉纳达·市中心（大教堂圈）",
+      "tips": [
+        "🚗 车程链：酒店（哥特区）→地铁 L3 Sants 车站 约 20 分钟→AVE 巴塞罗那→格拉纳达 约 6.5 小时→格拉纳达车站 步行/打车至市中心 约 15 分钟→大教堂 步行 3 分钟→宿（格拉纳达·市中心）步行 5 分钟",
+        "巴塞→格拉纳达直达 AVE 每日 2–3 班（晨发午后到），2026 时刻表 Renfe 通常只提前 2–3 个月发布——放票即买早鸟",
+        "格拉纳达塔帕斯文化：点一杯酒/饮料免费送一份 tapa，两三杯下肚就是一顿饭；大教堂东侧的 Calle Navas 是本地人小吃街（比游客街便宜三成），晚餐就在这条街解决"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "AVE 高铁 巴塞罗那→格拉纳达",
+          "time": "约 08:00 前后发车 → 约 14:30–15:00 抵达（6h10–7h）",
+          "lat": 37.1837,
+          "lng": -3.6086,
+          "ticketPrice": "早鸟约 €31 起 / 全价约 €60–90（二等座，2026-08 参考）",
+          "transport": {
+            "mode": "AVE 高铁",
+            "fare": "早鸟约 €31 起（2026-08 参考）",
+            "duration": "约 6 小时 10 分–7 小时（直达班次）"
+          },
+          "note": "车上午餐：Sants 站内面包房/超市备餐盒上车的本地操作；车票姓名须与护照一致",
+          "needsBooking": true,
+          "leadDays": 60
+        },
+        {
+          "period": "evening",
+          "name": "格拉纳达大教堂与皇家礼拜堂",
+          "time": "17:00–18:30",
+          "lat": 37.17646,
+          "lng": -3.59921,
+          "rating": 4.5,
+          "review": "西班牙文艺复兴教堂开山之作；隔壁皇家礼拜堂是双王（天主教伊莎贝拉与斐迪南）陵寝——格拉纳达叙事的正主",
+          "openingHours": "大教堂约 10:00–18:15；礼拜堂约 10:15–18:30（周一档缩短，以官网为准）",
+          "ticketPrice": "大教堂约 €5–8；皇家礼拜堂约 €5–7",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自市中心酒店 约 3 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "dining": [
+        {
+          "meal": "车上午餐",
+          "place": "Sants 车站面包房/超市自备餐盒（本地常规操作）",
+          "hours": "车站 06:00 起营业",
+          "dishes": [
+            {
+              "name": "火腿面包 Bocadillo + 咖啡",
+              "price": "约 €6–10"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Bodegas Castañeda（大教堂圈百年酒馆）",
+          "hours": "约 12:30–16:30 / 19:30–23:30",
+          "dishes": [
+            {
+              "name": "点酒送 tapa（腌鱼/炖豆轮换）",
+              "price": "酒约 €2.5–4/杯"
+            },
+            {
+              "name": "Vermut 本地苦艾酒",
+              "price": "约 €3–5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-27",
+      "weekday": "周日",
+      "theme": "阿尔罕布拉宫全日 · 纳斯里德的黄昏",
+      "stayArea": "格拉纳达·市中心（大教堂圈）",
+      "tips": [
+        "🚗 车程链：酒店→打车/公交 C30 上山至正义之门 约 10–15 分钟→纳宫→步行 赫内拉利费 约 15 分钟→下山 步行经 Cuesta de los Chinos 约 25 分钟或公交→阿尔拜辛 公交/打车 约 15 分钟→圣尼古拉斯观景台 步行 约 10 分钟→宿（市中心）步行下坡 约 20 分钟",
+        "纳宫时段是全票核心：票面印着纳宫入场时段，迟到 30 分钟以上作废且不退——把纳宫时段排在整个行程的中段，前后松紧都可调",
+        "带护照原件：验票核对实名；山上网络信号一般，门票截图离线保存"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "阿尔罕布拉宫（纳宫+卡洛斯五世宫+阿尔卡萨瓦）",
+          "time": "08:30–13:00（按票面纳宫时段）",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Granada%20-%20Alhambra%20-%20Palacios%20nazar%C3%ADes%20-%20Patio%20de%20los%20Leones%20-%201.jpg?width=600",
+          "lat": 37.17605,
+          "lng": -3.58811,
+          "rating": 4.9,
+          "review": "世遗（1984/1994）：伊斯兰西方宫廷的绝唱——桃金娘庭院、狮子庭的水钟与钟乳石穹顶，早场人最少光线最柔",
+          "openingHours": "日场约 08:30–20:00（纳宫按时段入场）",
+          "ticketPrice": "€19.09 含纳宫（官方 tickets.alhambra-patronato.es，2026-08 核实；约提前 90 天放票）",
+          "transport": {
+            "mode": "打车（或 C30/C32 公交）",
+            "fare": "打车约 €8–12 / 公交约 €2",
+            "duration": "自市中心 约 10–15 分钟上山"
+          },
+          "needsBooking": true,
+          "leadDays": 85
+        },
+        {
+          "period": "noon",
+          "name": "赫内拉利费宫与花园",
+          "time": "13:00–14:30",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Patio%20de%20la%20acequia%20in%20Generalife%2C%20Granada%2C%20Spain.jpg?width=600",
+          "lat": 37.17699,
+          "lng": -3.58523,
+          "rating": 4.7,
+          "review": "苏丹夏宫：水渠中庭的细流与眺望阿尔拜辛的长廊——同票包含，别错过",
+          "openingHours": "同阿尔罕布拉日场",
+          "ticketPrice": "含在阿尔罕布拉门票内",
+          "transport": {
+            "mode": "步行（宫区内）",
+            "fare": "免费",
+            "duration": "自纳宫区 步行 约 15 分钟（有指示牌）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "阿尔拜辛区与圣尼古拉斯观景台日落",
+          "time": "18:00–20:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Granada%20-%20View%20from%20Mirador%20de%20San%20Nicol%C3%A1s%20-%2001.jpg?width=600",
+          "lat": 37.18104,
+          "lng": -3.59266,
+          "rating": 4.8,
+          "review": "摩尔人老城白色巷道 + 全西班牙最著名的落日机位：圣尼古拉斯广场看夕阳沉进阿尔罕布拉背后的雪山",
+          "openingHours": "全天开放（日落前 1 小时占位）",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "公交（或打车）",
+            "fare": "约 €2 / 打车约 €8",
+            "duration": "自市中心 约 15 分钟上山"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "方案B 萨克拉门托窑洞 Zambra 弗拉明戈夜场",
+          "summary": "格拉纳达独有的吉卜赛窑洞弗拉明戈（zambra），约 €25–40 含饮品，21:30 场居多——看完走坡路回城注意结伴"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "Jardines Alberto（阿尔罕布拉入口侧花园餐厅）",
+          "hours": "约 13:00–16:00",
+          "dishes": [
+            {
+              "name": "格拉纳达炖豆 Habas con jamón",
+              "price": "约 €12–16"
+            },
+            {
+              "name": "烤羊排",
+              "price": "约 €16–22"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Taberna La Tana（Realejo 老牌塔帕斯）",
+          "hours": "约 13:00–16:00 / 20:30–23:30，周日休",
+          "dishes": [
+            {
+              "name": "点酒送 tapa",
+              "price": "酒约 €2.5–4"
+            },
+            {
+              "name": "陈年火腿/奶酪拼盘",
+              "price": "约 €10–16"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "weekday": "周一",
+      "theme": "AVE 去塞维利亚 · 西班牙广场的黄金时刻",
+      "stayArea": "塞维利亚·圣十字区",
+      "tips": [
+        "🚗 车程链：酒店→打车 格拉纳达车站 约 10 分钟→AVE 约 2.5 小时→塞维利亚 Santa Justa 站→打车 老城 约 15 分钟→酒店（圣十字区）→步行 西班牙广场 约 20 分钟→宿（圣十字区）步行 约 20 分钟",
+        "周一塞维利亚大教堂仅 11:00–15:00 短开放——已把大教堂挪到明早正常时段，今天只排户外",
+        "格拉纳达→塞维利亚直达 AVE 约 4 班/日（首班 06:17，末班约 18:17），选午间班次：早上还能在格拉纳达补个觉"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "萨克拉门托窑洞区晨景",
+          "time": "09:30–11:00",
+          "lat": 37.18187,
+          "lng": -3.58499,
+          "rating": 4.5,
+          "review": "清晨逆光看阿尔罕布拉挂在山脊上的最佳角度，窑洞门楣与仙人掌庭院，游客未至时最像生活本貌",
+          "openingHours": "全天开放（街区）",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "步行上坡",
+            "fare": "免费",
+            "duration": "自市中心 约 20 分钟（坡道）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "AVE 高铁 格拉纳达→塞维利亚",
+          "time": "约 12:00–13:00 发车 → 约 14:30–15:30 抵达（2h27–2h52）",
+          "lat": 37.392953,
+          "lng": -5.974137,
+          "ticketPrice": "早鸟约 €25–35 起（2026-08 参考）",
+          "transport": {
+            "mode": "AVE 高铁",
+            "fare": "早鸟约 €25–35 起",
+            "duration": "约 2 小时 27 分–2 小时 52 分（直达）"
+          },
+          "needsBooking": true,
+          "leadDays": 60
+        },
+        {
+          "period": "evening",
+          "name": "西班牙广场与玛利亚·路易莎公园",
+          "time": "18:00–20:00 黄金时刻",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Sevilla%20-%20Plaza%20de%20Espa%C3%B1a%20-%203.jpg?width=600",
+          "lat": 37.37697,
+          "lng": -5.98694,
+          "rating": 4.8,
+          "review": "1929 年博览会的半环新月：桥亭瓷画 + 运河划船，安达卢西亚落日把整圈陶土墙烧成金色",
+          "openingHours": "全天开放（广场主体 8:00–22:00 档）",
+          "ticketPrice": "免费（划船另约 €6）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自圣十字区酒店 约 20 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "车站简餐/上车前 Bodegas Castañeda 二刷",
+          "hours": "—",
+          "dishes": [
+            {
+              "name": "tapas 快打",
+              "price": "人均约 €10–15"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "El Rinconcillo（1670 年、塞维利亚最老 taberna）",
+          "hours": "约 13:00–15:30 / 20:00–23:30",
+          "dishes": [
+            {
+              "name": "鹰嘴豆菠菜 Espinacas con garbanzos",
+              "price": "约 €6–9"
+            },
+            {
+              "name": "陈年火腿 Jamón ibérico",
+              "price": "约 €12–18/份"
+            },
+            {
+              "name": "本地雪莉酒",
+              "price": "约 €3–5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "weekday": "周二",
+      "theme": "王宫与大教堂 · AVE 去科尔多瓦",
+      "stayArea": "科尔多瓦·老城犹太区",
+      "tips": [
+        "🚗 车程链：酒店（圣十字区）→步行 王宫 约 8 分钟→步行 大教堂 约 5 分钟→圣十字区 午餐→打车 Santa Justa 车站 约 15 分钟→AVE 45 分钟→科尔多瓦车站→步行/打车 犹太区 约 15 分钟→罗马桥 步行 约 8 分钟→宿（犹太区）步行 约 8 分钟",
+        "周二两大景点都全时段开放（大教堂周一仅 11:00–15:00 已避开）——王宫早场 9:30 人最少",
+        "希拉达塔是 35 层坡道（无电梯），登塔留到大教堂参观后段，腿力预算留够"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "塞维利亚王宫 Real Alcázar",
+          "time": "09:30–11:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Patio%20de%20las%20Doncellas%2C%20Real%20Alc%C3%A1zar%20de%20Sevilla.jpg?width=600",
+          "lat": 37.38321,
+          "lng": -5.99018,
+          "rating": 4.8,
+          "review": "欧洲最古老皇家宫殿之一、世遗：穆德哈尔灰泥贴金 + 花园水渠，《权游》多恩取景地",
+          "openingHours": "约 09:30–17:00（秋冬档，末轮入场提前，以官网为准）",
+          "ticketPrice": "€15.50（官方 alcazarsevilla.org，2026-08 核实）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自圣十字区酒店 约 8 分钟"
+          },
+          "needsBooking": true,
+          "leadDays": 14
+        },
+        {
+          "period": "morning",
+          "name": "塞维利亚主教座堂与希拉达塔",
+          "time": "11:00–13:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Orange%20trees%20courtyard%20cathedral%20from%20Giralda%20Seville%20Spain.jpg?width=600",
+          "lat": 37.38592,
+          "lng": -5.99314,
+          "rating": 4.8,
+          "review": "世界最大哥特式教堂（世遗）：哥伦布墓 + 希拉达坡道 360° 顶览老城",
+          "openingHours": "约 11:00–17:00（周一 11:00–15:00；以官网为准）",
+          "ticketPrice": "约 €12–18（含希拉达登塔，以官方 catedraldesevilla.es 为准）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自王宫出口 约 5 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "圣十字区（旧犹太区）",
+          "time": "13:00–14:30",
+          "lat": 37.38623,
+          "lng": -5.99163,
+          "rating": 4.6,
+          "review": "白墙橙花窄巷迷宫，塞维利亚的明信片本体；约会迷路，反正巷巷出片",
+          "openingHours": "全天开放",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自大教堂 约 3 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "AVE 高铁 塞维利亚→科尔多瓦",
+          "time": "约 15:30 发车 → 16:15 抵达（45 分钟）",
+          "lat": 37.8885,
+          "lng": -4.7896,
+          "ticketPrice": "早鸟约 €20–30 起（2026-08 参考）",
+          "transport": {
+            "mode": "AVE 高铁",
+            "fare": "早鸟约 €20–30 起",
+            "duration": "约 45 分钟"
+          },
+          "needsBooking": true,
+          "leadDays": 60
+        },
+        {
+          "period": "evening",
+          "name": "罗马桥与大清真寺夜景",
+          "time": "19:30–21:00 日落",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/C%C3%B3rdoba-Puente%20Romano-Arco%20de%20Felipe%20II-Mezquita-20110917.jpg?width=600",
+          "lat": 37.87665,
+          "lng": -4.77796,
+          "rating": 4.7,
+          "review": "公元 1 世纪罗马桥 + 桥对岸-calahorra 塔视角：大清真寺灯火亮起倒映瓜达尔基维尔河，科尔多瓦的封面机位",
+          "openingHours": "全天开放",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自犹太区酒店 约 8 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "Casa Morales（1850 年酒桶老馆，大教堂步行 10 分钟）",
+          "hours": "约 13:00–16:00 / 20:30–23:30，周日休",
+          "dishes": [
+            {
+              "name": "陈年火腿与奶酪拼盘",
+              "price": "约 €12–18"
+            },
+            {
+              "name": "炖牛尾 Rabo de toro",
+              "price": "约 €14–18"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Taberna Salinas（1880 年，犹太区口）",
+          "hours": "约 13:00–16:00 / 20:00–23:00",
+          "dishes": [
+            {
+              "name": "科尔多瓦冷汤 Salmorejo（配火腿碎溏心蛋）",
+              "price": "约 €6–9"
+            },
+            {
+              "name": "炸肉卷 Flamenquín",
+              "price": "约 €9–13"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "weekday": "周三",
+      "theme": "大清真寺清晨 · AVE 进马德里 · 索菲亚夜场",
+      "stayArea": "马德里·太阳门中心区",
+      "tips": [
+        "🚗 车程链：酒店（犹太区）→步行 大清真寺 约 5 分钟→步行 犹太巷 约 3 分钟→打车 车站 约 10 分钟→AVE 1h45→马德里 Atocha 站→地铁 L1/打车 太阳门酒店 约 15 分钟→步行 索菲亚 约 15 分钟→步行 太阳门/马约尔广场→宿（太阳门）步行 约 10 分钟",
+        "大清真寺开门即进：8:30 首批入场游客最少，晨光斜进红白拱廊是全西班牙最魔幻的半小时",
+        "索菲亚周三开到 21:00（周二休已避开），《格尔尼卡》展厅在二层常设"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "大清真寺-主教座堂 Mezquita",
+          "time": "08:30–10:30",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Columns%20-%20La%20Mezquita%20-%20C%C3%B3rdoba.JPG?width=600",
+          "lat": 37.87903,
+          "lng": -4.77945,
+          "rating": 4.9,
+          "review": "世遗（1984）：856 根红白双色玛瑙柱森林里悬着一座文艺复兴教堂——两种文明在同一屋顶下对峙八百年，清晨柱厅最空",
+          "openingHours": "约 08:30–19:30（周一至周六；周日及节日上午礼拜档，以官网为准）",
+          "ticketPrice": "€25 全票 / €18 优惠（官方 mezquitadecordoba.org，2026-08 核实）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自犹太区酒店 约 5 分钟"
+          },
+          "needsBooking": true,
+          "leadDays": 21
+        },
+        {
+          "period": "morning",
+          "name": "犹太区、百花巷与犹太会堂",
+          "time": "10:30–12:00",
+          "lat": 37.87981,
+          "lng": -4.78338,
+          "rating": 4.6,
+          "review": "安达卢斯时期犹太街区：白墙花盆小巷 + 1315 年犹太会堂（西班牙仅存三座之一）+ 小广场庭院咖啡馆",
+          "openingHours": "街区全天；会堂约 09:00–21:30 档（周二五休，以官网为准）",
+          "ticketPrice": "街区免费；犹太会堂约 €3",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自大清真寺 约 3 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "AVE 高铁 科尔多瓦→马德里",
+          "time": "约 13:00 发车 → 14:45 抵达（1h45）",
+          "lat": 40.4065,
+          "lng": -3.6893,
+          "ticketPrice": "早鸟约 €31 起 / 全价约 €60–80（2026-08 参考）",
+          "transport": {
+            "mode": "AVE 高铁",
+            "fare": "早鸟约 €31 起",
+            "duration": "约 1 小时 45 分"
+          },
+          "needsBooking": true,
+          "leadDays": 60
+        },
+        {
+          "period": "evening",
+          "name": "索菲亚王后艺术中心",
+          "time": "17:00–19:30",
+          "lat": 40.40805,
+          "lng": -3.69442,
+          "rating": 4.6,
+          "review": "西班牙现代艺术国家队：毕加索《格尔尼卡》整墙 + 达利/米罗，周三夜场开到 21:00 人流舒适",
+          "openingHours": "周一/周三–周六 10:00–21:00 档（周二休；19:00–21:00 免费时段，以官网为准）",
+          "ticketPrice": "常设展约 €10；19:00–21:00 免费档（排队入场）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自太阳门酒店 约 15 分钟（1.2km）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "太阳门与马约尔广场夜游",
+          "time": "20:00–21:30",
+          "lat": 40.41686,
+          "lng": -3.70388,
+          "rating": 4.4,
+          "review": "马德里原点 0 公里牌 + 熊与野莓雕像，步行到 1619 年马约尔广场的对称回廊下喝一杯",
+          "openingHours": "全天开放",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自索菲亚 约 15 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "Bodegas Campos（1908 年庭院餐厅，科尔多瓦 salmorejo 名门）",
+          "hours": "约 13:30–16:00",
+          "dishes": [
+            {
+              "name": "Salmorejo 双人陶罐装",
+              "price": "约 €9–13"
+            },
+            {
+              "name": "伊比利亚猪肩肉",
+              "price": "约 €16–22"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Casa Lucio（Cava Baja 街，烂蛋名店，晚市需排队或订位）",
+          "hours": "约 13:15–16:00 / 20:30–24:00",
+          "dishes": [
+            {
+              "name": "烂蛋配火腿 Huevos rotos",
+              "price": "约 €15–20"
+            },
+            {
+              "name": "卡斯蒂利亚蒜汤",
+              "price": "约 €10–14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "weekday": "周四",
+      "theme": "托莱多一日 · 普拉多夜场收官",
+      "stayArea": "马德里·太阳门中心区",
+      "tips": [
+        "🚗 车程链：酒店→地铁 L1/L2 Atocha 约 15 分钟→AVE 托莱多 33 分钟→步行/公交 老城 约 25 分钟→大教堂→阿尔卡萨→午餐→观景台→AVE 返 Atocha→步行 普拉多 约 10 分钟→地铁/步行 酒店→宿（太阳门）",
+        "10/1 起中国国庆假期：托莱多与普拉多的中文游客明显增多，AVE 托莱多段与普拉多免费档都要排队，心预期放宽",
+        "普拉多周一休（今天周四不受影响）；18:00–20:00 免费档排队约 30–45 分钟，看《宫娥》与黑画馆时间刚好"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "AVE 高铁 马德里→托莱多",
+          "time": "约 08:50 发车 → 09:23 抵达（33 分钟）",
+          "lat": 39.8624,
+          "lng": -4.01125,
+          "ticketPrice": "早鸟约 €15–25（2026-08 参考）",
+          "transport": {
+            "mode": "AVE 高铁",
+            "fare": "早鸟约 €15–25",
+            "duration": "约 33 分钟（Atocha 发车）"
+          },
+          "needsBooking": true,
+          "leadDays": 21
+        },
+        {
+          "period": "morning",
+          "name": "托莱多大教堂",
+          "time": "10:00–11:30",
+          "lat": 39.85691,
+          "lng": -4.02427,
+          "rating": 4.8,
+          "review": "西班牙哥特式天花板：透空祭坛金梯 + El Greco 与 Goya 挂满侧廊，世遗古城的精神中心",
+          "openingHours": "约 10:00–18:00（周日午后礼拜档，以官网为准）",
+          "ticketPrice": "约 €12–15（含讲解器）",
+          "transport": {
+            "mode": "步行上山（或 5 路公交）",
+            "fare": "免费 / 约 €1.5",
+            "duration": "自托莱多车站 约 25 分钟（1.4km 爬坡）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "托莱多阿尔卡萨与军械博物馆",
+          "time": "12:00–13:15",
+          "lat": 39.85799,
+          "lng": -4.02051,
+          "rating": 4.4,
+          "review": "古城制高点的四塔要塞，内设军械博物馆；内战围城叙事与山顶视野各占一半",
+          "openingHours": "约 09:30–18:00 档（以官网为准）",
+          "ticketPrice": "博物馆约 €5–8 / 只看外观免费",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自大教堂 约 8 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "noon",
+          "name": "Mirador del Valle 对岸观景台",
+          "time": "16:00–17:00",
+          "lat": 39.85031,
+          "lng": -4.02279,
+          "rating": 4.8,
+          "review": "塔霍河对岸正对整座山城：埃尔·格列柯画了一辈子的轮廓线，日落前一小时最金",
+          "openingHours": "全天开放",
+          "ticketPrice": "免费",
+          "transport": {
+            "mode": "步行过桥（或打车）",
+            "fare": "免费 / 约 €8",
+            "duration": "自老城 步行过阿坎塔拉桥 约 35 分钟"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "evening",
+          "name": "普拉多博物馆（免费夜档）",
+          "time": "18:00–20:00",
+          "photo": "https://commons.wikimedia.org/wiki/Special:FilePath/Museo%20del%20Prado%20%28September%202025%29.jpg?width=600",
+          "lat": 40.41379,
+          "lng": -3.69204,
+          "rating": 4.8,
+          "review": "世界顶级绘画馆：委拉斯凯兹《宫娥》、戈雅黑画、博斯《人间乐园》——免费档两小时只够主厅，主厅就值",
+          "openingHours": "周一–周六 10:00–20:00（周一休；18:00–20:00 免费档排队入场）",
+          "ticketPrice": "全票 €15 / 周一–周六 18:00–20:00 免费（官方 museodelprado.es，2026-08 核实）",
+          "transport": {
+            "mode": "步行",
+            "fare": "免费",
+            "duration": "自 Atocha 车站 约 10 分钟（AVE 返程无缝衔接）"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        }
+      ],
+      "alternatives": [
+        {
+          "label": "方案B 埃斯科里亚尔修道院（世遗）",
+          "summary": "马德里近郊的 16 世纪巨构修道院宫殿（腓力二世陵寝），Cercanías/大巴半日游；与托莱多二选一时优先托莱多"
+        }
+      ],
+      "dining": [
+        {
+          "meal": "午餐",
+          "place": "Restaurante Adolfo（大教堂旁老牌名店，卡斯蒂利亚野味）",
+          "hours": "约 13:30–16:00 / 20:30–23:00",
+          "dishes": [
+            {
+              "name": "炖鹧鸪 Perdiz estofada",
+              "price": "约 €22–28"
+            },
+            {
+              "name": "托莱多鹌鹑/鹿肉档",
+              "price": "约 €24–32"
+            }
+          ]
+        },
+        {
+          "meal": "晚餐",
+          "place": "Sobrino de Botín（1725 年，吉尼斯认证世界最老餐厅）",
+          "hours": "每日约 13:00–16:00 / 20:00–23:30",
+          "dishes": [
+            {
+              "name": "烤乳猪 Cochinillo（1/4 份）",
+              "price": "约 €28–36"
+            },
+            {
+              "name": "卡斯蒂利亚蒜汤 Sopa de ajo",
+              "price": "约 €10–13"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "weekday": "周五",
+      "theme": "MU710 直飞返沪",
+      "tips": [
+        "国际出发提前 3 小时（10:30 起飞 → 07:30 前到机场）：东航国际柜台 + 退税排队都长",
+        "退税流程：先机器扫描退税单（PABLO/INFINA），需海关查验的先盖章再值机托运；单店满约 €90 才可退",
+        "机场快线 Exprés 24 小时运营（西贝莱斯广场/Atocha 上车），比打车省 €25+"
+      ],
+      "slots": [
+        {
+          "period": "morning",
+          "name": "Exprés 机场快线前往巴拉哈斯机场",
+          "time": "06:30 出发",
+          "lat": 40.41686,
+          "lng": -3.70388,
+          "transport": {
+            "mode": "机场快线公交 Exprés Aerobús",
+            "fare": "约 €5",
+            "duration": "西贝莱斯→T1 约 35–40 分钟（24h 运营）/打车约 30 分钟 €30–40"
+          },
+          "needsBooking": false,
+          "leadDays": 0
+        },
+        {
+          "period": "morning",
+          "name": "东航 MU710 马德里→上海",
+          "time": "10:30 起飞 → 次日（10/3 周六）06:35 抵浦东",
+          "lat": 40.472222,
+          "lng": -3.560833,
+          "transport": {
+            "mode": "东航 MU710 直飞（空客 A350，每日一班）",
+            "fare": "见页顶航班区参考区间",
+            "duration": "飞行约 14 小时 05 分"
+          },
+          "seasonal": "机上两餐一夜，落地周六清晨——回家补眠半日，周日即可满血",
+          "needsBooking": true,
+          "leadDays": 45
+        }
+      ],
+      "dining": [
+        {
+          "meal": "早餐",
+          "place": "酒店早餐或机场 café con leche + churros 快打",
+          "hours": "机场 05:30 起",
+          "dishes": [
+            {
+              "name": "西班牙油条配巧克力（最后一顿）",
+              "price": "约 €4–6"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+// Leaflet 地图引擎。纯函数（buildNavLink/buildMapAppLinks/buildAmapDayMarkersLinks/routeCoordinates/
+// gcj02ToWgs84/wgs84ToGcj02/normalizeStays）可单元测试；
+// initTravelMap 需浏览器 + Leaflet (L)。浏览器与 Node 双用。
+
+// HTML 转义，防止 XSS
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// 生成跳转手机地图导航的链接。
+// iOS 不识别 geo: scheme，用 Apple Maps 的 https 通用链接；其余平台用 geo:。
+// ua 可选（浏览器里传 navigator.userAgent），不传则回退 geo:。
+function buildNavLink(lat, lng, label, ua) {
+  if (ua && /iPhone|iPad|iPod/.test(ua)) {
+    return 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(label);
+  }
+  return 'geo:' + lat + ',' + lng + '?q=' + lat + ',' + lng + '(' + encodeURIComponent(label) + ')';
+}
+
+// 常用地图 App 的点位链接（免 key 的官方 URI 规范：高德 URI API、Google Maps URLs）。
+// 这不是 page-contract 的 actionLink——不承载实时数据主张，只是"打开地图看这个点"。
+// 境内点只给高德（Google 地图境内不可用、底图坐标系还会偏移）；境外点给 Google + 高德。
+// 输入坐标一律 WGS-84：高德 URI 用 coordinate=wgs84 声明由其换算，Google 本身即 WGS-84。
+// isInChinaBBox 声明在下方 GCJ 区块（函数声明有提升，此处可用）。
+function buildMapAppLinks(lat, lng, label) {
+  var amap = {
+    label: '高德地图',
+    url: 'https://uri.amap.com/marker?position=' + lng + ',' + lat
+      + '&name=' + encodeURIComponent(label)
+      + '&coordinate=wgs84&callnative=1&src=travel-plan-viz',
+  };
+  var google = {
+    label: 'Google 地图',
+    url: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lat + ',' + lng),
+  };
+  return isInChinaBBox(lat, lng) ? [amap] : [google, amap];
+}
+
+// 「高德打开当日点位」链接（免 key 官方多点标注 URI：uri.amap.com/marker?markers=…）。
+// 高德路书无公开创建接口，这是官方通道里最接近"带着整天点位去高德"的能力：
+//   - markers 最多 10 点/链接（官方文档上限），超出自动按序切块，返回多条；
+//   - 每点可带名称（/,/ 和 /|/ 是分隔符，名称里出现会被替换成空格，防串位）；
+//   - 该 URI 无 coordinate 参数（默认 GCJ-02），坐标先经 wgs84ToGcj02 转换；
+//   - 进高德后只是带名称的点位集合（无连线），想存路书须在高德内收藏或手动创建。
+// points: [{lat, lng, name}]（按行程顺序，WGS-84）；残缺/非数值坐标的条目跳过。
+// 返回 [{url, count, first, last}]（first/last 为该块覆盖的原数组下标，从 0 计），无有效点返回 []。
+var AMAP_MARKERS_MAX = 10;
+
+function buildAmapDayMarkersLinks(points) {
+  var valid = (Array.isArray(points) ? points : []).filter(function (p) {
+    return p && typeof p.lat === 'number' && isFinite(p.lat)
+      && typeof p.lng === 'number' && isFinite(p.lng);
+  });
+  var links = [];
+  for (var start = 0; start < valid.length; start += AMAP_MARKERS_MAX) {
+    var chunk = valid.slice(start, start + AMAP_MARKERS_MAX);
+    var markers = chunk.map(function (p) {
+      var gcj = wgs84ToGcj02(p.lat, p.lng);
+      var name = String(p.name || '').replace(/[,|]/g, ' ').trim();
+      return gcj.lng.toFixed(6) + ',' + gcj.lat.toFixed(6)
+        + (name ? ',' + encodeURIComponent(name) : '');
+    }).join('|');
+    links.push({
+      url: 'https://uri.amap.com/marker?markers=' + markers
+        + '&src=travel-plan-viz&callnative=1',
+      count: chunk.length,
+      first: start,
+      last: start + chunk.length - 1,
+    });
+  }
+  return links;
+}
+
+// —— GCJ-02 → WGS-84 坐标转换 ——
+// 高德/腾讯地图返回的坐标是 GCJ-02（国测局加密），直接画在 OSM（WGS-84）瓦片上
+// 会偏移一百到几百米。凡坐标来自高德/腾讯类 skill，必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+var GCJ_A = 6378245.0;
+var GCJ_EE = 0.00669342162296594323;
+
+function isInChinaBBox(lat, lng) {
+  return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+}
+
+function gcjTransformLat(x, y) {
+  var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcjTransformLng(x, y) {
+  var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+  ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+  ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+  ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+  return ret;
+}
+
+function gcj02ToWgs84(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat - dLat, lng: lng - dLng };
+}
+
+// —— WGS-84 → GCJ-02 坐标转换 ——
+// gcj02ToWgs84 的逆变换：在 WGS 点处求偏移量再加回（与正向同为单次近似，往返误差米级，
+// 对锚点/导航吸附足够）。高德导航 URI 与多点标注 URI 的参数表均无 coordinate 参数
+// （默认即 GCJ-02），所以这两个通道的坐标必须先经此函数转换。
+// 中国境外坐标原样返回（GCJ-02 仅在境内加偏）。
+function wgs84ToGcj02(lat, lng) {
+  if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+  var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+  var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+  var radLat = lat / 180.0 * Math.PI;
+  var magic = Math.sin(radLat);
+  magic = 1 - GCJ_EE * magic * magic;
+  var sqrtMagic = Math.sqrt(magic);
+  dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+  dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
+// 从有序点位提取 [lat,lng] 数组，用于连线
+function routeCoordinates(points) {
+  return points.map(function (p) { return [p.lat, p.lng]; });
+}
+
+// 住宿锚点过滤：只留 name 与数值 lat/lng 齐全的条目（城区级近似坐标，缺坐标的片区直接跳过，不猜）。
+// stays: [{lat, lng, name, note?}]
+function normalizeStays(stays) {
+  if (!Array.isArray(stays)) return [];
+  return stays.filter(function (s) {
+    return s && typeof s.name === 'string' && s.name
+      && typeof s.lat === 'number' && isFinite(s.lat)
+      && typeof s.lng === 'number' && isFinite(s.lng);
+  });
+}
+
+// 初始化地图：编号 divIcon 标记、按序虚线路线、点击弹出 名称+时间+导航链接。
+// elementId: 容器 id；points: [{lat, lng, name, time}]（按行程顺序，坐标须为 WGS-84）
+// opts 可选：{ tileUrl, attribution } 替换默认 OSM 瓦片源（如 OSM 访问不稳时换镜像）；
+//   { stays } 住宿片区锚点 [{lat, lng, name, note?}]，画 🏨 标记（不编号、不进路线），
+//   缺数值坐标的条目会被 normalizeStays 跳过——锚点是城区级近似，宁缺勿猜。
+function initTravelMap(elementId, points, opts) {
+  opts = opts || {};
+  var map = L.map(elementId);
+  L.tileLayer(opts.tileUrl || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: opts.attribution || '© OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  points.forEach(function (p, i) {
+    var icon = L.divIcon({
+      className: 'route-pin',
+      html: '<span class="route-pin__num">' + (i + 1) + '</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(p.lat, p.lng, p.name, ua) }]
+      .concat(buildMapAppLinks(p.lat, p.lng, p.name));
+    L.marker([p.lat, p.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>' + (i + 1) + '. ' + escapeHTML(p.name) + '</b><br>'
+      + (p.time ? escapeHTML(p.time) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  normalizeStays(opts.stays).forEach(function (s) {
+    var icon = L.divIcon({
+      className: 'route-pin route-pin--stay',
+      html: '<span class="route-pin__num">🏨</span>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+    var navLinks = [{ label: '导航', url: buildNavLink(s.lat, s.lng, s.name, ua) }]
+      .concat(buildMapAppLinks(s.lat, s.lng, s.name));
+    L.marker([s.lat, s.lng], { icon: icon }).addTo(map).bindPopup(
+      '<b>🏨 ' + escapeHTML(s.name) + '</b><br>'
+      + (s.note ? escapeHTML(s.note) + '<br>' : '')
+      + navLinks.map(function (l) {
+          return '<a href="' + l.url + '">' + escapeHTML(l.label) + '</a>';
+        }).join(' · ')
+    );
+  });
+
+  var coords = routeCoordinates(points);
+  if (coords.length > 1) {
+    L.polyline(coords, { dashArray: '6 8', weight: 2 }).addTo(map);
+  }
+  // 住宿锚点只参与视野适配，不进路线连线（片区近似坐标，连线会误导）
+  var allCoords = coords.concat(normalizeStays(opts.stays).map(function (s) { return [s.lat, s.lng]; }));
+  map.fitBounds(allCoords.length ? allCoords : [[0, 0]], { padding: [30, 30] });
+  return map;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    buildNavLink: buildNavLink,
+    buildMapAppLinks: buildMapAppLinks,
+    buildAmapDayMarkersLinks: buildAmapDayMarkersLinks,
+    routeCoordinates: routeCoordinates,
+    gcj02ToWgs84: gcj02ToWgs84,
+    wgs84ToGcj02: wgs84ToGcj02,
+    normalizeStays: normalizeStays,
+    initTravelMap: initTravelMap,
+  };
+}
+
+</script>
+<script>
+// 出发前提醒：截止日期计算 + 渲染。浏览器与 Node 双用。
+
+// startDateISO: 'YYYY-MM-DD'；items: [{item, leadDays}]
+// 返回按 deadline 升序的 [{item, leadDays, deadline}]，deadline 为 'YYYY-MM-DD'
+// 用 UTC 做日期运算，避免本地时区导致的偏移。
+function computeReminders(startDateISO, items) {
+  return items
+    .map(function (it) {
+      var d = new Date(startDateISO + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - it.leadDays);
+      return { item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+    })
+    .sort(function (a, b) {
+      return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+    });
+}
+
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderChecklistHTML(reminders) {
+  var lis = reminders.map(function (r) {
+    return '<li class="todo-item">'
+      + '<input type="checkbox"> '
+      + '<span class="todo-deadline">' + r.deadline + '前</span> '
+      + '<span class="todo-text">' + escapeHTML(r.item) + '（建议提前' + r.leadDays + '天）</span>'
+      + '</li>';
+  }).join('');
+  return '<ul class="pretrip-todo">' + lis + '</ul>';
+}
+
+function reminderBadgeHTML(leadDays) {
+  return '<span class="reminder-badge">⚠️ 建议提前' + leadDays + '天订</span>';
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    computeReminders: computeReminders,
+    renderChecklistHTML: renderChecklistHTML,
+    reminderBadgeHTML: reminderBadgeHTML,
+  };
+}
+
+</script>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ===== 设计步骤渲染层：读取 trip-data JSON 渲染全部区块（与三份已发布样例同源） =====
+(function () {
+  var trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  // —— 页顶（标题/页签名来自 trip.title；meta 行由数据拼装，routeSummary 为可选字段） ——
+  var WD = ['周日','周一','周二','周三','周四','周五','周六'];
+  var slotCount = trip.days.reduce(function (n, d) { return n + (d.slots || []).length; }, 0);
+  var lastDate = trip.days[trip.days.length - 1].date;
+  var wd = WD[new Date(trip.startDate + 'T00:00:00Z').getUTCDay()];
+  document.title = trip.title;
+  document.getElementById('pageTitle').textContent = trip.title.split(' · ')[0];
+  document.getElementById('pageMeta').innerHTML =
+    '<b>' + trip.days.length + ' 天 ' + (trip.days.length - 1) + ' 晚</b> · '
+    + (trip.dateTBD ? '估算 ' : '') + trip.startDate + ' → ' + lastDate.slice(5)
+    + '（' + wd + '出发' + (trip.dateTBD ? ' · dateTBD' : '') + '）'
+    + (trip.routeSummary ? ' · ' + escapeHTML(trip.routeSummary) : '')
+    + ' · ' + slotCount + ' 处点位';
+  if (trip.dateTBD) {
+    var b = document.getElementById('tbdBanner');
+    b.style.display = 'block';
+    b.innerHTML = '📌 出发日期未定：以下提醒与行程按估算日 <b>' + trip.startDate + '</b>（' + wd + '）排布，定档后把本页丢回给 AI 重算';
+    document.getElementById('checklistHint').textContent =
+      '提醒按估算出发日 ' + trip.startDate + ' 倒推；实际定档后日期会整体平移。';
+  }
+
+  // —— 待办清单（reminders.js 引擎） ——
+  document.getElementById('checklist').innerHTML =
+    renderChecklistHTML(computeReminders(trip.startDate, trip.reminders));
+
+  // —— 行前须知 ——
+  var pt = trip.preTrip;
+  document.getElementById('preTrip').innerHTML = [
+    '<div class="card"><h3>🌡️ 天气</h3><p>' + escapeHTML(pt.weather.summary) + '</p></div>',
+    // 卡 2 标题按行程主题改（台风季「🌀 台风与风险窗口」、红叶季「🍂 季节与档期」…）
+    '<div class="card"><h3>🍂 季节与档期</h3><p>' + escapeHTML(pt.weather.typhoon) + '</p></div>',
+    '<div class="card"><h3>🧥 穿搭</h3><p>' + escapeHTML(pt.packing) + '</p></div>',
+    '<div class="card"><h3>💳 支付</h3><p>' + escapeHTML(pt.payment) + '</p></div>',
+    '<div class="card"><h3>📱 必备 App / 电话</h3><ul>' + pt.apps.map(function (a) { return '<li>' + escapeHTML(a) + '</li>'; }).join('') + '</ul></div>',
+    '<div class="card"><h3>🎫 购票时机</h3><p>' + escapeHTML(pt.ticketTip) + '</p></div>'
+  ].join('');
+
+  // —— 交通与班次（booked 高亮；candidates 含「备选」字样走辅色） ——
+  var fl = trip.flights;
+  var flHtml = (fl.booked || []).map(function (f) {
+    return '<div class="flight"><span class="flight__code">已预订</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span></div>';
+  }).concat(fl.candidates.map(function (f) {
+    var alt = (f.label.indexOf('备选') > -1 || f.code.indexOf('备选') > -1) ? ' flight--alt' : '';
+    return '<div class="flight' + alt + '"><span class="flight__code">' + escapeHTML(f.code) + '</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span>'
+      + (f.note ? '<span class="flight__note">' + escapeHTML(f.note) + '</span>' : '') + '</div>';
+  })).join('');
+  document.getElementById('flights').innerHTML = flHtml;
+
+  // —— 酒店 ——
+  var tierCls = { '经济': 'tier-label--e', '中档': 'tier-label--m', '高端': 'tier-label--h' };
+  document.getElementById('hotels').innerHTML = trip.hotelAreas.map(function (h) {
+    return '<div class="card hotel-area"><h3>' + escapeHTML(h.area)
+      + (h.nights ? '<span class="nights">' + escapeHTML(h.nights) + '</span>' : '')
+      + '</h3><div class="reason">' + escapeHTML(h.reason) + '</div>'
+      + h.options.map(function (o) {
+          return '<div class="tier"><span class="tier-label ' + tierCls[o.tier] + '">' + escapeHTML(o.tier) + '</span>'
+            + '<span class="t-name">' + escapeHTML(o.name) + '</span>'
+            + '<span class="t-price">' + escapeHTML(o.price || o.priceRange) + '</span>'
+            + '<span class="t-note">' + escapeHTML(o.note) + '</span></div>';
+        }).join('') + '</div>';
+  }).join('');
+
+  // —— 每日时间轴 ——
+  var PERIODS = [['morning', '上 午'], ['noon', '午 间'], ['afternoon', '午 后'], ['evening', '傍 晚']];
+  // 交通方式 → 图标（步行/地铁/公交/打车/铁路/航空/自驾）
+  var transportIcon = function (mode) {
+    var m = mode || '';
+    if (m.indexOf('步行') > -1) return '🚶';
+    if (m.indexOf('地铁') > -1) return '🚇';
+    if (m.indexOf('景交') > -1 || m.indexOf('公交') > -1 || m.indexOf('快线') > -1) return '🚌';
+    if (m.indexOf('打车') > -1) return '🚕';
+    if (m.indexOf('高铁') > -1 || m.indexOf('火车') > -1 || m.indexOf('AVE') > -1) return '🚄';
+    if (m.indexOf('飞机') > -1 || m.indexOf('航班') > -1) return '✈️';
+    return '🚗';
+  };
+  // 境内/境外分流：全部点位都落在中国大陆 bbox（引擎 isInChinaBBox 同口径）才算境内行程，
+  // 境外不加「高德打开当日点位」当日头部链接（地图弹窗里的单点链接由 buildMapAppLinks 自行分流）。
+  var allPoints = [];
+  trip.days.forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') allPoints.push(s);
+    });
+  });
+  var isMainlandTrip = allPoints.length > 0 && allPoints.every(function (s) {
+    return isInChinaBBox(s.lat, s.lng);
+  });
+  if (!isMainlandTrip) {
+    var legendAmapNote = document.getElementById('legendAmapNote');
+    if (legendAmapNote) legendAmapNote.style.display = 'none';
+  }
+  document.getElementById('days').innerHTML = trip.days.map(function (day, di) {
+    // 「高德打开当日点位」：当日 slots + 当晚住宿锚点 → 官方免 key 多点标注 URI（引擎生成，>10 点自动分块）
+    // 高德路书无公开创建接口——链接带走的是带名称的点集合（无连线），收藏/存路书须在高德内手动操作
+    var amapNote = '高德路书无公开创建接口：此链接经官方多点标注 URI 打开当日全部点位（带名称、无连线），收藏/存路书须在高德内手动操作';
+    // stayArea 与 hotelAreas[].area 的括号补语可能不一致，按「（」前的核心区名比对
+    var areaCore = function (x) { return String(x || '').split('（')[0]; };
+    var stayAnchor = (trip.hotelAreas || []).filter(function (h) {
+      if (!day.stayArea || typeof h.lat !== 'number' || typeof h.lng !== 'number') return false;
+      return areaCore(day.stayArea).indexOf(areaCore(h.area)) > -1 || areaCore(h.area).indexOf(areaCore(day.stayArea)) > -1;
+    })[0];
+    var dayPoints = (day.slots || []).filter(function (s) {
+      return typeof s.lat === 'number' && typeof s.lng === 'number';
+    }).map(function (s) { return { lat: s.lat, lng: s.lng, name: s.name }; });
+    if (stayAnchor) dayPoints.push({ lat: stayAnchor.lat, lng: stayAnchor.lng, name: '当晚住宿·' + stayAnchor.area });
+    var amapHtml = isMainlandTrip ? buildAmapDayMarkersLinks(dayPoints).map(function (l, i, arr) {
+      var label = arr.length > 1
+        ? '📍 高德·第' + (l.first + 1) + '–' + (l.last + 1) + '站'
+        : '📍 高德打开当日点位';
+      return '<a class="day__amap" href="' + l.url + '" target="_blank" rel="noopener" title="' + amapNote + '">' + label + '</a>';
+    }).join('') : '';
+    var html = '<div class="day"><div class="day__head">'
+      + '<span class="day__no">D' + (di + 1) + '</span>'
+      + '<span class="day__theme">' + escapeHTML(day.theme || '') + '</span>'
+      + '<span class="day__date">' + day.date.slice(5).replace('-', '/') + ' · ' + escapeHTML(day.weekday) + '</span>'
+      + (day.stayArea ? '<span class="day__stay">🏨 当晚住宿 · ' + escapeHTML(day.stayArea) + '</span>' : '')
+      + amapHtml
+      + '</div>';
+    if (day.tips && day.tips.length) {
+      html += '<ul class="day__tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>';
+    }
+    PERIODS.forEach(function (pd) {
+      var slots = (day.slots || []).filter(function (s) { return s.period === pd[0]; });
+      if (!slots.length) return;
+      html += '<div class="period">' + pd[1] + '</div><div class="slots">';
+      slots.forEach(function (s) {
+        var visual = '<div class="fallback">' + escapeHTML(s.name) + '</div>'
+          + (s.photo
+            ? '<img src="' + escapeHTML(s.photo) + '" alt="' + escapeHTML(s.name) + '" referrerpolicy="no-referrer" onerror="this.remove()">'
+            : '');
+        html += '<div class="slot"><div class="slot__visual">' + visual
+          + '<span class="slot__time">' + escapeHTML(s.time || '') + '</span></div>'
+          + '<div class="slot__body"><div class="slot__name">' + escapeHTML(s.name)
+          + (s.rating ? '<span class="rating">★ ' + s.rating + '</span>' : '') + '</div>'
+          + (s.review ? '<div class="slot__review">' + escapeHTML(s.review) + '</div>' : '')
+          + '<div class="meta">'
+          + (s.transport ? '<span class="pill">' + transportIcon(s.transport.mode) + ' ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
+          + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
+          + (s.seasonal ? '<span class="pill">🎋 ' + escapeHTML(s.seasonal) + '</span>' : '')
+          + '</div>'
+          + (s.note ? '<div class="slot__note">' + escapeHTML(s.note) + '</div>' : '')
+          + (s.needsBooking ? reminderBadgeHTML(s.leadDays) : '')
+          + '</div></div>';
+      });
+      html += '</div>';
+    });
+    if (day.alternatives && day.alternatives.length) {
+      html += day.alternatives.map(function (a) {
+        return '<div class="alt-card"><b>⚖️ ' + escapeHTML(a.label) + '</b> — ' + escapeHTML(a.summary) + '</div>';
+      }).join('');
+    }
+    if (day.dining && day.dining.length) {
+      html += '<div class="dining">' + day.dining.map(function (m) {
+        return '<div class="meal"><span class="meal__tag">' + escapeHTML(m.meal) + '</span>'
+          + '<span class="meal__place">' + escapeHTML(m.place) + '</span> '
+          + (m.hours ? '<span class="meal__hours">· ' + escapeHTML(m.hours) + '</span>' : '')
+          + '<div>' + (m.dishes || []).map(function (d) {
+              return '<span class="dish">' + escapeHTML(d.name) + (d.price ? ' <span class="p">' + escapeHTML(d.price) + '</span>' : '') + '</span>';
+            }).join('') + '</div></div>';
+      }).join('') + '</div>';
+    }
+    return html + '</div>';
+  }).join('');
+
+  // —— 全程贴士 ——
+  document.getElementById('globalTips').innerHTML =
+    trip.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('');
+
+  // —— 地图（map.js 引擎） ——
+  var points = [];
+  trip.days.forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') {
+        points.push({ lat: s.lat, lng: s.lng, name: s.name, time: (day.date.slice(5) + ' ' + (s.time || '')) });
+      }
+    });
+  });
+  // 住宿片区锚点（城区级近似），画 🏨 标记、不进路线
+  var stays = (trip.hotelAreas || []).filter(function (h) {
+    return typeof h.lat === 'number' && typeof h.lng === 'number';
+  }).map(function (h) {
+    return { lat: h.lat, lng: h.lng, name: '住宿 · ' + h.area, note: h.nights + ' · ' + (h.reason || '') };
+  });
+  initTravelMap('map', points, { stays: stays });
+})();
+</script>
+</body>
