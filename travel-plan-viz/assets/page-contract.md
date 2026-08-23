@@ -2,6 +2,8 @@
 
 生成 HTML 时，**设计步骤**（frontend-design / huashu-design / 内置美学准则，见 SKILL.md）负责布局与美学，但必须包含以下区块与数据结构，并接入 `map.js` / `reminders.js` 两个引擎脚本（用 `<script>` 内联到单文件 HTML）。生成后用 `assets/validate.js` 机械校验（见 SKILL.md）。
 
+> 可套骨架模板 `assets/page-template.html`（从已发布样例蒸馏的公共骨架，渲染层与样例同源）：注入 trip JSON 与两段引擎、换配色/主题词即出页——组装说明与边界见模板文件头注释。套模板不豁免本契约的任何区块与硬性约束。
+
 ## 输入数据结构
 
 ```js
@@ -11,6 +13,7 @@ const trip = {
   dateTBD: true,                     // 可选：出发日期未定时置 true——startDate 填估算日（约定按"今天+30天"），
                                      // 提醒照常计算。页顶待办清单上方须渲染一行估算提示（见区块 1）
   colorScheme: "<每趟行程不同，由设计步骤决定>",
+  routeSummary: "上海 ⇄ 太原·平遥·介休·汾阳 · 飞机 + 市区取还车",  // 可选：一行路线/交通摘要，模板页顶 meta 行会拼在「（周X出发…）」之后；自己设计时也可用于页顶副题
 
   // 行前须知（按出发日期/季节定制）
   preTrip: {

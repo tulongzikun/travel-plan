@@ -80,6 +80,7 @@
 - `assets/reminders.js`：提醒引擎（截止日期计算、清单/徽标渲染）
 - `assets/validate.js`：契约校验引擎（生成后机械检查字段/坐标/必需区块，ERROR 必须修复）
 - `assets/page-contract.md`：内容契约，告诉设计步骤每个区块要哪些数据
+- `assets/page-template.html`：页面模板——从已发布样例蒸馏的骨架，注入 trip 数据与引擎、换配色即出页
 - `references/research-guide.md`：联网调研指南（坐标/图片/营业时间/天气/交通…，含图片必须校验可加载、机票建议班次与实时价渠道规则）
 - `references/design-guidelines.md`：内置美学准则（无外部设计 skill 时的兜底）
 
@@ -157,6 +158,7 @@ travel-plan-viz/
     reminders.js        # 提醒引擎（已单测）
     validate.js         # 契约校验引擎：生成后机械检查（已单测，含 CLI）
     page-contract.md    # 给设计步骤的内容契约
+    page-template.html  # 页面骨架模板：注入 trip 数据与引擎、换配色即出页
   references/
     research-guide.md   # 联网调研指南
     design-guidelines.md # 内置美学准则（无外部设计 skill 时兜底）

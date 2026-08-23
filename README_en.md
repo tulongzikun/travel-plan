@@ -80,6 +80,7 @@ A hybrid architecture — **error-prone mechanics are baked into reusable engine
 - `assets/reminders.js` — reminder engine (deadline math, checklist/badge rendering)
 - `assets/validate.js` — contract validation engine (mechanical post-generation checks on fields/coordinates/required blocks; errors must be fixed)
 - `assets/page-contract.md` — content contract telling the design step what each block needs
+- `assets/page-template.html` — page template: a skeleton distilled from the published samples; inject trip data & engines, re-theme, and ship
 - `references/research-guide.md` — web-research guide (coords/photos/hours/weather/transport…; images must be verified loadable; flight candidates and realtime-pricing channel rules)
 - `references/design-guidelines.md` — built-in aesthetic guidelines (fallback when no external design skill is present)
 
@@ -151,6 +152,7 @@ travel-plan-viz/
     reminders.js        # reminder engine (unit-tested)
     validate.js         # contract validation engine: post-generation checks (unit-tested, has CLI)
     page-contract.md    # content contract for the design step
+    page-template.html  # page skeleton template: inject trip data & engines, re-theme, ship
   references/
     research-guide.md   # web-research guide
     design-guidelines.md # built-in aesthetics (fallback w/o external design skill)

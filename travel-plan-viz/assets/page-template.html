@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!--
+  travel-plan-viz · 页面模板（骨架，非硬依赖）
+  ============================================================
+  来源：从已发布样例（长治·晋城 / 武汉·襄阳 / 太原·平遥三份成品）蒸馏出的公共骨架，
+  渲染层与三份成品同源（含住宿锚点、高德多点标注链、动态交通图标、无图降级）。
+
+  组装出成品（单文件 HTML）：
+    1) 完整 trip JSON 写入页面中段 id 为 trip-data 的 JSON 脚本块（TRIP_DATA 占位符处）；
+       注意：本文件所有注释里都不要出现该 script 标签与占位符的字面量——
+       校验器与组装脚本按字符串/正则定位它们，注释里的字面量会被误当成真块。
+    2) 把 assets/map.js 与 assets/reminders.js 全文分别包一对 script 标签，
+       替换紧随其后的 ENGINES 占位符（两段引擎顺序任意，均须完整内联）；
+    3) 按 :root 注释换配色与 hero 渐变（page-contract 硬性约束：每趟行程用不同配色），
+       改主题词 / 行前须知 sub / 交通节标题与说明（各处有「按行程改」注释）；
+    4) 跑 node travel-plan-viz/assets/validate.js <成品.html>，ERROR 必须清零。
+
+  边界：这是设计步骤的「加速器/兜底」，不是唯一出品路径——用 frontend-design /
+  huashu-design 等设计 skill 整体重设计时无须套本模板，但须保住 page-contract 的
+  机械标记（trip-data 内嵌 / initTravelMap / computeReminders / renderChecklistHTML /
+  Leaflet / @media / object-fit / 免责声明入正文）。
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行程计划 · travel-plan-viz</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    /* 配色：每趟行程换一套（改这 6 个变量 + header.hero 渐变即整体换肤）。
+       已发布样例参考：长治·晋城=宣纸米白/朱砂红/黛青；武汉·襄阳=素绢米白/青铜绿/错金；
+       太原·平遥=砖灰米/晋商绛红/鎏金。下面这套「黛蓝暖砂」仅是骨架占位，别原样发布。 */
+    --bg:#f3f1ec;          /* 底色 */
+    --panel:#fffdf8;       /* 卡片底 */
+    --ink:#2b2b28;         /* 正文墨色 */
+    --ink-soft:#6d6a63;    /* 次级文字 */
+    --accent:#31567c;      /* 主色 */
+    --accent-soft:#dde7f0; /* 主色淡底 */
+    --secondary:#8a6d3f;   /* 辅色（金/对比色） */
+    --secondary-soft:#f1ead9;
+    --gold:#b08d3e;        /* 点缀金 */
+    --line:#e4dfd4;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.7 "PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  img{object-fit:cover;display:block}
+  .container{max-width:920px;margin:0 auto;padding:0 16px 56px}
+
+  /* ===== 页顶 ===== */
+  /* hero 渐变按行程换主题色（三份样例：黛青→朱砂 / 青铜绿→错金 / 绛红→鎏金） */
+  header.hero{background:linear-gradient(160deg,#2c3f50 0%,#1d2a35 55%,#8a6d3f 100%);color:var(--bg);padding:40px 16px 30px;text-align:center}
+  .hero__kicker{font-size:13px;letter-spacing:.35em;opacity:.82}
+  .hero__title{font-size:clamp(26px,6vw,40px);font-weight:800;margin:10px 0 6px}
+  .hero__meta{font-size:14px;opacity:.9}
+  .hero__meta b{color:#e8d5a0}
+  .banner-tbd{max-width:920px;margin:14px auto 0;background:rgba(243,241,236,.14);border:1px dashed rgba(243,241,236,.6);border-radius:10px;padding:8px 14px;font-size:13.5px}
+
+  section{margin-top:30px}
+  h2.sec{font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  h2.sec::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--accent),var(--gold))}
+  .sub{color:var(--ink-soft);font-size:13.5px;margin-bottom:12px}
+
+  /* ===== 待办清单 ===== */
+  .pretrip-todo{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.pretrip-todo{grid-template-columns:1fr 1fr}}
+  .todo-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14.5px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .todo-item input{accent-color:var(--accent);transform:translateY(1px)}
+  .todo-deadline{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}
+
+  /* ===== 行前须知 ===== */
+  .pretrip-grid{display:grid;gap:12px}
+  @media(min-width:768px){.pretrip-grid{grid-template-columns:1fr 1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .card h3{font-size:15.5px;color:var(--secondary);margin-bottom:6px}
+  .card p,.card li{font-size:14.5px;color:var(--ink)}
+  .card ul{padding-left:18px}
+
+  /* ===== 交通与班次 ===== */
+  .flight{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+  .flight__code{grid-row:span 2;background:var(--accent);color:#fff;font-weight:800;font-size:13px;border-radius:8px;padding:6px 10px;align-self:start;white-space:nowrap}
+  .flight--alt .flight__code{background:var(--secondary)}
+  .flight__label{font-weight:700;font-size:15px}
+  .flight__time{font-size:15px;color:var(--secondary);font-weight:700}
+  .flight__note{grid-column:2;font-size:13.5px;color:var(--ink-soft)}
+
+  /* ===== 酒店 ===== */
+  .hotel-grid{display:grid;gap:12px}
+  @media(min-width:768px){.hotel-grid{grid-template-columns:1fr 1fr}}
+  .hotel-area h3{font-size:16px}
+  .hotel-area .nights{font-size:12.5px;color:#fff;background:var(--secondary);border-radius:99px;padding:2px 10px;margin-left:8px;vertical-align:2px}
+  .hotel-area .reason{font-size:13.5px;color:var(--ink-soft);margin:4px 0 10px}
+  .tier{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:baseline;padding:7px 0;border-top:1px dashed var(--line);font-size:14px}
+  .tier b:first-child{grid-column:1}
+  .tier .t-name{font-weight:600}
+  .tier .t-price{color:var(--accent);font-size:13px;white-space:nowrap}
+  .tier .t-note{grid-column:2/4;font-size:12.5px;color:var(--ink-soft)}
+  .tier-label{font-size:12px;color:#fff;border-radius:6px;padding:1px 6px;justify-self:start}
+  .tier-label--e{background:#8b8276}.tier-label--m{background:var(--gold)}.tier-label--h{background:var(--accent)}
+
+  /* ===== 免责声明 ===== */
+  .disclaimer{background:var(--secondary-soft);border:1px solid #ddcfa8;border-radius:var(--radius);padding:14px 16px;font-size:13.5px;color:#6e5518}
+
+  /* ===== 地图 ===== */
+  #map{height:430px;border-radius:var(--radius);border:1px solid var(--line);z-index:1}
+  @media(min-width:768px){#map{height:520px}}
+  .route-pin{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font:700 13px/1 system-ui,sans-serif;box-shadow:0 1px 5px rgba(0,0,0,.45);border:2px solid #fff}
+  .route-pin--stay{background:var(--secondary);border-radius:9px;font-size:14px}
+  .map-legend{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
+
+  /* ===== 每日时间轴 ===== */
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;margin-bottom:18px}
+  .day__head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+  .day__no{background:var(--ink);color:var(--bg);font-weight:800;border-radius:8px;padding:2px 10px;font-size:14px}
+  .day__date{font-size:13.5px;color:var(--ink-soft)}
+  .day__theme{font-size:16.5px;font-weight:800;color:var(--secondary)}
+  .day__stay{font-size:13px;font-weight:700;color:var(--secondary);background:var(--secondary-soft);border-radius:99px;padding:2px 10px;white-space:nowrap}
+  .day__amap{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:2px 10px;white-space:nowrap;text-decoration:none}
+  .day__tips{background:var(--secondary-soft);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+  .day__tips li{font-size:13px;color:var(--secondary);margin-left:16px}
+  .period{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.2em;margin:12px 0 8px}
+  .slots{display:grid;gap:12px}
+  @media(min-width:768px){.slots{grid-template-columns:1fr 1fr}}
+  .slot{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:#fff}
+  .slot__visual{position:relative;aspect-ratio:16/9;background:linear-gradient(140deg,var(--secondary) 0%,var(--accent) 130%)}
+  .slot__visual img{position:absolute;inset:0;width:100%;height:100%}
+  .slot__visual .fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.9);font-size:20px;font-weight:800;letter-spacing:.12em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .slot__time{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:6px;padding:1px 8px}
+  .slot__body{padding:12px 14px 14px}
+  .slot__name{font-size:16.5px;font-weight:800}
+  .slot__name .rating{font-size:12px;color:var(--gold);font-weight:700;margin-left:8px}
+  .slot__review{font-size:13.5px;color:var(--ink-soft);margin:4px 0 8px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{font-size:12px;border-radius:99px;padding:2px 10px;background:var(--bg);border:1px solid var(--line);color:var(--ink)}
+  .slot__note{font-size:12.5px;color:#6e5518;background:#f6efdc;border-radius:8px;padding:6px 10px;margin-top:8px}
+  .reminder-badge{display:inline-block;font-size:12px;background:#fff3e0;border:1px solid #ecc78a;color:#a05e00;border-radius:99px;padding:2px 10px;margin-top:8px}
+  .alt-card{border:1px dashed var(--gold);background:#fdf9ef;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px}
+  .alt-card b{color:var(--gold)}
+  .dining{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+  .meal{margin-bottom:8px}
+  .meal__tag{font-size:12px;color:#fff;background:var(--gold);border-radius:6px;padding:1px 8px;margin-right:6px}
+  .meal__place{font-weight:700;font-size:14.5px}
+  .meal__hours{font-size:12.5px;color:var(--ink-soft)}
+  .dish{display:inline-block;font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:1px 10px;margin:4px 4px 0 0}
+  .dish .p{color:var(--accent);font-weight:700}
+
+  /* ===== 全程贴士 ===== */
+  .tips-list{list-style:none;display:grid;gap:8px}
+  @media(min-width:768px){.tips-list{grid-template-columns:1fr 1fr}}
+  .tips-list li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px}
+
+  footer{margin-top:36px;text-align:center;font-size:12.5px;color:var(--ink-soft)}
+  footer .line{width:64px;height:3px;border-radius:2px;background:var(--gold);margin:0 auto 10px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <!-- 主题词按行程改（如「票号 · 琉璃 · 古建」「编钟 · 江湖 · 古城」）；标题由渲染层从 trip.title 生成 -->
+  <div class="hero__kicker">行程 · 攻略 · 地图</div>
+  <div class="hero__title" id="pageTitle"></div>
+  <div class="hero__meta" id="pageMeta"></div>
+  <div class="banner-tbd" id="tbdBanner" style="display:none"></div>
+</header>
+
+<div class="container">
+
+  <section>
+    <h2 class="sec">⏰ 出发前待办清单</h2>
+    <div class="sub" id="checklistHint"></div>
+    <div id="checklist"></div>
+  </section>
+
+  <section>
+    <!-- sub 文案按行程的日期/季节改 -->
+    <h2 class="sec">🌦️ 行前须知 <span style="font-size:13px;color:var(--ink-soft);font-weight:400">（按行程的日期与季节定制）</span></h2>
+    <div class="pretrip-grid" id="preTrip"></div>
+  </section>
+
+  <section>
+    <!-- 标题按交通形态改：高铁行程「🚄 跨城高铁（未预订 · 请自行核实）」、飞机+租车「✈️ 航班与租车（…）」；sub 写本行程的交通格局与票价口径 -->
+    <h2 class="sec">🚗 交通与班次（未预订 · 请自行核实）</h2>
+    <div class="sub">班次与价格为公开资料整理的当季参考，未走实时渠道，一律以官方订票页为准。</div>
+    <div id="flights"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">🏨 住宿片区（按行程节点 · 三档价位）</h2>
+    <div class="hotel-grid" id="hotels"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">⚠️ 免责声明</h2>
+    <p class="disclaimer">本页全部信息（天气、航班、租车、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。</p>
+  </section>
+
+  <section>
+    <h2 class="sec">🗺️ 行程地图</h2>
+    <div id="map"></div>
+    <div class="map-legend">编号即游览顺序；🏨 为当晚住宿片区锚点（城区级近似）。点位为 WGS-84 坐标，点击标记可跳 手机导航 / 高德地图。每日头部「📍 高德打开当日点位」经官方免 key 多点标注 URI 带走当日全部点位（高德路书无公开创建接口，链接打开的是带名称的点集合，收藏/存路书须在高德内手动操作）。地图瓦片与图片需联网，离线时文字行程仍完整可读。</div>
+  </section>
+
+  <section>
+    <h2 class="sec">📅 每日行程</h2>
+    <div id="days"></div>
+  </section>
+
+  <section>
+    <h2 class="sec">💡 全程实用贴士</h2>
+    <ul class="tips-list" id="globalTips"></ul>
+  </section>
+
+  <footer>
+    <div class="line"></div>
+    由 travel-plan-viz 生成 · 数据为公开资料整理的参考 · 行程数据内嵌本页（可丢回给 AI 迭代修改）
+  </footer>
+</div>
+
+<script id="trip-data" type="application/json">
+__TRIP_DATA__
+</script>
+
+__ENGINES__
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ===== 设计步骤渲染层：读取 trip-data JSON 渲染全部区块（与三份已发布样例同源） =====
+(function () {
+  var trip = JSON.parse(document.getElementById('trip-data').textContent);
+
+  // —— 页顶（标题/页签名来自 trip.title；meta 行由数据拼装，routeSummary 为可选字段） ——
+  var WD = ['周日','周一','周二','周三','周四','周五','周六'];
+  var slotCount = trip.days.reduce(function (n, d) { return n + (d.slots || []).length; }, 0);
+  var lastDate = trip.days[trip.days.length - 1].date;
+  var wd = WD[new Date(trip.startDate + 'T00:00:00Z').getUTCDay()];
+  document.title = trip.title;
+  document.getElementById('pageTitle').textContent = trip.title.split(' · ')[0];
+  document.getElementById('pageMeta').innerHTML =
+    '<b>' + trip.days.length + ' 天 ' + (trip.days.length - 1) + ' 晚</b> · '
+    + (trip.dateTBD ? '估算 ' : '') + trip.startDate + ' → ' + lastDate.slice(5)
+    + '（' + wd + '出发' + (trip.dateTBD ? ' · dateTBD' : '') + '）'
+    + (trip.routeSummary ? ' · ' + escapeHTML(trip.routeSummary) : '')
+    + ' · ' + slotCount + ' 处点位';
+  if (trip.dateTBD) {
+    var b = document.getElementById('tbdBanner');
+    b.style.display = 'block';
+    b.innerHTML = '📌 出发日期未定：以下提醒与行程按估算日 <b>' + trip.startDate + '</b>（' + wd + '）排布，定档后把本页丢回给 AI 重算';
+    document.getElementById('checklistHint').textContent =
+      '提醒按估算出发日 ' + trip.startDate + ' 倒推；实际定档后日期会整体平移。';
+  }
+
+  // —— 待办清单（reminders.js 引擎） ——
+  document.getElementById('checklist').innerHTML =
+    renderChecklistHTML(computeReminders(trip.startDate, trip.reminders));
+
+  // —— 行前须知 ——
+  var pt = trip.preTrip;
+  document.getElementById('preTrip').innerHTML = [
+    '<div class="card"><h3>🌡️ 天气</h3><p>' + escapeHTML(pt.weather.summary) + '</p></div>',
+    // 卡 2 标题按行程主题改（台风季「🌀 台风与风险窗口」、红叶季「🍂 季节与档期」…）
+    '<div class="card"><h3>🍂 季节与档期</h3><p>' + escapeHTML(pt.weather.typhoon) + '</p></div>',
+    '<div class="card"><h3>🧥 穿搭</h3><p>' + escapeHTML(pt.packing) + '</p></div>',
+    '<div class="card"><h3>💳 支付</h3><p>' + escapeHTML(pt.payment) + '</p></div>',
+    '<div class="card"><h3>📱 必备 App / 电话</h3><ul>' + pt.apps.map(function (a) { return '<li>' + escapeHTML(a) + '</li>'; }).join('') + '</ul></div>',
+    '<div class="card"><h3>🎫 购票时机</h3><p>' + escapeHTML(pt.ticketTip) + '</p></div>'
+  ].join('');
+
+  // —— 交通与班次（booked 高亮；candidates 含「备选」字样走辅色） ——
+  var fl = trip.flights;
+  var flHtml = (fl.booked || []).map(function (f) {
+    return '<div class="flight"><span class="flight__code">已预订</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span></div>';
+  }).concat(fl.candidates.map(function (f) {
+    var alt = (f.label.indexOf('备选') > -1 || f.code.indexOf('备选') > -1) ? ' flight--alt' : '';
+    return '<div class="flight' + alt + '"><span class="flight__code">' + escapeHTML(f.code) + '</span>'
+      + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
+      + '<span class="flight__time">' + escapeHTML(f.time) + '</span>'
+      + (f.note ? '<span class="flight__note">' + escapeHTML(f.note) + '</span>' : '') + '</div>';
+  })).join('');
+  document.getElementById('flights').innerHTML = flHtml;
+
+  // —— 酒店 ——
+  var tierCls = { '经济': 'tier-label--e', '中档': 'tier-label--m', '高端': 'tier-label--h' };
+  document.getElementById('hotels').innerHTML = trip.hotelAreas.map(function (h) {
+    return '<div class="card hotel-area"><h3>' + escapeHTML(h.area)
+      + (h.nights ? '<span class="nights">' + escapeHTML(h.nights) + '</span>' : '')
+      + '</h3><div class="reason">' + escapeHTML(h.reason) + '</div>'
+      + h.options.map(function (o) {
+          return '<div class="tier"><span class="tier-label ' + tierCls[o.tier] + '">' + escapeHTML(o.tier) + '</span>'
+            + '<span class="t-name">' + escapeHTML(o.name) + '</span>'
+            + '<span class="t-price">' + escapeHTML(o.price || o.priceRange) + '</span>'
+            + '<span class="t-note">' + escapeHTML(o.note) + '</span></div>';
+        }).join('') + '</div>';
+  }).join('');
+
+  // —— 每日时间轴 ——
+  var PERIODS = [['morning', '上 午'], ['noon', '午 间'], ['afternoon', '午 后'], ['evening', '傍 晚']];
+  // 交通方式 → 图标（步行/地铁/景交/打车/自驾）
+  var transportIcon = function (mode) {
+    var m = mode || '';
+    if (m.indexOf('步行') > -1) return '🚶';
+    if (m.indexOf('地铁') > -1) return '🚇';
+    if (m.indexOf('景交') > -1 || m.indexOf('公交') > -1) return '🚌';
+    if (m.indexOf('打车') > -1) return '🚕';
+    return '🚗';
+  };
+  document.getElementById('days').innerHTML = trip.days.map(function (day, di) {
+    // 「高德打开当日点位」：当日 slots + 当晚住宿锚点 → 官方免 key 多点标注 URI（引擎生成，>10 点自动分块）
+    // 高德路书无公开创建接口——链接带走的是带名称的点集合（无连线），收藏/存路书须在高德内手动操作
+    var amapNote = '高德路书无公开创建接口：此链接经官方多点标注 URI 打开当日全部点位（带名称、无连线），收藏/存路书须在高德内手动操作';
+    // stayArea 与 hotelAreas[].area 的括号补语可能不一致，按「（」前的核心区名比对
+    var areaCore = function (x) { return String(x || '').split('（')[0]; };
+    var stayAnchor = (trip.hotelAreas || []).filter(function (h) {
+      if (!day.stayArea || typeof h.lat !== 'number' || typeof h.lng !== 'number') return false;
+      return areaCore(day.stayArea).indexOf(areaCore(h.area)) > -1 || areaCore(h.area).indexOf(areaCore(day.stayArea)) > -1;
+    })[0];
+    var dayPoints = (day.slots || []).filter(function (s) {
+      return typeof s.lat === 'number' && typeof s.lng === 'number';
+    }).map(function (s) { return { lat: s.lat, lng: s.lng, name: s.name }; });
+    if (stayAnchor) dayPoints.push({ lat: stayAnchor.lat, lng: stayAnchor.lng, name: '当晚住宿·' + stayAnchor.area });
+    var amapHtml = buildAmapDayMarkersLinks(dayPoints).map(function (l, i, arr) {
+      var label = arr.length > 1
+        ? '📍 高德·第' + (l.first + 1) + '–' + (l.last + 1) + '站'
+        : '📍 高德打开当日点位';
+      return '<a class="day__amap" href="' + l.url + '" target="_blank" rel="noopener" title="' + amapNote + '">' + label + '</a>';
+    }).join('');
+    var html = '<div class="day"><div class="day__head">'
+      + '<span class="day__no">D' + (di + 1) + '</span>'
+      + '<span class="day__theme">' + escapeHTML(day.theme || '') + '</span>'
+      + '<span class="day__date">' + day.date.slice(5).replace('-', '/') + ' · ' + escapeHTML(day.weekday) + '</span>'
+      + (day.stayArea ? '<span class="day__stay">🏨 当晚住宿 · ' + escapeHTML(day.stayArea) + '</span>' : '')
+      + amapHtml
+      + '</div>';
+    if (day.tips && day.tips.length) {
+      html += '<ul class="day__tips">' + day.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('') + '</ul>';
+    }
+    PERIODS.forEach(function (pd) {
+      var slots = (day.slots || []).filter(function (s) { return s.period === pd[0]; });
+      if (!slots.length) return;
+      html += '<div class="period">' + pd[1] + '</div><div class="slots">';
+      slots.forEach(function (s) {
+        var visual = '<div class="fallback">' + escapeHTML(s.name) + '</div>'
+          + (s.photo
+            ? '<img src="' + escapeHTML(s.photo) + '" alt="' + escapeHTML(s.name) + '" referrerpolicy="no-referrer" onerror="this.remove()">'
+            : '');
+        html += '<div class="slot"><div class="slot__visual">' + visual
+          + '<span class="slot__time">' + escapeHTML(s.time || '') + '</span></div>'
+          + '<div class="slot__body"><div class="slot__name">' + escapeHTML(s.name)
+          + (s.rating ? '<span class="rating">★ ' + s.rating + '</span>' : '') + '</div>'
+          + (s.review ? '<div class="slot__review">' + escapeHTML(s.review) + '</div>' : '')
+          + '<div class="meta">'
+          + (s.transport ? '<span class="pill">' + transportIcon(s.transport.mode) + ' ' + escapeHTML(s.transport.mode) + ' · ' + escapeHTML(s.transport.duration) + '</span>' : '')
+          + (s.openingHours ? '<span class="pill">🕐 ' + escapeHTML(s.openingHours) + '</span>' : '')
+          + (s.ticketPrice ? '<span class="pill">🎫 ' + escapeHTML(s.ticketPrice) + '</span>' : '')
+          + (s.seasonal ? '<span class="pill">🎋 ' + escapeHTML(s.seasonal) + '</span>' : '')
+          + '</div>'
+          + (s.note ? '<div class="slot__note">' + escapeHTML(s.note) + '</div>' : '')
+          + (s.needsBooking ? reminderBadgeHTML(s.leadDays) : '')
+          + '</div></div>';
+      });
+      html += '</div>';
+    });
+    if (day.alternatives && day.alternatives.length) {
+      html += day.alternatives.map(function (a) {
+        return '<div class="alt-card"><b>⚖️ ' + escapeHTML(a.label) + '</b> — ' + escapeHTML(a.summary) + '</div>';
+      }).join('');
+    }
+    if (day.dining && day.dining.length) {
+      html += '<div class="dining">' + day.dining.map(function (m) {
+        return '<div class="meal"><span class="meal__tag">' + escapeHTML(m.meal) + '</span>'
+          + '<span class="meal__place">' + escapeHTML(m.place) + '</span> '
+          + (m.hours ? '<span class="meal__hours">· ' + escapeHTML(m.hours) + '</span>' : '')
+          + '<div>' + (m.dishes || []).map(function (d) {
+              return '<span class="dish">' + escapeHTML(d.name) + (d.price ? ' <span class="p">' + escapeHTML(d.price) + '</span>' : '') + '</span>';
+            }).join('') + '</div></div>';
+      }).join('') + '</div>';
+    }
+    return html + '</div>';
+  }).join('');
+
+  // —— 全程贴士 ——
+  document.getElementById('globalTips').innerHTML =
+    trip.tips.map(function (t) { return '<li>' + escapeHTML(t) + '</li>'; }).join('');
+
+  // —— 地图（map.js 引擎） ——
+  var points = [];
+  trip.days.forEach(function (day) {
+    (day.slots || []).forEach(function (s) {
+      if (typeof s.lat === 'number' && typeof s.lng === 'number') {
+        points.push({ lat: s.lat, lng: s.lng, name: s.name, time: (day.date.slice(5) + ' ' + (s.time || '')) });
+      }
+    });
+  });
+  // 住宿片区锚点（城区级近似），画 🏨 标记、不进路线
+  var stays = (trip.hotelAreas || []).filter(function (h) {
+    return typeof h.lat === 'number' && typeof h.lng === 'number';
+  }).map(function (h) {
+    return { lat: h.lat, lng: h.lng, name: '住宿 · ' + h.area, note: h.nights + ' · ' + (h.reason || '') };
+  });
+  initTravelMap('map', points, { stays: stays });
+})();
+</script>
+</body>
