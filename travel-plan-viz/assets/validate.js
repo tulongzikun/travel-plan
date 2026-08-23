@@ -90,27 +90,36 @@ function validateTrip(trip) {
     }
   });
 
-  // 离群检测：与中位数偏差 > 3°（约 300km）多半是查错城市/写错数量级
+  // 离群检测：与中位数偏差 > 3°（约 300km）多半是查错城市/写错数量级。
+  // 多城联游例外：远离中位数但 6° 内还有其他点位（同城簇，如西班牙行程的巴塞罗那
+  // 距全程中位点经度差近 6°）不算离群——查错城市的点身边没有邻居。
   function median(arr) {
     var a = arr.slice().sort(function (x, y) { return x - y; });
     return a[Math.floor(a.length / 2)];
+  }
+  function hasNeighbor(lat, lng) {
+    for (var j = 0; j < lats.length; j++) {
+      if (lats[j] === lat && lngs[j] === lng) continue; // 跳过自己
+      if (Math.abs(lats[j] - lat) <= 6 && Math.abs(lngs[j] - lng) <= 6) return true;
+    }
+    return false;
   }
   if (lats.length >= 3) {
     var mLat = median(lats), mLng = median(lngs);
     trip.days.forEach(function (day, di) {
       (day.slots || []).forEach(function (s, si) {
         if (typeof s.lat !== 'number' || typeof s.lng !== 'number') return;
-        if (Math.abs(s.lat - mLat) > 3 || Math.abs(s.lng - mLng) > 3) {
+        if ((Math.abs(s.lat - mLat) > 3 || Math.abs(s.lng - mLng) > 3) && !hasNeighbor(s.lat, s.lng)) {
           warnings.push('days[' + di + '].slots[' + si + '] "' + s.name
-            + '" 坐标疑似离群（与行程中位点差 >3°），请核实: ' + s.lat + ',' + s.lng);
+            + '" 坐标疑似离群（与行程中位点差 >3° 且近旁 6° 无其他点位），请核实: ' + s.lat + ',' + s.lng);
         }
       });
     });
     (trip.hotelAreas || []).forEach(function (h, i) {
       if (!h || typeof h.lat !== 'number' || typeof h.lng !== 'number') return;
-      if (Math.abs(h.lat - mLat) > 3 || Math.abs(h.lng - mLng) > 3) {
+      if ((Math.abs(h.lat - mLat) > 3 || Math.abs(h.lng - mLng) > 3) && !hasNeighbor(h.lat, h.lng)) {
         warnings.push('hotelAreas[' + i + '] "' + h.area
-          + '" 锚点坐标疑似离群（与行程中位点差 >3°），请核实: ' + h.lat + ',' + h.lng);
+          + '" 锚点坐标疑似离群（与行程中位点差 >3° 且近旁 6° 无其他点位），请核实: ' + h.lat + ',' + h.lng);
       }
     });
   }
