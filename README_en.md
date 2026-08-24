@@ -24,7 +24,7 @@ A [Claude Code](https://claude.com/claude-code) / Codex Skill (portable to other
 
 <sub>🎬 More hands-on AI workflows from the author (Chinese short videos): <strong>@泽轩604</strong> on Douyin</sub>
 
-<sub><a href="#-features">✨ Features</a> · <a href="#-install-cross-agent">🚀 Install</a> · <a href="#-faq">❓ FAQ</a> · <a href="#-how-it-works">🏗️ How it works</a> · <a href="#-star-history">⭐ Star</a></sub>
+<sub><a href="#-features">✨ Features</a> · <a href="#-install-cross-agent">🚀 Install</a> · <a href="#-faq">❓ FAQ</a> · <a href="#-how-it-works">🏗️ How it works</a> · <a href="#-fork-notice">🔗 Fork</a></sub>
 
 <sub><a href="README.md">简体中文</a> · <strong>English</strong></sub>
 
@@ -32,17 +32,11 @@ A [Claude Code](https://claude.com/claude-code) / Codex Skill (portable to other
 
 ---
 
-## ⭐ Star History
+## 🔗 Fork Notice
 
-<p align="center">
-  <a href="https://github.com/zexuanw958-svg/travel-plan-viz/stargazers">
-    <img src="https://raw.githubusercontent.com/zexuanw958-svg/travel-plan-viz/star-history/star-history.svg" alt="travel-plan-viz Star History" width="68%">
-  </a>
-</p>
+**Fork of [zexuanw958-svg/travel-plan-viz](https://github.com/zexuanw958-svg/travel-plan-viz)** — this modded edition starts its star count from 0 (see the commit history for what changed).
 
-<p align="center">
-  <sub>Chart is redrawn daily by this repo's GitHub Action from GitHub stargazer data (not real-time) — see the count at the top of the page for the live number.</sub>
-</p>
+**The original project has 343 ⭐** (as of 2026-08-23; see the [original repo](https://github.com/zexuanw958-svg/travel-plan-viz/stargazers) for the live count) — if you find it useful, star the original.
 
 ---
 

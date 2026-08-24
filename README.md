@@ -24,7 +24,7 @@
 
 <sub>🎬 更多 AI 工具实战玩法：作者抖音 <strong>@泽轩604</strong>（app 内搜索即达 · <a href="https://v.douyin.com/e9skpkkmo24/">本项目的抖音原帖</a>）</sub>
 
-<sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-star-history">⭐ Star</a></sub>
+<sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-fork-说明">🔗 Fork</a></sub>
 
 <sub><strong>简体中文</strong> · <a href="README_en.md">English</a></sub>
 
@@ -32,17 +32,11 @@
 
 ---
 
-## ⭐ Star History
+## 🔗 Fork 说明
 
-<p align="center">
-  <a href="https://github.com/zexuanw958-svg/travel-plan-viz/stargazers">
-    <img src="https://raw.githubusercontent.com/zexuanw958-svg/travel-plan-viz/star-history/star-history.svg" alt="travel-plan-viz Star History" width="68%">
-  </a>
-</p>
+**Fork of [zexuanw958-svg/travel-plan-viz](https://github.com/zexuanw958-svg/travel-plan-viz)** —— 本仓库是其魔改版（改动明细见提交历史），Star 数从 0 重新开始。
 
-<p align="center">
-  <sub>趋势图由本仓库 GitHub Action 基于 GitHub 星标数据每日自动重绘,非实时;实时 Star 数请看页面顶部。</sub>
-</p>
+**原项目已有 343 ⭐**（2026-08-23 时点，实时数以[原项目页](https://github.com/zexuanw958-svg/travel-plan-viz/stargazers)为准）——觉得有用请去原项目点 Star。
 
 ---
 
