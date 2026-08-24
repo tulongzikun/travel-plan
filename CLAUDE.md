@@ -47,6 +47,21 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 - **酒店连锁品牌优先（2026-08-21 拍板）**：同档位优先华住会/首旅如家/锦江/亚朵/东呈尚美系；连锁未进驻地区（景区山上、乡镇）如实降级本地口碑款并注明「非连锁」；位置优先于品牌，别为连锁多跑路。
 - **酒店实时价仅定档后查（2026-08-21 拍板）**：dateTBD 期间只给 `priceRange` 参考区间、不查实时价（估算日查价无意义）；定档重算时才经官方渠道（飞猪 skill 首选 / `tools/hotel_research.py`）查，回填 `price`+`priceQueriedAt`+官方 `actionLink` 并登记 `dataSources`，页面注明以订房页为准；每片区每晚 1 次，保持低频。
 
+**同步指针（本节是开发者侧摘要镜像，上文保留原文；权威文本在 skill 侧下列落点——改任何一侧先同步另一侧，2026-08-23 建立防漂移）**：
+
+| 本节条目 | skill 侧权威落点 |
+|---|---|
+| 机票班次/实时价/查航班时机、门票参考区间 | research-guide「航班（待选，给建议班次）」「本地可选工具：flight_research」；page-contract `flights.candidates` |
+| 图片 200 校验、按优先级后补 | research-guide「每个景点/酒店需采集」「图片按优先级后补」；page-contract `photo`（可选） |
+| 全覆盖免责声明 | research-guide「免责声明（必给，覆盖全部信息）」；page-contract 免责区块 |
+| 文保名录枚举 | research-guide「每个景点/酒店需采集」文保等级条；SKILL.md 第 2/3 步 |
+| 舍弃点位 Top10 | SKILL.md 第 5 步（汇报格式权威） |
+| 演出/情景剧非必选 | SKILL.md 第 3 步（清单默认不含驻场演艺条） |
+| 点到点交通链、浏览时长、天黑不走山路 | research-guide「点到点交通」（含安全硬约束条）；page-contract `days[].tips` 交通链 |
+| 联票/城市卡/年卡、境外交通卡、开放限制 | research-guide「行前须知」+「每个景点/酒店需采集」；page-contract `preTrip.transitCards`、slot `openingHours`/`closedDays` |
+| 境外网友推荐酒店（crowdPicks） | research-guide「酒店」+「网友实测情报挖掘」；page-contract `hotelAreas[].crowdPicks`；tools/xhs_research.py（tools/README） |
+| 每晚住宿随日标注、连锁优先、实时价定档后查 | research-guide「酒店」「本地可选工具：hotel_research」；page-contract `days[].stayArea`、`hotelAreas[].lat/lng`、`price`+`priceQueriedAt`+`actionLink`（成对）；validate.js 对应校验 |
+
 ## 部署与仓库
 
 - **跨 Agent 安装**（软链接）：Claude Code → `~/.claude/skills/`；OpenAI Codex → `~/.codex/skills/`。
