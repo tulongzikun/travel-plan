@@ -5,7 +5,7 @@
 
 <sub>👋 I'm <strong>Migo</strong> · your travel navigator — migratory birds are born to plan routes and time them right</sub>
 
-# 🗺️ Migo · Travel Navigator
+# 🗺️ Migo · Travel Navigator (Modded Edition)
 
 <sub><code>travel-plan-viz</code></sub>
 
@@ -58,7 +58,7 @@ Inspired by the community "vibe-coding travel guide" trick, turned into a proper
 |---|---|
 | 🧭 | **Two modes**: give only a destination + days and let it plan; or hand it an existing plan and it just renders the page |
 | 🗺️ | **Interactive map**: Leaflet + free tiles (no API key), numbered stops + ordered dashed route + tap-to-navigate links (Apple Maps on iOS, geo: on Android, plus key-free Amap links for mainland-China stops and Google Maps links elsewhere); GCJ-02 coords from Amap/Tencent are auto-converted to WGS-84 so pins don't drift; for mainland-China trips each day's header also gets an "📍 open this day in Amap" link (official multi-marker URI carrying all of that day's stops at once, auto-split past the 10-point limit — honestly noted: Amap roadbooks have no public creation API, saving one requires manual steps inside Amap) |
-| 📅 | **Daily timeline**: morning/noon/evening, each stop with a real photo, rating, and one-line review |
+| 📅 | **Daily timeline**: morning/noon/evening, each stop with a rating and one-line review, optionally a real photo (backfilled by priority, graceful degradation when absent) |
 | ⏰ | **Pre-trip reminders**: deadlines back-calculated from the departure date — a top checklist + ⚠️ badges on the timeline |
 | 🌦️ | **Pre-trip essentials**: season-aware weather/packing/typhoon notes, payment, must-have apps, ticket timing; for overseas trips it also checks combined tickets / city passes (with honest break-even math) and local transit cards |
 | ✈️ | **Candidate flights**: 3–5 real options when nothing is booked, so there's a fallback |
@@ -81,7 +81,7 @@ A hybrid architecture — **error-prone mechanics are baked into reusable engine
 - `assets/validate.js` — contract validation engine (mechanical post-generation checks on fields/coordinates/required blocks; errors must be fixed)
 - `assets/page-contract.md` — content contract telling the design step what each block needs
 - `assets/page-template.html` — page template: a skeleton distilled from the published samples; inject trip data & engines, re-theme, and ship
-- `references/research-guide.md` — web-research guide (coords/photos/hours/weather/transport…; images must be verified loadable; flight candidates and realtime-pricing channel rules)
+- `references/research-guide.md` — web-research guide (coords/photos/hours/weather/transport…; images must be verified loadable; flight candidates and realtime-pricing channel rules; netizen-intel mining methodology)
 - `references/design-guidelines.md` — built-in aesthetic guidelines (fallback when no external design skill is present)
 
 > **The design step is pluggable, with no hard dependency**: if you have a design skill like `frontend-design` or `huashu-design`, it's used automatically for better results; without any, the built-in guidelines still produce a presentable page. So this skill installs standalone — no need to install anything else first.
@@ -154,6 +154,7 @@ travel-plan-viz/
     research-guide.md   # web-research guide
     design-guidelines.md # built-in aesthetics (fallback w/o external design skill)
     porting-to-other-agents.md # cross-agent porting guide + adaptation prompt
+  tools/                # optional research tools (xhs_research / flight_research / hotel_research; soft deps, never inlined into pages)
 samples/                # generated example pages
 test/                   # engine unit tests (node --test)
 docs/                   # static assets (banner.png)

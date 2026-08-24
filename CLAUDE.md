@@ -6,7 +6,7 @@
 
 `travel-plan-viz` —— 一个 Claude Code / Codex 通用 Skill（也可适配其他 Agent），把旅行行程生成为单文件、离线可读、手机优先的 HTML（交互地图 + 每日时间轴 + 出发前提醒 + 行前须知 + 待选航班 + 片区价位酒店）。
 
-> **命名分层（别去"统一"）**：README 门面品牌名是 **Migo · 旅行领航**（Migo = 候鸟领航员吉祥物），但技术 id、SKILL.md `name`、触发词、GitHub 仓库名一律保持 `travel-plan-viz` 不变——这是有意的分层设计（门面品牌与技术标识各司其职，保持安装路径与触发词稳定）。README 与 SKILL.md 名称"不一致"属正常，请勿为对齐而改动触发词或仓库名。
+> **命名分层（别去"统一"）**：README 门面品牌名是 **Migo · 旅行领航（魔改版）**（2026-08-23 起加「魔改版」后缀，如实标注本 fork 已大幅领先上游；英文 README 对应 "(Modded Edition)"；Migo = 候鸟领航员吉祥物），但技术 id、SKILL.md `name`、触发词、GitHub 仓库名一律保持 `travel-plan-viz` 不变——这是有意的分层设计（门面品牌与技术标识各司其职，保持安装路径与触发词稳定）。README 与 SKILL.md 名称"不一致"属正常，请勿为对齐而改动触发词或仓库名。
 
 ## 架构红线
 
