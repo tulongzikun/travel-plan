@@ -1,28 +1,29 @@
 <div align="center">
 
 <!-- 主视觉：候鸟领航员 Migo（mascot）。图存 docs/banner.png -->
+<!-- 本块内一律用纯 HTML：Jekyll（GitHub Pages 把 README 渲染成落地页）不解析 HTML 块内嵌的 markdown，github.com 却会——纯 HTML 两边渲染一致 -->
 <img src="docs/banner.png" alt="travel-plan-viz · 候鸟领航员 Migo" width="300">
 
 <sub>👋 我是 <strong>Migo</strong> · 你的旅行领航员 —— 候鸟天生会规划路线、掐准时间</sub>
 
-# 🗺️ Migo · 旅行领航（魔改版）
+<h1>🗺️ Migo · 旅行领航（魔改版）</h1>
 
 <sub><code>travel-plan-viz</code></sub>
 
-**把一趟旅行变成一个美观、离线可读、手机优先的单文件 HTML 页面**
+<p><strong>把一趟旅行变成一个美观、离线可读、手机优先的单文件 HTML 页面</strong></p>
 
-交互地图 · 每日时间轴 · 出发前订票提醒 · 行前须知 · 待选航班 · 片区价位酒店
+<p>交互地图 · 每日时间轴 · 出发前订票提醒 · 行前须知 · 待选航班 · 片区价位酒店</p>
 
-一个 [Claude Code](https://claude.com/claude-code) / Codex 通用 Skill（也可适配其他 Agent）
+<p>一个 <a href="https://claude.com/claude-code">Claude Code</a> / Codex 通用 Skill（也可适配其他 Agent）</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![output: single-file HTML](https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square)](#-样例)
-[![offline readable](https://img.shields.io/badge/offline-readable-22c55e?style=flat-square)](#-特点)
-[![Claude Code · Codex](https://img.shields.io/badge/Claude%20Code-%C2%B7%20Codex-8b5cf6?style=flat-square)](#-安装跨-agent)
-[![no API key](https://img.shields.io/badge/map-no%20API%20key-0ea5e9?style=flat-square)](#-特点)
-[![tests](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square)](#-测试)
-
-<sub>🎬 更多 AI 工具实战玩法：作者抖音 <strong>@泽轩604</strong>（app 内搜索即达 · <a href="https://v.douyin.com/e9skpkkmo24/">本项目的抖音原帖</a>）</sub>
+<p>
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
+<a href="#-样例"><img src="https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square" alt="output: single-file HTML"></a>
+<a href="#-特点"><img src="https://img.shields.io/badge/offline-readable-22c55e?style=flat-square" alt="offline readable"></a>
+<a href="#-安装跨-agent"><img src="https://img.shields.io/badge/Claude%20Code-%C2%B7%20Codex-8b5cf6?style=flat-square" alt="Claude Code · Codex"></a>
+<a href="#-特点"><img src="https://img.shields.io/badge/map-no%20API%20key-0ea5e9?style=flat-square" alt="no API key"></a>
+<a href="#-测试"><img src="https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square" alt="tests passing"></a>
+</p>
 
 <sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-fork-说明">🔗 Fork</a></sub>
 
