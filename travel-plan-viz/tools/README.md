@@ -75,7 +75,7 @@ FlyAI 官方文档在登录墙后（flyai.open.fliggy.com/docs）。脚本顶部
 
 ### 边界
 
-- 只走飞猪官方 API，不爬 OTA、不代订、不背书；结果仅供调研参考。
+- 本工具走飞猪官方 API；不代订、不背书；结果仅供调研参考（机票调研渠道不限，见 research-guide「航班」节）。
 - 单次调用即单次查询，保持低频（填一次 `flights.candidates` 通常 1 条航线 1 次足够）。
 
 ## hotel_research.py — 酒店实时价（飞猪 FlyAI 直连，仅定档后）
@@ -106,5 +106,5 @@ python3 hotel_research.py selftest      # 解析器自检(不需要 Key 与网�
 
 ### 边界
 
-- 只走飞猪官方 API，不爬 OTA、不代订、不背书；结果仅供调研参考。
+- 本工具走飞猪官方 API；不代订、不背书；结果仅供调研参考。
 - 每片区每晚 1 次查询即可，保持低频。

@@ -34,12 +34,13 @@ const trip = {
   },
 
   // 航班：已预订高亮；未预订时给 3-5 个建议班次（航司+航班号+起降时刻）供自行核实
-  // actionLink 可选：仅当链接来自官方渠道（已装官方 skill 或 tools/flight_research.py 直连返回）时给，{label,url}；否则省略，别手拼。
+  // actionLink 可选：仅当链接来自数据源返回（官方 skill、tools/ 直连或比价/OTA 查询结果）时给，{label,url}；否则省略，别手拼。
   flights: {
     booked: [ { label, code, time } ],
     candidates: [ { label, code, time, note, price, priceQueriedAt, actionLink } ]
-    // note 写机型/直飞或经停；price 可选——仅当来自官方渠道实时查询（如 "¥780"），
-    // 且必须同时给 priceQueriedAt（查询时间戳）；没查实时就省略 price，note 里给参考区间
+    // note 写机型/直飞或经停；price 可选——任何渠道查到的价（如 "¥780"）都可写，
+    // 且必须同时给 priceQueriedAt（查询时间戳）并在 dataSources 登记来源；没查就省略 price，note 里给参考区间。
+    // 2026-08-24 拍板：机票价格渠道不限（废除「只经官方渠道」「不爬 OTA」），页面航班区块必须声明「机票价格仅作参考、以订票页为准」
   },
 
   // 酒店：综合各景点位置，按"片区 + 价位"推荐
@@ -70,7 +71,7 @@ const trip = {
 
   disclaimer: "本页全部信息（天气、航班、酒店、餐厅、景点、门票、价格、营业时间、评分、活动等）均为 AI 基于公开资料整理的参考建议，可能不准确或已过时，不保证与实时情况一致；请务必在官方渠道 / 订票订房 / 地图等 App 上核实后再做决定或前往。",
 
-  // 可选：本次若经官方渠道（用户已装的官方旅行 skill，或 tools/ 直连工具如 flight_research.py）补数据，在此登记来源，页面据此注明；没用到就整个省略。
+  // 可选：本次调研若经外部数据源（用户已装的官方旅行 skill、tools/ 直连工具、比价/OTA 查询）补数据，在此登记来源，页面据此注明；没用到就整个省略。
   // 责任边界：这些来源的数据实时性/真实性由对方官方 skill / 官方 API 负责，本页只适配呈现、不背书，措辞中性、不替任一家打广告。
   dataSources: [
     { name: "高德地图 skill", scope: "点到点路线规划、坐标", realtime: true },

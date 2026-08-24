@@ -36,7 +36,7 @@ ln -sfn "<repo>/travel-plan-viz" ~/.codex/skills/travel-plan-viz
 - assets/page-contract.md：输出 HTML 必须包含的区块与 trip 数据结构
 - assets/map.js、assets/reminders.js：必须原样内联进输出 HTML 的引擎（地图、提醒）；完整 trip 对象以 <script id="trip-data" type="application/json"> 内嵌
 - assets/validate.js：生成后的机械校验（能跑 Node 就执行，否则人工对照契约）
-- references/research-guide.md：联网调研规范（图片用 Special:FilePath 且校验 200；机票给建议班次、实时价仅经官方渠道查并标时间戳；全覆盖免责声明）
+- references/research-guide.md：联网调研规范（图片用 Special:FilePath 且校验 200；机票给建议班次、价格渠道不限并标来源+时间戳、页面声明仅作参考；全覆盖免责声明）
 - references/design-guidelines.md：没有专业设计 skill 时的内置美学准则
 
 请用你自身的联网搜索、文件写入能力执行。若你没有某项能力（如不能联网），就用已知信息但在页面免责声明里说明，绝不编造可验证的事实（如不可加载的图片链接）。
@@ -48,6 +48,6 @@ ln -sfn "<repo>/travel-plan-viz" ~/.codex/skills/travel-plan-viz
 - **图片**：必须用 `https://commons.wikimedia.org/wiki/Special:FilePath/<文件名>?width=N` 并校验返回 200，别让模型手拼哈希直链。
 - **单文件自包含**：`map.js`/`reminders.js` 内容要内联进 HTML，不要外链本地文件。
 - **免责声明**：覆盖全部联网信息（天气/餐厅/评分…），不只是机票酒店。
-- **机票建议班次**：真实航司+航班号+时刻；实时价只经官方渠道（已装官方 skill 或 tools/ 直连）查并标来源+时间戳，否则给参考区间。门票只给参考区间。
+- **机票建议班次**：真实航司+航班号+时刻；价格渠道不限（官方 skill / tools/ 直连 / 比价工具 / OTA 页面均可），标来源+时间戳，页面声明「机票价格仅作参考、以订票页为准」。门票只给参考区间。
 - **坐标系**：高德/腾讯类工具返回的 GCJ-02 坐标须先经 `map.js` 的 `gcj02ToWgs84` 转成 WGS-84 再入 `trip`，否则 OSM 地图上偏移几百米。
 - **生成后校验**：宿主能跑 Node 就执行 `node assets/validate.js <生成的.html>`（校验字段/坐标/必需区块），有 ERROR 修复重跑；不能跑 Node 就人工对照 page-contract 检查。
