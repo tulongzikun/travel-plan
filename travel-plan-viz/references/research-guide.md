@@ -11,7 +11,7 @@
 | 用户若装了 | 可优先用它拿（对应咱们哪个功能） | 备注 |
 |------|------|------|
 | **高德地图** MCP/skill（增强面最大，多数工具开箱即用） | **地理编码 → 精确坐标**（替代"搜经纬度"猜）；**公交/驾车/步行/骑行路径规划 → 点到点交通**（实时路况+多方案）；**天气查询 → 行前须知天气**；**POI 关键词/周边/详情搜索 → 景点&酒店信息**；**生成专属地图 → 整条行程唤端地图链接**；**导航/打车 → actionLink** | 调研到 15 个工具，是命中咱们薄弱点最多的一家。官方入口具名（2026-07 核）：**高德官方 MCP Server**（lbs.amap.com「大模型开发工具」入口）与 OpenClaw 平台 skill **`amap-lbs-skill`**（GitHub org `AMap-Web`），均需用户自备 Web 服务 Key |
-| **飞猪 flyai** skill/MCP（实时直连官方库，结果可真实预订） | **机票搜索 → 航班候选+实时价**；**酒店 → 酒店片区**；**景区门票/度假 → 门票**；均返回**真实预订链接**作 actionLink | skill 路线**免 Key**（官方 SKILL.md 装入 `~/.claude/skills/flyai` + `npm i -g @fly-ai/flyai-cli`，装法以 flyai.open.fliggy.com 为准）；直连 API 需 Key（同站申领，淘宝账号+支付宝实名，5000 次免费，见 `tools/flight_research.py`）。体验版数据有缺 |
+| **飞猪 flyai** skill/MCP（实时直连官方库，结果可真实预订） | **机票搜索 → 航班候选+实时价**；**酒店 → 酒店片区**；**火车票 → 交通备选**；**景区门票/度假 → 门票**；均返回**真实预订链接**作 actionLink | skill 路线**免 Key**（官方 SKILL.md 装入 `~/.claude/skills/flyai` + `npm i -g @fly-ai/flyai-cli`，装法以 flyai.open.fliggy.com 为准）；直连 API 需 Key（同站申领，淘宝账号+支付宝实名，5000 次免费，见 `tools/flight_research.py`）。**CLI 体验模式实测（2026-08-24，免 Key）**：机票给精确价+航班号/时刻/航站楼+飞猪预订链（国内+国际），酒店给候选/星级/坐标/详情链但**价格打码（¥1xx）、评分为空**——精确房价需正式 Key。CLI bundle 用了较新 JS 语法，**需 Node ≥14**（老 Node 可用 bun 等现代运行时跑 bundle）。**飞猪返回的酒店/POI 坐标是 GCJ-02**，入 trip 前须经 `map.js` 的 `gcj02ToWgs84` 转换 |
 | **腾讯位置服务** skill/MCP（能力与高德重叠，开发向更重） | 路线规划、POI 搜索（8000 万+）、地址服务、实时路况导航；另有 3D/室内地图（一般用不上） | 多与高德二选一即可 |
 | **滴滴** MCP/skill | **打车全流程**（叫车/预估/跟踪/取消）→ 交通的用车方案与**叫车唤端链接**；也有驾车/公交/步行/骑行路线规划 | Beta 版返回跳转链接 |
 
@@ -33,7 +33,7 @@
 1. **Key 用户自备**：`FLYAI_API_KEY` 环境变量或 `--key-file`（flyai.open.fliggy.com 控制台申领）。**Key 绝不写进仓库、成品页或对话记录。**
 2. **端点以官方文档为准**：文档在登录墙后，脚本顶部的 base/path/鉴权头常量是占位——首跑 401/404 先对照官方文档核对，或用 `--base`/`--path` 覆盖；解析器按多返回形态容错（改完 `selftest` 必须绿）。
 3. **结果带时间戳与来源**：写入页面时登记 `dataSources`、candidates 附 `priceQueriedAt`，措辞「价格随订位实时变动，以订票页为准」；不代订、不背书。
-4. **优先级**：用户已装飞猪 skill 就先用 skill（免 Key 即装即用）；本工具是无 skill 机制的 Agent 或脱会话批查时的兜底。
+4. **优先级**：用户已装飞猪 skill / flyai CLI 就先用它（免 Key 体验模式即用，机票给精确价）；本工具是直连 API 形态的兜底（脱会话批查、无 CLI 环境）。
 
 ## 本地可选工具：gflights_research（机票比价，Google Flights，零 Key）
 
