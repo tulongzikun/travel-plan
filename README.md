@@ -154,7 +154,7 @@ travel-plan-viz/
     research-guide.md   # 联网调研指南
     design-guidelines.md # 内置美学准则（无外部设计 skill 时兜底）
     porting-to-other-agents.md # 跨 Agent 适配指南 + 通用提示词
-  tools/                # 可选调研工具（xhs_research / flight_research / hotel_research，软依赖、不进页面）
+  tools/                # 可选调研工具（xhs_research / flight_research / gflights_research / hotel_research，软依赖、不进页面）
 samples/                # 生成的示例页面
 test/                   # 引擎单元测试（node --test）
 docs/                   # 静态素材（banner.png）

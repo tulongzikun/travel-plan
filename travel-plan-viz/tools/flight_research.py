@@ -4,7 +4,8 @@
 
 个人调研用:用用户自备的飞猪 FlyAI API Key,按「出发地 目的地 日期」查航班候选,
 输出 JSON + Markdown(含查询时间戳),供 Agent 在「调研补全」阶段填 flights.candidates。
-只走官方渠道,不爬 OTA;价格随订位实时变动,输出一律标注「以订票页为准」。
+价格随订位实时变动,输出一律标注「以订票页为准」(机票调研渠道不限,2026-08-24 拍板,
+比价渠道见 gflights_research.py)。
 
 用法:
   export FLYAI_API_KEY=...        # flyai.open.fliggy.com 控制台申领(淘宝账号+支付宝实名,5000 次免费)

@@ -19,7 +19,7 @@
 - **离线能力如实表述**：对外说「离线可读」（文字行程离线可读；地图/图片需联网、有 onerror 降级），别写成"完全离线可用"。
 - **`escapeHTML` 在 map.js 与 reminders.js 各有一份，是故意重复**——两文件须各自独立，别合并去重。
 - **内容契约是权威**：`assets/page-contract.md` 定义 `trip` 数据结构和必须包含的区块。改了引擎导出的函数名/数据字段，必须同步这份契约和 `SKILL.md`。
-- **tools/ 是调研侧可选工具（软依赖，不进页面）**：`tools/xhs_research.py` 抓小红书攻略素材，仅在本机装了 Python+Selenium+Chrome 且已 `login` 时可用（细则见 `references/research-guide.md`「本地可选工具」节）。它不被内联进 HTML、不引入运行时硬依赖，纯 JS 引擎的可移植性不因它破例。素材只作定性参考——坐标/票价/营业时间/图片一律不直接采信。个人自用 + 默认限速，改动别放大抓取量；解析器保持纯函数，改完 `python3 tools/xhs_research.py selftest` 必须绿。`tools/flight_research.py` 机票实时价直连（飞猪 FlyAI 官方 API，仅标准库零依赖）：`FLYAI_API_KEY` 用户自备且**绝不入库/入页面**；端点/鉴权常量按官方文档核对（CLI 可 `--base`/`--path` 覆盖）；解析器纯函数，改完 `python3 tools/flight_research.py selftest` 必须绿。`tools/hotel_research.py` 酒店实时价直连（同一 FlyAI Key 与鉴权形态，仅标准库零依赖）：**仅在出发日期确定后调用**（dateTBD 期间只给参考区间，定档重算时回填 `price`/`priceQueriedAt`/`actionLink`）；其余边界同上，`selftest` 必须绿。
+- **tools/ 是调研侧可选工具（软依赖，不进页面）**：`tools/xhs_research.py` 抓小红书攻略素材，仅在本机装了 Python+Selenium+Chrome 且已 `login` 时可用（细则见 `references/research-guide.md`「本地可选工具」节）。它不被内联进 HTML、不引入运行时硬依赖，纯 JS 引擎的可移植性不因它破例。素材只作定性参考——坐标/票价/营业时间/图片一律不直接采信。个人自用 + 默认限速，改动别放大抓取量；解析器保持纯函数，改完 `python3 tools/xhs_research.py selftest` 必须绿。`tools/flight_research.py` 机票实时价直连（飞猪 FlyAI 官方 API，仅标准库零依赖）：`FLYAI_API_KEY` 用户自备且**绝不入库/入页面**；端点/鉴权常量按官方文档核对（CLI 可 `--base`/`--path` 覆盖）；解析器纯函数，改完 `python3 tools/flight_research.py selftest` 必须绿。`tools/gflights_research.py` 机票比价（fli 逆向 Google Flights，PyPI 包名 `flights`，零 Key）：与 flight_research 并列的机票渠道，需连通 www.google.com；逆向接口可能失效，失败如实留空换渠道；整理器纯函数，改完 `python3 tools/gflights_research.py selftest` 必须绿。`tools/hotel_research.py` 酒店实时价直连（同一 FlyAI Key 与鉴权形态，仅标准库零依赖）：**仅在出发日期确定后调用**（dateTBD 期间只给参考区间，定档重算时回填 `price`/`priceQueriedAt`/`actionLink`）；其余边界同上，`selftest` 必须绿。
 
 ## 测试
 
@@ -30,7 +30,7 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 
 ## 数据采集约束（写在 references/research-guide.md，改动要同步）
 
-- **机票给建议班次**（航司+航班号+起降时刻，联网核实当季真实存在，别凭记忆写）；价格渠道不限（2026-08-24 拍板，废除「只经官方渠道」/「不爬 OTA」红线）——飞猪 skill、`tools/flight_research.py`（key 用户自备）、飞常准 MCP、比价工具、OTA 页面均可；结果标查询时间戳与来源，**页面声明「机票价格仅作参考、以订票页为准」（强制）**。**查航班时机刻意靠后：清单对齐之后、逐日方案之前**（首尾日以班次为约束），日期未定则推迟到调研补全。**门票只给参考区间**（不查实时）。
+- **机票给建议班次**（航司+航班号+起降时刻，联网核实当季真实存在，别凭记忆写）；价格渠道不限（2026-08-24 拍板，废除「只经官方渠道」/「不爬 OTA」红线）——飞猪 skill、`tools/flight_research.py`（key 用户自备）、`tools/gflights_research.py`（Google Flights 比价，零 Key）、飞常准 MCP、OTA 页面均可；结果标查询时间戳与来源，**页面声明「机票价格仅作参考、以订票页为准」（强制）**。**查航班时机刻意靠后：清单对齐之后、逐日方案之前**（首尾日以班次为约束），日期未定则推迟到调研补全。**门票只给参考区间**（不查实时）。
 - **图片必须能加载**：用 `https://commons.wikimedia.org/wiki/Special:FilePath/<URL编码文件名>?width=N`（不要手拼 `upload.wikimedia.org/.../thumb/...` 哈希直链），且每个 URL 要 `curl` 校验返回 200 才用；图片 CSS 用 `object-fit: cover` 防变形。
 - **图片按景点优先级后补、不阻塞正文（2026-08-21 拍板）**：正文数据齐就先生成交付（可无图版，`photo` 留空走降级），图片按「门面/顶流→核心/国保孤本→古镇古堡→自然/长尾」优先级逐点 200 校验后补进 trip-data 重渲染。Commons：存在性用批量 imageinfo 一次摸底，逐 URL 校验 ≥8s 间隔 + retry 退避（1s 连发第 5 个起 429）；同景区通用图须在 note 如实标注。细则见 research-guide「图片按优先级后补」节。
 - **全覆盖免责声明**：所有联网信息（含天气、餐厅、评分）都标注为 AI 整理、可能过时、需自行核实。
@@ -51,7 +51,7 @@ node --test test/*.test.js          # 注意是 glob，不是 `node --test test/
 
 | 本节条目 | skill 侧权威落点 |
 |---|---|
-| 机票班次/实时价/查航班时机、门票参考区间 | research-guide「航班（待选，给建议班次）」「本地可选工具：flight_research」；page-contract `flights.candidates` |
+| 机票班次/实时价/查航班时机、门票参考区间 | research-guide「航班（待选，给建议班次）」「本地可选工具：flight_research」「本地可选工具：gflights_research」；page-contract `flights.candidates` |
 | 图片 200 校验、按优先级后补 | research-guide「每个景点/酒店需采集」「图片按优先级后补」；page-contract `photo`（可选） |
 | 全覆盖免责声明 | research-guide「免责声明（必给，覆盖全部信息）」；page-contract 免责区块 |
 | 文保名录枚举 | research-guide「每个景点/酒店需采集」文保等级条；SKILL.md 第 2/3 步 |

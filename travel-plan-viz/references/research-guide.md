@@ -35,6 +35,14 @@
 3. **结果带时间戳与来源**：写入页面时登记 `dataSources`、candidates 附 `priceQueriedAt`，措辞「价格随订位实时变动，以订票页为准」；不代订、不背书。
 4. **优先级**：用户已装飞猪 skill 就先用 skill（免 Key 即装即用）；本工具是无 skill 机制的 Agent 或脱会话批查时的兜底。
 
+## 本地可选工具：gflights_research（机票比价，Google Flights，零 Key）
+
+`tools/gflights_research.py` 经 fli（PyPI 包名 `flights`）的 Google Flights 逆向接口查航线某天的航班候选与比价，**零 Key、即装即用**，输出 JSON + Markdown（含查询时间戳），填 `flights.candidates`。与 flight_research 是并列渠道：本工具适合没有 FlyAI Key / 没装飞猪 skill 的场合。边界：
+
+1. **逆向接口可能失效**：Google 改版/风控随时会让它报错——失败就如实留空换渠道，别硬凑。
+2. **需连通 www.google.com**：境内服务器不一定可达，先 curl 探测再跑。
+3. 价格是 Google Flights 聚合报价、与出票渠道可能有差；比价深链由 fli 确定性生成（非实时订票链接）；保持低频（1 条航线 1 次查询足够）；不代订、不背书。
+
 ## 本地可选工具：hotel_research（酒店实时价，飞猪 FlyAI 直连）
 
 `travel-plan-viz/tools/hotel_research.py` 用**用户自备**的飞猪 FlyAI API Key（与 flight_research 同一把）查某城市某入住区间的酒店候选与实时价，输出 JSON + Markdown（含查询时间戳），填进 `hotelAreas[].options` 的 `price` / `priceQueriedAt` / `actionLink`。仅标准库、零第三方依赖。**调用时机是本工具的灵魂（2026-08-21 拍板）：仅在出发日期确定后调用**——行程仍是 dateTBD（估算日）时一律不查（估算日查价无意义），页面只给参考区间 `priceRange`；用户定档并把 HTML 丢回来重算时，才逐片区查实时价回填。其余边界：
@@ -53,7 +61,7 @@
 2. **标注来源 + 中性措辞**：凡用官方 skill 拿的数据，在页面对应区块注明数据来源（如「实时数据来源：高德地图 skill，时效性由其保证」），与 AI 静态整理的内容（标"参考·可能过时"）区分开；**用中性工程措辞，不夸、不推荐、不替任何一家打广告**。
 3. **行动链接只用官方返回的**：`actionLink` 的 URL **优先用官方 skill 返回的链接**（带正确参数最稳）；**不要手拼 deeplink / URL scheme**（易失效）。官方 skill 不在场时，宁可不加行动链接，也别放可能打不开的手拼链接。（此禁令针对 actionLink；`map.js` 引擎按官方免 key URI 规范生成的「高德地图 / Google 地图」点位链接不在此列，边界见 page-contract「可选适配元素」。）
 
-> 机票价格**渠道不限**（2026-08-24 拍板，废除「只经官方渠道」与「不爬 OTA」红线）：用户已装的官方 skill、`tools/flight_research.py` 官方 API 直连（key 用户自备）、飞常准 MCP、本地比价工具（Google Flights 类，如 AdvSearchFlights）、OTA/聚合页面皆可。无论渠道，产出须标来源与查询时间戳，**页面声明「机票价格仅作参考、以订票页为准」（强制）**；不代订、不背书。详见 page-contract 的 `dataSources` 与节点级 `actionLink` 字段。
+> 机票价格**渠道不限**（2026-08-24 拍板，废除「只经官方渠道」与「不爬 OTA」红线）：用户已装的官方 skill、`tools/flight_research.py` 官方 API 直连（key 用户自备）、`tools/gflights_research.py` Google Flights 比价（零 Key）、飞常准 MCP、本地比价工具（Google Flights 类，如 AdvSearchFlights）、OTA/聚合页面皆可。无论渠道，产出须标来源与查询时间戳，**页面声明「机票价格仅作参考、以订票页为准」（强制）**；不代订、不背书。详见 page-contract 的 `dataSources` 与节点级 `actionLink` 字段。
 
 ## 每个景点/酒店需采集
 
@@ -117,7 +125,7 @@
 - **查询时机**：整体攻略（景点清单+天数）对齐之后、逐日方案之前（见 SKILL.md 模式 A 第 4 步）——首尾两天的排程要以真实班次时刻为约束，别排好行程再硬凑；出发日期未定（dateTBD）则推迟到定档后/调研补全阶段，别空查。
 - **出发城市来自「需求澄清」步骤**（见 SKILL.md 模式 A 第 1 步）；用户没给就先问，不要按直觉猜一个。
 - 用户未预订时，**给 3-5 个建议班次**（不要只给一个，万一订不上有备选）：航司 + 航班号 + 起降时刻。**航班号要联网核实当季真实存在**——航线换季会停开，别凭记忆写。
-- **价格渠道不限（2026-08-24 拍板，废除「只经官方渠道」「不爬 OTA」红线）**：飞猪 flyai skill（免 Key 即装即用）、`tools/flight_research.py` 官方 API 直连（key 用户自备，用法见 `tools/README.md`）、飞常准 MCP（`getFlightPriceByCities` 舱位级票价等工具，key 自备）、本地比价工具（Google Flights 类，如 AdvSearchFlights）、联网搜 OTA/聚合页面，皆可。无论哪个渠道拿到价：candidates 写 `price` + `priceQueriedAt`、`dataSources` 登记来源，**页面声明「机票价格仅作参考（非实时报价）、以订票页为准」（强制，渲染层已带）**。
+- **价格渠道不限（2026-08-24 拍板，废除「只经官方渠道」「不爬 OTA」红线）**：飞猪 flyai skill（免 Key 即装即用）、`tools/flight_research.py` 官方 API 直连（key 用户自备，用法见 `tools/README.md`）、`tools/gflights_research.py` Google Flights 比价（零 Key，即装即用）、飞常准 MCP（`getFlightPriceByCities` 舱位级票价等工具，key 自备）、联网搜 OTA/聚合页面，皆可。无论哪个渠道拿到价：candidates 写 `price` + `priceQueriedAt`、`dataSources` 登记来源，**页面声明「机票价格仅作参考（非实时报价）、以订票页为准」（强制，渲染层已带）**。
 - `note` 写机型/是否直飞/经停等乘机信息。
 - 已预订的（用户告知）单独高亮，标"已预订"。
 - **目的地无民航机场时**（如晋城）：给「最近机场 + 高铁/大巴接驳」组合方案（机场进城交通耗时一并给），高铁段也列建议车次（同条规则：真实存在、给参考票价、标注以 12306 为准）。

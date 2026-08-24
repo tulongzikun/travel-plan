@@ -1,1 +1,2 @@
-selenium>=4.20
+selenium>=4.20        # xhs_research.py(小红书素材抓取)
+flights>=0.10         # gflights_research.py(fli 逆向 Google Flights,机票比价)

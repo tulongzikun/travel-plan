@@ -8,6 +8,7 @@ travel-plan-viz 的**可选**调研侧工具，供 Agent 在「调研补全」�
 |------|------|------|
 | `xhs_research.py` | 抓小红书攻略笔记（定性参考素材） | Python 3 + Selenium + Chrome（`requirements.txt`） |
 | `flight_research.py` | 机票实时价查询（飞猪 FlyAI 官方 API 直连） | 仅 Python 3 标准库，零第三方依赖；需自备 API Key |
+| `gflights_research.py` | 机票比价查询（Google Flights，fli 逆向接口） | Python 3 + `flights` 包（`requirements.txt`）；**零 Key**，需连通 google.com |
 | `hotel_research.py` | 酒店实时价查询（飞猪 FlyAI 官方 API 直连，**仅定档后调用**） | 仅 Python 3 标准库，零第三方依赖；与 flight_research 同一 API Key |
 
 ## xhs_research.py — 小红书攻略抓取
@@ -16,7 +17,7 @@ travel-plan-viz 的**可选**调研侧工具，供 Agent 在「调研补全」�
 
 ```bash
 cd travel-plan-viz/tools
-python3 -m pip install -r requirements.txt       # selenium
+python3 -m pip install -r requirements.txt       # selenium(xhs_research)/ flights(gflights_research)
 # 另需本机装有 Chrome 浏览器;Selenium 4.6+ 自动匹配 chromedriver,无需手装
 ```
 
@@ -77,6 +78,26 @@ FlyAI 官方文档在登录墙后（flyai.open.fliggy.com/docs）。脚本顶部
 
 - 本工具走飞猪官方 API；不代订、不背书；结果仅供调研参考（机票调研渠道不限，见 research-guide「航班」节）。
 - 单次调用即单次查询，保持低频（填一次 `flights.candidates` 通常 1 条航线 1 次足够）。
+
+## gflights_research.py — 机票比价（Google Flights，零 Key）
+
+经 [fli](https://github.com/punitarani/fli)（PyPI 包名 `flights`）的 Google Flights 逆向接口查某条航线某天的航班候选与比价，**无需任何 Key**。与 `flight_research.py` 是并列的两条机票渠道：本工具即装即用，适合没有 FlyAI Key / 没装飞猪 skill 的场合；价格是 Google Flights 聚合报价，与出票渠道可能有差。
+
+### 用法
+
+```bash
+python3 -m pip install flights                 # fli 逆向 Google Flights 的封装库
+python3 gflights_research.py search PEK SHA 2026-10-25 [--top 5] [--seat economy] [--currency CNY]
+python3 gflights_research.py selftest          # 整理器自检(不需要网络与 flights 包)
+```
+
+输出 `gflights-notes/gflights-<航线>-<日期>.{json,md}`：航班候选表（航司/航班号/起降时刻/中转/价格/比价深链），**必带查询时间戳与来源**，供 Agent 填 `flights.candidates`（`price` + `priceQueriedAt`），页面声明「机票价格仅作参考、以订票页为准」。
+
+### 边界
+
+- **逆向接口，可能失效**：Google 改版/风控会让它随时报错——失败就如实留空换渠道，别硬凑数据。
+- **需连通 www.google.com**：境内服务器不一定可达，先 `curl -sI --max-time 8 https://www.google.com` 探测再跑。
+- 保持低频（填一次 `flights.candidates` 通常 1 条航线 1 次查询足够）；比价深链由 fli 从航班要素确定性生成（非实时订票链接），作 `actionLink` 用时如实标注「比价」。
 
 ## hotel_research.py — 酒店实时价（飞猪 FlyAI 直连，仅定档后）
 

@@ -148,7 +148,7 @@ travel-plan-viz/
     research-guide.md   # web-research guide
     design-guidelines.md # built-in aesthetics (fallback w/o external design skill)
     porting-to-other-agents.md # cross-agent porting guide + adaptation prompt
-  tools/                # optional research tools (xhs_research / flight_research / hotel_research; soft deps, never inlined into pages)
+  tools/                # optional research tools (xhs_research / flight_research / gflights_research / hotel_research; soft deps, never inlined into pages)
 samples/                # generated example pages
 test/                   # engine unit tests (node --test)
 docs/                   # static assets (banner.png)

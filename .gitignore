@@ -20,3 +20,6 @@ yarn-error.log*
 # Python
 __pycache__/
 *.pyc
+
+# 调研工具输出目录(本地产物,不入库)
+*-notes/
