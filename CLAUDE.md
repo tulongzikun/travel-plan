@@ -19,7 +19,7 @@
 - **离线能力如实表述**：对外说「离线可读」（文字行程离线可读；地图/图片需联网、有 onerror 降级），别写成"完全离线可用"。
 - **`escapeHTML` 在 map.js 与 reminders.js 各有一份，是故意重复**——两文件须各自独立，别合并去重。
 - **内容契约是权威**：`assets/page-contract.md` 定义 `trip` 数据结构和必须包含的区块。改了引擎导出的函数名/数据字段，必须同步这份契约和 `SKILL.md`。
-- **tools/ 是调研侧可选工具（软依赖，不进页面）**：`tools/xhs_research.py` 抓小红书攻略素材，仅在本机装了 Python+Playwright 且已 `login` 时可用（细则见 `references/research-guide.md`「本地可选工具」节）。它不被内联进 HTML、不引入运行时硬依赖，纯 JS 引擎的可移植性不因它破例。素材只作定性参考——坐标/票价/营业时间/图片一律不直接采信。个人自用 + 默认限速，改动别放大抓取量；解析器保持纯函数，改完 `python3 tools/xhs_research.py selftest` 必须绿。`tools/flight_research.py` 机票实时价直连（飞猪 FlyAI 官方 API，仅标准库零依赖）：`FLYAI_API_KEY` 用户自备且**绝不入库/入页面**；端点/鉴权常量按官方文档核对（CLI 可 `--base`/`--path` 覆盖）；解析器纯函数，改完 `python3 tools/flight_research.py selftest` 必须绿。`tools/hotel_research.py` 酒店实时价直连（同一 FlyAI Key 与鉴权形态，仅标准库零依赖）：**仅在出发日期确定后调用**（dateTBD 期间只给参考区间，定档重算时回填 `price`/`priceQueriedAt`/`actionLink`）；其余边界同上，`selftest` 必须绿。
+- **tools/ 是调研侧可选工具（软依赖，不进页面）**：`tools/xhs_research.py` 抓小红书攻略素材，仅在本机装了 Python+Selenium+Chrome 且已 `login` 时可用（细则见 `references/research-guide.md`「本地可选工具」节）。它不被内联进 HTML、不引入运行时硬依赖，纯 JS 引擎的可移植性不因它破例。素材只作定性参考——坐标/票价/营业时间/图片一律不直接采信。个人自用 + 默认限速，改动别放大抓取量；解析器保持纯函数，改完 `python3 tools/xhs_research.py selftest` 必须绿。`tools/flight_research.py` 机票实时价直连（飞猪 FlyAI 官方 API，仅标准库零依赖）：`FLYAI_API_KEY` 用户自备且**绝不入库/入页面**；端点/鉴权常量按官方文档核对（CLI 可 `--base`/`--path` 覆盖）；解析器纯函数，改完 `python3 tools/flight_research.py selftest` 必须绿。`tools/hotel_research.py` 酒店实时价直连（同一 FlyAI Key 与鉴权形态，仅标准库零依赖）：**仅在出发日期确定后调用**（dateTBD 期间只给参考区间，定档重算时回填 `price`/`priceQueriedAt`/`actionLink`）；其余边界同上，`selftest` 必须绿。
 
 ## 测试
 

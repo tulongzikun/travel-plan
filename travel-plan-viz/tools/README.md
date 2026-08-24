@@ -6,7 +6,7 @@ travel-plan-viz 的**可选**调研侧工具，供 Agent 在「调研补全」�
 
 | 工具 | 用途 | 依赖 |
 |------|------|------|
-| `xhs_research.py` | 抓小红书攻略笔记（定性参考素材） | Python 3 + Playwright（`requirements.txt`） |
+| `xhs_research.py` | 抓小红书攻略笔记（定性参考素材） | Python 3 + Selenium + Chrome（`requirements.txt`） |
 | `flight_research.py` | 机票实时价查询（飞猪 FlyAI 官方 API 直连） | 仅 Python 3 标准库，零第三方依赖；需自备 API Key |
 | `hotel_research.py` | 酒店实时价查询（飞猪 FlyAI 官方 API 直连，**仅定档后调用**） | 仅 Python 3 标准库，零第三方依赖；与 flight_research 同一 API Key |
 
@@ -16,8 +16,8 @@ travel-plan-viz 的**可选**调研侧工具，供 Agent 在「调研补全」�
 
 ```bash
 cd travel-plan-viz/tools
-python3 -m pip install -r requirements.txt       # playwright
-python3 -m playwright install chromium
+python3 -m pip install -r requirements.txt       # selenium
+# 另需本机装有 Chrome 浏览器;Selenium 4.6+ 自动匹配 chromedriver,无需手装
 ```
 
 ### 用法
@@ -29,7 +29,7 @@ python3 xhs_research.py login
 # 2) 抓素材(默认 8 篇,输出到 ./xhs-notes/)
 python3 xhs_research.py search "东京 亲子 攻略"
 
-# 解析器自检(不需要网络与 playwright)
+# 解析器自检(不需要网络与 selenium)
 python3 xhs_research.py selftest
 ```
 

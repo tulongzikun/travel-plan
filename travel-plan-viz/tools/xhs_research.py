@@ -6,9 +6,14 @@
 供 Agent 在「调研补全」阶段参考。走渲染后 DOM 提取,不碰签名 API;内置随机延时。
 
 三个动词:
-  login    建立会话(headed 浏览器扫码/手机号登录,存 Playwright storage_state)
+  login    建立会话(headed Chrome 扫码/手机号登录,cookies 存 JSON)
   search   按关键词抓笔记列表 + 正文,输出素材文件到 --out 目录
-  selftest 解析器自检(纯函数,不需要 playwright 与网络)
+  selftest 解析器自检(纯函数,不需要 selenium 与网络)
+
+依赖:selenium(tools/requirements.txt)+ 本机 Chrome 浏览器;Selenium 4.6+ 自带
+Selenium Manager 自动匹配 chromedriver,无需手装。会话只存 cookies——注意未登录的
+访客态也有 web_session cookie,登录成功与否靠人工在浏览器里确认(能进个人主页),
+注入后若仍提示登录,重跑 login 即可。
 
 边界(与 references/research-guide.md「本地可选工具」节一致):
   - 素材仅作玩法/路线/避坑/节奏的定性参考;坐标、票价、营业时间不直接采信
@@ -22,6 +27,7 @@ import json
 import random
 import re
 import sys
+import tempfile
 import time
 import urllib.parse
 from datetime import datetime
@@ -106,71 +112,103 @@ def parse_note_detail(page_html):
     }
 
 
-# ---------- 浏览器侧(依赖 playwright,import 放函数内,selftest 无需装) ----------
+# ---------- 浏览器侧(依赖 selenium + Chrome,import 放函数内,selftest 无需装) ----------
+
+def _import_selenium():
+    try:
+        from selenium import webdriver
+    except ImportError:
+        sys.exit("缺 selenium 依赖。安装: python3 -m pip install -r tools/requirements.txt"
+                 "(本机还需 Chrome 浏览器;Selenium 4.6+ 自动匹配 chromedriver,无需手装;"
+                 "或不用本工具,skill 照常走联网调研)")
+    return webdriver
+
+
+def _make_driver(webdriver, headless):
+    options = webdriver.ChromeOptions()
+    if headless:
+        options.add_argument("--headless=new")
+    options.add_argument("--user-agent=" + USER_AGENT)
+    options.add_argument("--window-size=1280,900")
+    # 独立临时 profile:与本机其他 Chrome 实例/默认 profile 隔离,根治
+    # chromedriver "user data directory is already in use"(临时目录由系统清理)
+    options.add_argument("--user-data-dir=" + tempfile.mkdtemp(prefix="xhs-research-"))
+    return webdriver.Chrome(options=options)
+
+
+def _save_cookies(driver, path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({"cookies": driver.get_cookies()}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def _load_cookies(driver, path):
+    """注入会话 cookies。Selenium 规则:须先落地同域页面再 add_cookie。"""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    driver.get("https://www.xiaohongshu.com")
+    for c in data.get("cookies", []):
+        try:
+            driver.add_cookie({k: c[k] for k in ("name", "value", "domain", "path") if k in c})
+        except Exception:
+            pass  # 个别 cookie 域不匹配/过期,跳过即可
+    driver.refresh()
+
 
 def cmd_login(args):
-    from playwright.sync_api import sync_playwright
-    args.state.parent.mkdir(parents=True, exist_ok=True)
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        ctx = browser.new_context(
-            storage_state=str(args.state) if args.state.exists() else None,
-            user_agent=USER_AGENT,
-        )
-        page = ctx.new_page()
-        page.goto("https://www.xiaohongshu.com")
+    webdriver = _import_selenium()
+    driver = _make_driver(webdriver, headless=False)
+    try:
+        driver.get("https://www.xiaohongshu.com")
         print("请在打开的浏览器窗口里完成登录(扫码 / 手机号)。")
         print("登录成功、能看到首页内容后,回到终端按回车保存会话…")
         input()
-        ctx.storage_state(path=str(args.state))
-        browser.close()
+        cookies = driver.get_cookies()
+        if not cookies:
+            print("⚠ 未取到任何 cookie,会话可能未建立——请确认已登录成功,否则重跑 login。")
+        _save_cookies(driver, args.state)
+    finally:
+        driver.quit()
     print("会话已保存:", args.state)
 
 
 def cmd_search(args):
     if not args.state.exists():
         sys.exit("未找到会话 %s —— 先跑: python3 xhs_research.py login" % args.state)
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        sys.exit("缺 playwright 依赖。安装: python3 -m pip install -r tools/requirements.txt"
-                 " && python3 -m playwright install chromium"
-                 "(或不用本工具,skill 照常走联网调研)")
+    webdriver = _import_selenium()
     args.out.mkdir(parents=True, exist_ok=True)
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=not args.headed)
-        ctx = browser.new_context(storage_state=str(args.state), user_agent=USER_AGENT)
-        page = ctx.new_page()
-        try:
-            page.goto(
-                "https://www.xiaohongshu.com/search_result?keyword=" + urllib.parse.quote(args.keyword),
-                wait_until="domcontentloaded",
-            )
-            page.wait_for_timeout(4000)
-            for _ in range(3):  # 滚两三屏凑够目标条数
-                page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
-                page.wait_for_timeout(random.randint(2000, 3500))
-            html_text = page.content()
-            if args.dump:
-                (args.out / "search-raw.html").write_text(html_text, encoding="utf-8")
-            cards = parse_search_cards(html_text)
-            if not cards:
-                hint = "疑似未登录/会话过期(重跑 login)" if ("扫码登录" in html_text or "登录" in html_text) \
-                    else "选择器可能漂移(加 --dump 保存现场排查)"
-                sys.exit("未解析到笔记卡片:" + hint)
+    driver = _make_driver(webdriver, headless=not args.headed)
+    try:
+        _load_cookies(driver, args.state)
+        driver.get(
+            "https://www.xiaohongshu.com/search_result?keyword=" + urllib.parse.quote(args.keyword)
+        )
+        time.sleep(4)
+        for _ in range(3):  # 滚两三屏凑够目标条数
+            driver.execute_script("window.scrollBy(0, document.body.scrollHeight)")
+            time.sleep(random.uniform(2.0, 3.5))
+        html_text = driver.page_source
+        if args.dump:
+            (args.out / "search-raw.html").write_text(html_text, encoding="utf-8")
+        cards = parse_search_cards(html_text)
+        if not cards:
+            hint = "疑似未登录/会话过期(重跑 login)" if ("扫码登录" in html_text or "登录" in html_text) \
+                else "选择器可能漂移(加 --dump 保存现场排查)"
+            sys.exit("未解析到笔记卡片:" + hint)
 
-            notes = []
-            for i, c in enumerate(cards[: args.notes], 1):
-                print("[%d/%d] %s" % (i, min(len(cards), args.notes), c["title"][:40]))
-                page.goto(c["url"], wait_until="domcontentloaded")
-                page.wait_for_timeout(random.randint(3000, 5000))
-                raw = page.content()
-                if args.dump:
-                    (args.out / ("note-%d-raw.html" % i)).write_text(raw, encoding="utf-8")
-                notes.append(dict(c, **parse_note_detail(raw)))
-                time.sleep(random.uniform(2.0, 4.0))
-        finally:
-            browser.close()
+        notes = []
+        for i, c in enumerate(cards[: args.notes], 1):
+            print("[%d/%d] %s" % (i, min(len(cards), args.notes), c["title"][:40]))
+            driver.get(c["url"])
+            time.sleep(random.uniform(3.0, 5.0))
+            raw = driver.page_source
+            if args.dump:
+                (args.out / ("note-%d-raw.html" % i)).write_text(raw, encoding="utf-8")
+            notes.append(dict(c, **parse_note_detail(raw)))
+            time.sleep(random.uniform(2.0, 4.0))
+    finally:
+        driver.quit()
 
     stamp = datetime.now().strftime("%Y%m%d-%H%M")
     slug = re.sub(r"[^\w一-鿿]+", "-", args.keyword).strip("-")[:30] or "notes"
@@ -275,10 +313,10 @@ def cmd_selftest(_args=None):
 def main():
     ap = argparse.ArgumentParser(description="小红书旅行攻略抓取(travel-plan-viz 可选调研工具)")
     ap.add_argument("--state", type=Path, default=DEFAULT_STATE,
-                    help="storage_state 会话文件(默认 %(default)s)")
+                    help="cookies 会话文件(默认 %(default)s)")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("login", help="建立会话(headed,需显示器)")
-    sub.add_parser("selftest", help="解析器自检(无需网络与 playwright)")
+    sub.add_parser("login", help="建立会话(headed Chrome,需显示器)")
+    sub.add_parser("selftest", help="解析器自检(无需网络与 selenium)")
     se = sub.add_parser("search", help="抓取攻略素材")
     se.add_argument("keyword", help='搜索词,如 "东京 亲子 攻略"')
     se.add_argument("--notes", type=int, default=8, help="笔记数上限(默认 8,礼貌起见别调大)")
