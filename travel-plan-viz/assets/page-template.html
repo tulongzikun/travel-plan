@@ -291,9 +291,16 @@ __ENGINES__
     return '<div class="flight' + alt + '"><span class="flight__code">' + escapeHTML(f.code) + '</span>'
       + '<span class="flight__label">' + escapeHTML(f.label) + '</span>'
       + '<span class="flight__time">' + escapeHTML(f.time) + '</span>'
-      + (f.note ? '<span class="flight__note">' + escapeHTML(f.note) + '</span>' : '') + '</div>';
+      + (f.note ? '<span class="flight__note">' + escapeHTML(f.note) + '</span>' : '')
+      + (f.price ? '<span class="flight__note"><b>' + escapeHTML(f.price) + '</b>（查于 ' + escapeHTML(f.priceQueriedAt || '') + '，随订位实时变动，以订票页为准）</span>' : '')
+      + (f.actionLink ? '<span class="flight__note"><a href="' + escapeHTML(f.actionLink.url) + '" target="_blank" rel="noopener">' + escapeHTML(f.actionLink.label) + ' ↗</a></span>' : '')
+      + '</div>';
   })).join('');
   document.getElementById('flights').innerHTML = flHtml;
+  if (trip.dataSources) {
+    document.getElementById('flights').insertAdjacentHTML('afterbegin',
+      '<div class="sub">' + escapeHTML(trip.dataSources) + '</div>');
+  }
 
   // —— 酒店 ——
   var tierCls = { '经济': 'tier-label--e', '中档': 'tier-label--m', '高端': 'tier-label--h' };
