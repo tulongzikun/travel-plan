@@ -18,14 +18,14 @@
 
 <p>
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
-<a href="#-samples"><img src="https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square" alt="output: single-file HTML"></a>
+<a href="#️-samples"><img src="https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square" alt="output: single-file HTML"></a>
 <a href="#-features"><img src="https://img.shields.io/badge/offline-readable-22c55e?style=flat-square" alt="offline readable"></a>
 <a href="#-install-cross-agent"><img src="https://img.shields.io/badge/Claude%20Code-%C2%B7%20Codex-8b5cf6?style=flat-square" alt="Claude Code · Codex"></a>
 <a href="#-features"><img src="https://img.shields.io/badge/map-no%20API%20key-0ea5e9?style=flat-square" alt="no API key"></a>
 <a href="#-tests"><img src="https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square" alt="tests passing"></a>
 </p>
 
-<sub><a href="#-features">✨ Features</a> · <a href="#-install-cross-agent">🚀 Install</a> · <a href="#-faq">❓ FAQ</a> · <a href="#-how-it-works">🏗️ How it works</a> · <a href="#-fork-notice">🔗 Fork</a></sub>
+<sub><a href="#-features">✨ Features</a> · <a href="#-install-cross-agent">🚀 Install</a> · <a href="#-faq">❓ FAQ</a> · <a href="#️-how-it-works">🏗️ How it works</a> · <a href="#-fork-notice">🔗 Fork</a></sub>
 
 <sub><a href="README.md">简体中文</a> · <strong>English</strong></sub>
 

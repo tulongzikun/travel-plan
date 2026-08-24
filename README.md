@@ -18,14 +18,14 @@
 
 <p>
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License: MIT"></a>
-<a href="#-样例"><img src="https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square" alt="output: single-file HTML"></a>
+<a href="#️-样例"><img src="https://img.shields.io/badge/output-single--file%20HTML-ff7a59?style=flat-square" alt="output: single-file HTML"></a>
 <a href="#-特点"><img src="https://img.shields.io/badge/offline-readable-22c55e?style=flat-square" alt="offline readable"></a>
 <a href="#-安装跨-agent"><img src="https://img.shields.io/badge/Claude%20Code-%C2%B7%20Codex-8b5cf6?style=flat-square" alt="Claude Code · Codex"></a>
 <a href="#-特点"><img src="https://img.shields.io/badge/map-no%20API%20key-0ea5e9?style=flat-square" alt="no API key"></a>
 <a href="#-测试"><img src="https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square" alt="tests passing"></a>
 </p>
 
-<sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#-工作原理">🏗️ 原理</a> · <a href="#-fork-说明">🔗 Fork</a></sub>
+<sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#️-工作原理">🏗️ 原理</a> · <a href="#-fork-说明">🔗 Fork</a></sub>
 
 <sub><strong>简体中文</strong> · <a href="README_en.md">English</a></sub>
 
