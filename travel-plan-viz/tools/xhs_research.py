@@ -193,7 +193,9 @@ def cmd_search(args):
             (args.out / "search-raw.html").write_text(html_text, encoding="utf-8")
         cards = parse_search_cards(html_text)
         if not cards:
-            hint = "疑似未登录/会话过期(重跑 login)" if ("扫码登录" in html_text or "登录" in html_text) \
+            logged_out = ("login-modal" in html_text   # 访客态搜索:全屏登录弹窗,0 结果渲染(2026-08-23 实测)
+                          or "扫码登录" in html_text or "登录" in html_text)
+            hint = "疑似未登录/会话过期(重跑 login)" if logged_out \
                 else "选择器可能漂移(加 --dump 保存现场排查)"
             sys.exit("未解析到笔记卡片:" + hint)
 
