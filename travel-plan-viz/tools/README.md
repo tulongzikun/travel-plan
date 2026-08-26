@@ -91,6 +91,8 @@ python3 gflights_research.py search PEK SHA 2026-10-25 [--top 5] [--seat economy
 python3 gflights_research.py selftest          # 整理器自检(不需要网络与 flights 包)
 ```
 
+**注意**：查询按机场对匹配——多机场城市须逐机场分别查（上海=SHA/PVG 各一次），漏查一场会误判「无直飞」；Google 不收录的薄航线会整体返回空，否定结论与飞猪渠道交叉后再下。
+
 输出 `gflights-notes/gflights-<航线>-<日期>.{json,md}`：航班候选表（航司/航班号/起降时刻/中转/价格/比价深链），**必带查询时间戳与来源**，供 Agent 填 `flights.candidates`（`price` + `priceQueriedAt`），页面声明「机票价格仅作参考、以订票页为准」。
 
 ### 边界
