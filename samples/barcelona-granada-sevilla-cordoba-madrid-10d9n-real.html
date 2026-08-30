@@ -57,6 +57,9 @@
   .hero__title{font-size:clamp(26px,6vw,40px);font-weight:800;margin:10px 0 6px}
   .hero__meta{font-size:14px;opacity:.9}
   .hero__meta b{color:#e8d5a0}
+  .hero__dl{display:inline-block;margin-top:16px;padding:8px 18px;border-radius:99px;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);color:inherit;font:600 13.5px/1.2 "PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;cursor:pointer;letter-spacing:.05em}
+  .hero__dl:hover{background:rgba(255,255,255,.22)}
+  .hero__dl:active{transform:translateY(1px)}
   .banner-tbd{max-width:920px;margin:14px auto 0;background:rgba(243,241,236,.14);border:1px dashed rgba(243,241,236,.6);border-radius:10px;padding:8px 14px;font-size:13.5px}
 
   section{margin-top:30px}
@@ -169,6 +172,7 @@
   <div class="hero__title" id="pageTitle"></div>
   <div class="hero__meta" id="pageMeta"></div>
   <div class="banner-tbd" id="tbdBanner" style="display:none"></div>
+  <button class="hero__dl" id="dlBtn" type="button">⬇ 下载本页 HTML · 离线可读副本</button>
 </header>
 
 <div class="container">
@@ -2196,6 +2200,28 @@ if (typeof module !== 'undefined' && module.exports) {
     return { lat: h.lat, lng: h.lng, name: '住宿 · ' + h.area, note: h.nights + ' · ' + (h.reason || '') };
   });
   initTravelMap('map', points, { stays: stays });
+})();
+</script>
+<script>
+// ===== 下载本页：自序列化单文件副本（文字行程离线可读；地图瓦片与图片仍需联网） =====
+(function () {
+  var btn = document.getElementById('dlBtn');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var clone = document.documentElement.cloneNode(true);
+    var mapEl = clone.querySelector('#map');
+    if (mapEl) mapEl.innerHTML = ''; // Leaflet 运行时瓦片不进副本，打开副本时重新初始化
+    var html = '<!DOCTYPE html>\n' + clone.outerHTML;
+    var name = (document.title.split(' · ')[0] || '行程计划').replace(/[\\/:*?"<>|]/g, '_') + '.html';
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  });
 })();
 </script>
 </body>
