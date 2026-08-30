@@ -25,7 +25,7 @@
 <a href="#-测试"><img src="https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square" alt="tests passing"></a>
 </p>
 
-<sub><a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#️-工作原理">🏗️ 原理</a> · <a href="#-fork-说明">🔗 Fork</a></sub>
+<sub><a href="#️-样例">🖼️ 样例</a> · <a href="#-特点">✨ 特点</a> · <a href="INSTALL.md">🧑‍💻 零基础安装</a> · <a href="#-安装跨-agent">🚀 安装</a> · <a href="#-常见问题faq">❓ FAQ</a> · <a href="#️-工作原理">🏗️ 原理</a> · <a href="#-fork-说明">🔗 Fork</a></sub>
 
 <sub><strong>简体中文</strong> · <a href="README_en.md">English</a></sub>
 
@@ -46,6 +46,15 @@
 `travel-plan-viz` 是一个 Claude Code / Codex 通用 Skill（也可适配其他 Agent）。你只要说一句"帮我做香港 4 天 3 晚的旅行计划"，它就会**联网调研、排好行程、生成一个精美的单文件 HTML 网页**——手机上随时打开，文字行程离线可读，整页可截图存相册。
 
 灵感来自社区的 "vibe coding 旅游攻略" 玩法，升级为一个正式、可复用、把易错逻辑固化下来的 Skill。
+
+### 🖼️ 样例
+
+现成样例 4 份——**[样例导航页](samples/index.html)**（在线地址：<https://tulongzikun.github.io/travel-plan/samples/>），或点击行程名单页直链（同步发布于本仓库 GitHub Pages：<https://tulongzikun.github.io/travel-plan/>）；文件在仓库 `samples/` 目录，克隆后浏览器直接打开：
+
+- [长治·晋城 9 天 8 晚（国庆错峰版）](samples/changzhi-jincheng-9d8n-real.html)（`changzhi-jincheng-9d8n-real.html`，模式 A：上海往返自驾 10-03~10-11，国保古建 + 太行峡谷；含逐段车程链、天黑不走山路排程、连锁优先酒店、高平国保深线拆两天（崇明寺·开化寺·姬氏民居·铁佛寺·良户古村）+ 新增高平一晚、郑州高铁备选与国庆错峰排期（假期后半走深线、10-08 起错峰游八泉峡）、六轮翻案取舍与舍弃点位 Top10/Top20、实测机票价（HO2197 ¥640，HO2198 待 9 月复核））
+- [武汉·襄阳·钟祥 6 天 5 晚](samples/wuhan-xiangyang-6d5n-real.html)（`wuhan-xiangyang-6d5n-real.html`，模式 A：上海高铁出发 dateTBD，编钟溯源环线——省博编钟→随州擂鼓墩原址，高铁不走回头路；含夜游知音号/唐城夜场、襄城古城三晚零挪窝、明显陵世遗收尾、逐日车程链与 9 项订票提醒；全点位 WGS-84 双源坐标，29 点零猜测）
+- [太原·平遥·介休·汾阳 6 天 5 晚](samples/taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html)（`taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html`，模式 A：上海飞机+市区取还车 dateTBD·十一档，票号与琉璃古建线——晋祠国一宋塑、双林/镇国世遗彩塑、后土庙琉璃、祆神楼孤例、太符观悬塑；含十一逆峰排期（D5 周一无休日矩阵）、开门首批制、逐日车程链与 9 项订票提醒、演出非必选规则（拍板排除驻场演艺）；全点位 WGS-84 坐标零猜测）
+- [巴塞罗那·格拉纳达·塞维利亚·科尔多瓦·马德里 10 天 9 晚](samples/barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html)（`barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html`，模式 A：上海直飞进 + AVE 高铁纵贯 dateTBD·2027 春节除夕红眼档，高迪与安达卢西亚世遗线——圣家堂百年档、纳宫狮子庭、清真寺柱林；含冬季日落排程（观景台全按 2 月日落前移）、周一闭馆矩阵（塞维利亚大教堂挪周四、索菲亚周五夜档、托莱多排周六全天、普拉多周六免费夜）且开放限制全部写入景点详情、逐日车程链与 10 项订票提醒，巴萨 vs 马竞主场以备注呈现、不占排程；联票与交通卡比价（Granada Card 算过不回本、塞维利亚救世主教堂联票省队门路、斗牛场周三免费档作备选注记、四城交通卡参考，交通链公交/步行为主、打车仅兜底标价），5 片区各附旅友实测 2025「网友推荐」酒店（标实付年份、非实时）；首个国际行程样例——境外自动省略高德当日链接，37 点位 WGS-84 双源坐标含车站/机场，19 张 Commons 图全过 200 校验）
 
 ### ✨ 特点
 
@@ -111,15 +120,6 @@ ln -sfn "$(pwd)/travel-plan-viz" ~/.codex/skills/travel-plan-viz
 
 生成后，把 HTML 文件丢回给 Claude 还能继续改，例如："第三天太赶，把 X 挪到第四天"——页面内嵌了完整行程 JSON，改的是数据、重渲染呈现，不会丢字段。
 
-### 🖼️ 样例
-
-现成样例 4 份——点击行程名可在线打开（同步发布于本仓库 GitHub Pages：<https://tulongzikun.github.io/travel-plan/>）；文件在仓库 `samples/` 目录，克隆后浏览器直接打开：
-
-- [长治·晋城 7 天 6 晚](samples/changzhi-jincheng-7d6n-real.html)（`changzhi-jincheng-7d6n-real.html`，模式 A：上海往返自驾，国保古建 + 太行峡谷；含逐段车程链、天黑不走山路排程、连锁优先酒店、高平国保深线（崇明寺·开化寺·姬氏民居·铁佛寺·良户古村）、郑州高铁备选与国庆档（10-01–10-07）错峰排期）
-- [武汉·襄阳·钟祥 6 天 5 晚](samples/wuhan-xiangyang-6d5n-real.html)（`wuhan-xiangyang-6d5n-real.html`，模式 A：上海高铁出发 dateTBD，编钟溯源环线——省博编钟→随州擂鼓墩原址，高铁不走回头路；含夜游知音号/唐城夜场、襄城古城三晚零挪窝、明显陵世遗收尾、逐日车程链与 9 项订票提醒；全点位 WGS-84 双源坐标，29 点零猜测）
-- [太原·平遥·介休·汾阳 6 天 5 晚](samples/taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html)（`taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html`，模式 A：上海飞机+市区取还车 dateTBD·十一档，票号与琉璃古建线——晋祠国一宋塑、双林/镇国世遗彩塑、后土庙琉璃、祆神楼孤例、太符观悬塑；含十一逆峰排期（D5 周一无休日矩阵）、开门首批制、逐日车程链与 9 项订票提醒、演出非必选规则（拍板排除驻场演艺）；全点位 WGS-84 坐标零猜测）
-- [巴塞罗那·格拉纳达·塞维利亚·科尔多瓦·马德里 10 天 9 晚](samples/barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html)（`barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html`，模式 A：上海直飞进 + AVE 高铁纵贯 dateTBD·2027 春节除夕红眼档，高迪与安达卢西亚世遗线——圣家堂百年档、纳宫狮子庭、清真寺柱林；含冬季日落排程（观景台全按 2 月日落前移）、周一闭馆矩阵（塞维利亚大教堂挪周四、索菲亚周五夜档、托莱多排周六全天、普拉多周六免费夜）且开放限制全部写入景点详情、逐日车程链与 10 项订票提醒，巴萨 vs 马竞主场以备注呈现、不占排程；联票与交通卡比价（Granada Card 算过不回本、塞维利亚救世主教堂联票省队门路、斗牛场周三免费档作备选注记、四城交通卡参考，交通链公交/步行为主、打车仅兜底标价），5 片区各附旅友实测 2025「网友推荐」酒店（标实付年份、非实时）；首个国际行程样例——境外自动省略高德当日链接，37 点位 WGS-84 双源坐标含车站/机场，19 张 Commons 图全过 200 校验）
-
 ### ❓ 常见问题（FAQ）
 
 **Q：这和直接问豆包 / 千问 / ChatGPT「帮我写个攻略」有什么区别？**
@@ -156,7 +156,7 @@ travel-plan-viz/
     design-guidelines.md # 内置美学准则（无外部设计 skill 时兜底）
     porting-to-other-agents.md # 跨 Agent 适配指南 + 通用提示词
   tools/                # 可选调研工具（xhs_research / flight_research / gflights_research / hotel_research，软依赖、不进页面）
-samples/                # 生成的示例页面
+samples/                # 生成的示例页面（index.html 为样例导航页）
 test/                   # 引擎单元测试（node --test）
 docs/                   # 静态素材（banner.png）
 ```

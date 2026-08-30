@@ -25,7 +25,7 @@
 <a href="#-tests"><img src="https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square" alt="tests passing"></a>
 </p>
 
-<sub><a href="#-features">✨ Features</a> · <a href="#-install-cross-agent">🚀 Install</a> · <a href="#-faq">❓ FAQ</a> · <a href="#️-how-it-works">🏗️ How it works</a> · <a href="#-fork-notice">🔗 Fork</a></sub>
+<sub><a href="#️-samples">🖼️ Samples</a> · <a href="#-features">✨ Features</a> · <a href="#-install-cross-agent">🚀 Install</a> · <a href="#-faq">❓ FAQ</a> · <a href="#️-how-it-works">🏗️ How it works</a> · <a href="#-fork-notice">🔗 Fork</a></sub>
 
 <sub><a href="README.md">简体中文</a> · <strong>English</strong></sub>
 
@@ -46,6 +46,15 @@
 `travel-plan-viz` is a [Claude Code](https://claude.com/claude-code) / Codex Skill (and portable to other agents). Just say *"plan me a 4-day Hong Kong trip"* and it will **research online, build the itinerary, and generate a polished single-file HTML page** — mobile-first, text readable offline, screenshot-friendly.
 
 Inspired by the community "vibe-coding travel guide" trick, turned into a proper, reusable Skill that hard-codes the error-prone bits.
+
+### 🖼️ Samples
+
+Four ready-made samples — **[samples gallery](samples/index.html)** (online at <https://tulongzikun.github.io/travel-plan/samples/>), or open a title directly below (also served from this repo's GitHub Pages: <https://tulongzikun.github.io/travel-plan/>); the files live in `samples/`, and open locally in any browser after cloning:
+
+- [Changzhi & Jincheng, 9D8N (National-Day off-peak edition)](samples/changzhi-jincheng-9d8n-real.html) (`changzhi-jincheng-9d8n-real.html`, Mode A: fly + rental-car loop from Shanghai, Oct 3–11; national-heritage temples + Taihang canyons; leg-by-leg drive chain, no-mountain-roads-after-dark scheduling, chain-hotel-first picks, the Gaoping heritage deep-dive split across two days (Chongming Temple's 971 hall, Kaihua Temple murals, Ji residence, Tiefo Temple, Lianghu village) with a new Gaoping night, rail-via-Zhengzhou fallback, holiday-back-half deep lines with the Taihang canyon saved for the Oct-8+ off-peak window, six rounds of adopt-a-discarded-site trade-offs with a Top10/Top20 list, and a real quoted fare (HO2197 ¥640; HO2198 to re-check in September))
+- [Wuhan, Xiangyang & Zhongxiang, 6D5N](samples/wuhan-xiangyang-6d5n-real.html) (`wuhan-xiangyang-6d5n-real.html`, Mode A: HSR from Shanghai, dates TBD; a bianzhong-bronze-bells pilgrimage loop — Hubei Provincial Museum → the Zenghouyi tomb pit at Suizhou, an HSR ring with no backtracking; Zhiyin cruise / Tang-dynasty night shows, three zero-move nights inside Xiangyang's old city, UNESCO Ming Xianling tomb on the way home, leg-by-leg transit chain and 9 booking reminders; all 29 points carry dual-sourced WGS-84 coordinates, zero guesswork)
+- [Taiyuan, Pingyao, Jiexiu & Fenyang, 6D5N](samples/taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html) (`taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html`, Mode A: flight + downtown car rental from Shanghai, dates TBD, National-Day week; a Shanxi-merchant heritage line — Jinci's 984 Song-dynasty hall and statues, UNESCO Shuanglin/Zhenguo temples' sculptures, Houtu Temple's glazed rooftops, the one-of-a-kind XianShen Lou, Taifu Guan's Ming suspended sculptures; crowd-aware scheduling for the holiday (a Monday-closure-proof day, first-entry-at-opening strategy), leg-by-leg drive chain, 9 booking reminders, and shows kept out of the main line by rule; every point carries WGS-84 coordinates, zero guesswork)
+- [Barcelona, Granada, Seville, Córdoba & Madrid, 10D9N](samples/barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html) (`barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html`, Mode A: nonstop flight in + AVE rail spine from Shanghai, dates TBD anchored to the Chinese New Year 2027 red-eye window; a Gaudí & Andalusia UNESCO line — Sagrada Família, the Alhambra's Court of the Lions, the Mezquita's forest of arches; winter-sunset scheduling (viewpoints re-timed for February's early dark), a Monday-closure-proof weekday matrix (Seville Cathedral on a full-hours Thursday, Sofía's Friday evening slot, Toledo on a full-hours Saturday, Prado's Saturday free evening) with every closure/restriction also stated in the sight's own details, leg-by-leg transit chain and 10 booking reminders, the Barça–Atlético home fixture noted as an optional tip rather than a stop; combined-ticket & transit-card break-even math (Granada Card honestly computed as not worth it, the El-Salvador combo-ticket queue skip in Seville, the bullring's Wednesday free slot as an optional note, per-city transit cards) with transit chains bus/walk-first and taxis only as labeled fallbacks, plus 2025 netizen-verified hotel picks per area (prices marked with the year paid, not realtime); first international sample — mainland-only Amap day links are auto-omitted abroad, 37 dual-sourced WGS-84 points including rail stations and airports, 19 Commons photos all 200-verified)
 
 ### ✨ Features
 
@@ -111,15 +120,6 @@ Here is my itinerary <paste text/HTML>, make a page   # Mode B: existing plan
 
 After it's generated, hand the HTML back to Claude to keep editing, e.g. *"Day 3 is too packed, move X to Day 4."* The full trip data is embedded as JSON in the page, so edits change the data and re-render — nothing gets lost.
 
-### 🖼️ Samples
-
-Four ready-made samples — click an itinerary title to open it online (also served from this repo's GitHub Pages: <https://tulongzikun.github.io/travel-plan/>); the files live in `samples/`, and open locally in any browser after cloning:
-
-- [Changzhi & Jincheng, 7D6N](samples/changzhi-jincheng-7d6n-real.html) (`changzhi-jincheng-7d6n-real.html`, Mode A: fly + rental-car loop from Shanghai; national-heritage temples + Taihang canyons; leg-by-leg drive chain, no-mountain-roads-after-dark scheduling, chain-hotel-first picks, Gaoping heritage deep-dive (Chongming Temple's 971 hall, Kaihua Temple murals, Ji residence, Tiefo Temple, Lianghu village), rail-via-Zhengzhou fallback, National-Day-week (Oct 1–7) crowd-aware scheduling)
-- [Wuhan, Xiangyang & Zhongxiang, 6D5N](samples/wuhan-xiangyang-6d5n-real.html) (`wuhan-xiangyang-6d5n-real.html`, Mode A: HSR from Shanghai, dates TBD; a bianzhong-bronze-bells pilgrimage loop — Hubei Provincial Museum → the Zenghouyi tomb pit at Suizhou, an HSR ring with no backtracking; Zhiyin cruise / Tang-dynasty night shows, three zero-move nights inside Xiangyang's old city, UNESCO Ming Xianling tomb on the way home, leg-by-leg transit chain and 9 booking reminders; all 29 points carry dual-sourced WGS-84 coordinates, zero guesswork)
-- [Taiyuan, Pingyao, Jiexiu & Fenyang, 6D5N](samples/taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html) (`taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html`, Mode A: flight + downtown car rental from Shanghai, dates TBD, National-Day week; a Shanxi-merchant heritage line — Jinci's 984 Song-dynasty hall and statues, UNESCO Shuanglin/Zhenguo temples' sculptures, Houtu Temple's glazed rooftops, the one-of-a-kind XianShen Lou, Taifu Guan's Ming suspended sculptures; crowd-aware scheduling for the holiday (a Monday-closure-proof day, first-entry-at-opening strategy), leg-by-leg drive chain, 9 booking reminders, and shows kept out of the main line by rule; every point carries WGS-84 coordinates, zero guesswork)
-- [Barcelona, Granada, Seville, Córdoba & Madrid, 10D9N](samples/barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html) (`barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html`, Mode A: nonstop flight in + AVE rail spine from Shanghai, dates TBD anchored to the Chinese New Year 2027 red-eye window; a Gaudí & Andalusia UNESCO line — Sagrada Família, the Alhambra's Court of the Lions, the Mezquita's forest of arches; winter-sunset scheduling (viewpoints re-timed for February's early dark), a Monday-closure-proof weekday matrix (Seville Cathedral on a full-hours Thursday, Sofía's Friday evening slot, Toledo on a full-hours Saturday, Prado's Saturday free evening) with every closure/restriction also stated in the sight's own details, leg-by-leg transit chain and 10 booking reminders, the Barça–Atlético home fixture noted as an optional tip rather than a stop; combined-ticket & transit-card break-even math (Granada Card honestly computed as not worth it, the El-Salvador combo-ticket queue skip in Seville, the bullring's Wednesday free slot as an optional note, per-city transit cards) with transit chains bus/walk-first and taxis only as labeled fallbacks, plus 2025 netizen-verified hotel picks per area (prices marked with the year paid, not realtime); first international sample — mainland-only Amap day links are auto-omitted abroad, 37 dual-sourced WGS-84 points including rail stations and airports, 19 Commons photos all 200-verified)
-
 ### ❓ FAQ
 
 **Q: How is this different from just asking a chatbot to "write me an itinerary"?**
@@ -150,7 +150,7 @@ travel-plan-viz/
     design-guidelines.md # built-in aesthetics (fallback w/o external design skill)
     porting-to-other-agents.md # cross-agent porting guide + adaptation prompt
   tools/                # optional research tools (xhs_research / flight_research / gflights_research / hotel_research; soft deps, never inlined into pages)
-samples/                # generated example pages
+samples/                # generated example pages (index.html is the samples gallery)
 test/                   # engine unit tests (node --test)
 docs/                   # static assets (banner.png)
 ```

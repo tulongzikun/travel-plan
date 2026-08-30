@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>样例成品 · Migo 旅行领航</title>
+<style>
+  :root{
+    --bg:#f6f1e7;        /* 宣纸米白 */
+    --card:#fffdf8;
+    --accent:#a03e2d;    /* 朱砂红 */
+    --secondary:#41584f; /* 黛青 */
+    --gold:#9a7b2d;      /* 描金 */
+    --ink:#2f2a24;
+    --muted:#7a7265;
+    --line:#e5dcc9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
+    min-height:100vh;
+    background-image:radial-gradient(circle at 12% 8%, rgba(160,62,45,.05), transparent 42%),
+                     radial-gradient(circle at 88% 92%, rgba(65,88,79,.06), transparent 42%);
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:48px 20px 56px}
+  header{text-align:center;margin-bottom:36px}
+  header .kicker{
+    display:inline-block;font-size:12px;letter-spacing:.35em;color:var(--gold);
+    border:1px solid var(--gold);border-radius:999px;padding:5px 14px 5px 18px;margin-bottom:16px;
+  }
+  header h1{font-size:clamp(24px,4.5vw,34px);font-weight:700;letter-spacing:.06em}
+  header h1 em{font-style:normal;color:var(--accent)}
+  header p{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.7}
+  header p a{color:var(--secondary)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:22px 22px 18px;display:flex;flex-direction:column;gap:12px;
+    box-shadow:0 1px 3px rgba(47,42,36,.05);
+    transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+    text-decoration:none;color:inherit;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(47,42,36,.10);border-color:var(--accent)}
+  .badges{display:flex;flex-wrap:wrap;gap:6px}
+  .badge{
+    font-size:11px;line-height:1;padding:5px 9px;border-radius:6px;letter-spacing:.05em;
+    background:rgba(160,62,45,.08);color:var(--accent);border:1px solid rgba(160,62,45,.22);
+  }
+  .badge.alt{background:rgba(65,88,79,.08);color:var(--secondary);border-color:rgba(65,88,79,.25)}
+  .badge.gold{background:rgba(154,123,45,.09);color:var(--gold);border-color:rgba(154,123,45,.3)}
+  .card h2{font-size:17px;font-weight:700;line-height:1.5;letter-spacing:.02em}
+  .card .desc{font-size:13px;color:var(--muted);line-height:1.75;flex:1}
+  .card .open{
+    display:flex;align-items:center;justify-content:space-between;
+    border-top:1px dashed var(--line);padding-top:12px;
+    font-size:13px;color:var(--accent);font-weight:600;letter-spacing:.05em;
+  }
+  .card .open .arrow{transition:transform .15s ease}
+  .card:hover .arrow{transform:translateX(4px)}
+  footer{
+    text-align:center;margin-top:36px;color:var(--muted);font-size:12px;line-height:1.8;
+  }
+  footer a{color:var(--secondary)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="kicker">SAMPLES</span>
+    <h1>样例成品 · <em>Migo 旅行领航</em></h1>
+    <p>四趟真实规划的完整单文件页面——点击卡片在线打开，离线也能读文字行程。<br>
+    由 <a href="https://github.com/tulongzikun/travel-plan">travel-plan-viz</a> 生成 ·
+    <a href="../">返回仓库主页</a></p>
+  </header>
+
+  <div class="grid">
+
+    <a class="card" href="changzhi-jincheng-9d8n-real.html">
+      <div class="badges">
+        <span class="badge">9 天 8 晚</span><span class="badge alt">模式 A · 从零规划</span><span class="badge gold">国庆错峰版</span>
+      </div>
+      <h2>长治 · 晋城 —— 古建与太行自驾</h2>
+      <p class="desc">上海往返自驾 10-03~10-11：长子·晋城·北留·高平·壶关·平顺·长治六地换宿，国保古建深线拆两天 + 八泉峡错峰收官；含逐段车程链、天黑不走山路排程、六轮翻案取舍与舍弃点位清单、实测机票价。</p>
+      <div class="open"><span>打开成品</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="wuhan-xiangyang-6d5n-real.html">
+      <div class="badges">
+        <span class="badge">6 天 5 晚</span><span class="badge alt">模式 A · 从零规划</span><span class="badge gold">高铁环线</span>
+      </div>
+      <h2>武汉 · 襄阳 · 钟祥 —— 编钟溯源环线</h2>
+      <p class="desc">上海高铁出发的楚文化环线——省博编钟 → 随州擂鼓墩原址，高铁不走回头路；含夜游知音号/唐城夜场、襄城古城三晚零挪窝、明显陵世遗收尾；29 点位双源坐标零猜测。</p>
+      <div class="open"><span>打开成品</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html">
+      <div class="badges">
+        <span class="badge">6 天 5 晚</span><span class="badge alt">模式 A · 从零规划</span><span class="badge gold">十一档</span>
+      </div>
+      <h2>太原 · 平遥 · 介休 · 汾阳 —— 票号与琉璃古建线</h2>
+      <p class="desc">晋祠国一宋塑、双林/镇国世遗彩塑、后土庙琉璃、祆神楼孤例、太符观悬塑；含十一逆峰排期（周一闭馆矩阵 + 开门首批制）、逐日车程链与 9 项订票提醒、演出非必选规则。</p>
+      <div class="open"><span>打开成品</span><span class="arrow">→</span></div>
+    </a>
+
+    <a class="card" href="barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html">
+      <div class="badges">
+        <span class="badge">10 天 9 晚</span><span class="badge alt">模式 A · 从零规划</span><span class="badge gold">首个国际样例</span>
+      </div>
+      <h2>巴塞罗那 · 格拉纳达 · 塞维利亚 · 科尔多瓦 · 马德里</h2>
+      <p class="desc">高迪与安达卢西亚世遗线——圣家堂百年档、纳宫狮子庭、清真寺柱林，AVE 高铁纵贯；含冬季日落排程、周一闭馆矩阵、联票与交通卡比价（不回本也如实写）、网友实测酒店。</p>
+      <div class="open"><span>打开成品</span><span class="arrow">→</span></div>
+    </a>
+
+  </div>
+
+  <footer>
+    页面均为单文件 HTML：文字行程离线可读，地图与照片需联网、失败时优雅降级。<br>
+    所有信息为 AI 整理、可能过时，出行前请以官方渠道核实。
+  </footer>
+</div>
+</body>
+</html>
