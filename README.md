@@ -49,12 +49,13 @@
 
 ### 🖼️ 样例
 
-现成样例 4 份——**[样例导航页](samples/index.html)**（在线地址：<https://tulongzikun.github.io/travel-plan/samples/>），或点击行程名单页直链（同步发布于本仓库 GitHub Pages：<https://tulongzikun.github.io/travel-plan/>）；文件在仓库 `samples/` 目录，克隆后浏览器直接打开：
+现成样例 5 份——**[样例导航页](samples/index.html)**（在线地址：<https://tulongzikun.github.io/travel-plan/samples/>），或点击行程名单页直链（同步发布于本仓库 GitHub Pages：<https://tulongzikun.github.io/travel-plan/>）；文件在仓库 `samples/` 目录，克隆后浏览器直接打开：
 
 - [长治·晋城 9 天 8 晚（国庆错峰版）](samples/changzhi-jincheng-9d8n-real.html)（`changzhi-jincheng-9d8n-real.html`，模式 A：上海往返自驾 10-03~10-11，国保古建 + 太行峡谷；含逐段车程链、天黑不走山路排程、连锁优先酒店、高平国保深线拆两天（崇明寺·开化寺·姬氏民居·铁佛寺·良户古村）+ 新增高平一晚、郑州高铁备选与国庆错峰排期（假期后半走深线、10-08 起错峰游八泉峡）、六轮翻案取舍与舍弃点位 Top10/Top20、实测机票价（HO2197 ¥640，HO2198 待 9 月复核））
 - [武汉·襄阳·钟祥 6 天 5 晚](samples/wuhan-xiangyang-6d5n-real.html)（`wuhan-xiangyang-6d5n-real.html`，模式 A：上海高铁出发 dateTBD，编钟溯源环线——省博编钟→随州擂鼓墩原址，高铁不走回头路；含夜游知音号/唐城夜场、襄城古城三晚零挪窝、明显陵世遗收尾、逐日车程链与 9 项订票提醒；全点位 WGS-84 双源坐标，29 点零猜测）
 - [太原·平遥·介休·汾阳 6 天 5 晚](samples/taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html)（`taiyuan-pingyao-jiexiu-fenyang-6d5n-real.html`，模式 A：上海飞机+市区取还车 dateTBD·十一档，票号与琉璃古建线——晋祠国一宋塑、双林/镇国世遗彩塑、后土庙琉璃、祆神楼孤例、太符观悬塑；含十一逆峰排期（D5 周一无休日矩阵）、开门首批制、逐日车程链与 9 项订票提醒、演出非必选规则（拍板排除驻场演艺）；全点位 WGS-84 坐标零猜测）
 - [巴塞罗那·格拉纳达·塞维利亚·科尔多瓦·马德里 10 天 9 晚](samples/barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html)（`barcelona-granada-sevilla-cordoba-madrid-10d9n-real.html`，模式 A：上海直飞进 + AVE 高铁纵贯 dateTBD·2027 春节除夕红眼档，高迪与安达卢西亚世遗线——圣家堂百年档、纳宫狮子庭、清真寺柱林；含冬季日落排程（观景台全按 2 月日落前移）、周一闭馆矩阵（塞维利亚大教堂挪周四、索菲亚周五夜档、托莱多排周六全天、普拉多周六免费夜）且开放限制全部写入景点详情、逐日车程链与 10 项订票提醒，巴萨 vs 马竞主场以备注呈现、不占排程；联票与交通卡比价（Granada Card 算过不回本、塞维利亚救世主教堂联票省队门路、斗牛场周三免费档作备选注记、四城交通卡参考，交通链公交/步行为主、打车仅兜底标价），5 片区各附旅友实测 2025「网友推荐」酒店（标实付年份、非实时）；首个国际行程样例——境外自动省略高德当日链接，37 点位 WGS-84 双源坐标含车站/机场，19 张 Commons 图全过 200 校验）
+- [北京·易县·涞源·蔚县·广灵·浑源·应县·大同 7 天 6 晚](samples/beijing-yuxian-datong-7d6n.html)（`beijing-yuxian-datong-7d6n.html`，模式 A：北京取车自驾单程不回头 + 大同直飞上海返程 dateTBD，燕云国保走廊——燕下都/清西陵世遗/紫荆关内三关/八大辽构阁院寺/飞狐峪天险/蔚县 21 处国保的县城簇/悬空寺登临/应县木塔/云冈世遗；含「所有博物馆均开馆」假设排程（页前 banner + 行前须知声明，定档按真实星期核对）、悬空寺登临双窗口抢票三道防线、乡野国保文保员制动线（故城寺/重泰寺/卜北堡）、天黑不走山路铁律、打树花不点名仅贴士；全点位 WGS-84 坐标 40 点零猜测（OSM/Wikidata/中文维基三源互证），无图版首发、photos 后补）
 
 ### ✨ 特点
 
